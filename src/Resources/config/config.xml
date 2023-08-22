@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>BatteryIncluded configuration</title>
+        <title lang="de-DE">BatterieInklusive Konfiguration</title>
+
+        <input-field>
+            <name>browserApiKey</name>
+            <required>true</required>
+            <label>Browser Api Key</label>
+            <label lang="de-DE">Browser Api Schlüssel</label>
+        </input-field>
+
+        <input-field>
+            <name>serverApiKey</name>
+            <required>true</required>
+            <label>Server Api Key</label>
+            <label lang="de-DE">Server Api Schlüssel</label>
+        </input-field>
+    </card>
+</config>
