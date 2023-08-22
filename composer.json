@@ -1,0 +1,32 @@
+{
+  "name": "elio/battery-included-search-extension",
+  "description": "",
+  "version": "v1.0.0",
+  "type": "shopware-platform-plugin",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "dl/elio GmbH"
+    }
+  ],
+  "require": {
+    "php": ">= 8.1",
+    "elio/search": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Elio\\ElioBatteryIncludedSearchExtension\\": "src/"
+    }
+  },
+  "extra": {
+    "shopware-plugin-class": "Elio\\ElioBatteryIncludedSearchExtension\\ElioBatteryIncludedSearchExtension",
+    "label": {
+      "de-DE": "ElioBatteryIncludedSearchExtension",
+      "en-GB": "ElioBatteryIncludedSearchExtension"
+    },
+    "description": {
+      "de-DE": "Erweitert die Suche mit Batterie-Api",
+      "en-GB": "Extends search with battery api"
+    }
+  }
+}
