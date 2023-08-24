@@ -7,6 +7,13 @@
         <title lang="de-DE">BatterieInklusive Konfiguration</title>
 
         <input-field>
+            <name>collection</name>
+            <required>true</required>
+            <label>BatteryIncluded collection</label>
+            <label lang="de-DE">BatterieInbegriffene Sammlung</label>
+        </input-field>
+
+        <input-field>
             <name>browserApiKey</name>
             <required>true</required>
             <label>Browser Api Key</label>
