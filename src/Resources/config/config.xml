@@ -7,6 +7,13 @@
         <title lang="de-DE">BatterieInklusive Konfiguration</title>
 
         <input-field>
+            <name>apiUrl</name>
+            <required>true</required>
+            <label>BatteryIncluded api url</label>
+            <label lang="de-DE">BatteryIncluded api url</label>
+        </input-field>
+
+        <input-field>
             <name>collection</name>
             <required>true</required>
             <label>BatteryIncluded collection</label>
@@ -25,6 +32,12 @@
             <required>true</required>
             <label>Server Api Key</label>
             <label lang="de-DE">Server Api Schlüssel</label>
+        </input-field>
+
+        <input-field type="int">
+            <name>apiTimeout</name>
+            <label>Api timeout</label>
+            <label lang="de-DE">Api-Zeitüberschreitung</label>
         </input-field>
     </card>
 </config>

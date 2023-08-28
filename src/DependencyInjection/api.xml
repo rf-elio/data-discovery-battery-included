@@ -1,0 +1,72 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <!-- api -->
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory">
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigService"/>
+            <argument type="service" id="elio.fact_finder.core.logging.debug"/>
+        </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SearchApiDecorator" decorates="Elio\ElioSearch\Api\Search\SearchApi">
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SearchApiDecorator.inner"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
+            <argument type="service" id="Elio\ElioSearch\Api\Transform\Transformer"/>
+            <argument type="service" id="elio.fact_finder.core.logging.debug"/>
+        </service>
+        
+        <!-- transformer / response / search -->
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TimeoutTransformer">-->
+<!--            <tag name="elio-ff.api.transformer.response"/>-->
+<!--        </service>-->
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PagingTransformer">
+            <tag name="elio-ff.api.transformer.response"/>
+        </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TotalHitsTransformer">
+            <tag name="elio-ff.api.transformer.response"/>
+        </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer">
+            <tag name="elio-ff.api.transformer.response"/>
+        </service>
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TranslationSortTransformer"-->
+<!--                 decorates="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer">-->
+<!--            <argument type="service" id="product_sorting.repository" />-->
+<!--            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TranslationSortTransformer.inner" />-->
+<!--        </service>-->
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ProductTransformer">
+            <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Listing\ProductListingLoader" />
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <tag name="elio-ff.api.transformer.response"/>
+        </service>
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\FacetTransformer">-->
+<!--            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Core\FilterRestrictions\FilterService" />-->
+<!--            <tag name="elio-ff.api.transformer.response"/>-->
+<!--        </service>-->
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionTransformer">-->
+<!--            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigService" />-->
+<!--            <argument type="service" id="event_dispatcher"/>-->
+<!--            <tag name="elio-ff.api.transformer.response" priority="50"/>-->
+<!--        </service>-->
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionProductTransformer">-->
+<!--            <argument type="service" id="product.repository" />-->
+<!--            <argument type="service" id="Shopware\Core\Content\Seo\SeoUrlPlaceholderHandlerInterface" />-->
+<!--            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigService" />-->
+<!--            <tag name="elio-ff.api.transformer.response" priority="49"/>-->
+<!--        </service>-->
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionCategoryTransformer">-->
+<!--            <argument type="service" id="category.repository" />-->
+<!--            <argument type="service" id="Shopware\Core\Content\Category\Service\CategoryUrlGenerator"/>-->
+<!--            <tag name="elio-ff.api.transformer.response" priority="49"/>-->
+<!--        </service>-->
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\CampaignTransformer">-->
+<!--            <tag name="elio-ff.api.transformer.response"/>-->
+<!--        </service>-->
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ContentTransformer">-->
+<!--            <tag name="elio-ff.api.transformer.response"/>-->
+<!--        </service>-->
+<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TrackingTransformer">-->
+<!--            <tag name="elio-ff.api.transformer.response" priority="-1000"/>-->
+<!--        </service>-->
+    </services>
+</container>

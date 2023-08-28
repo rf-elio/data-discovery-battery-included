@@ -42,6 +42,7 @@ use Elio\ElioSearch\Core\Export\OutputStream;
 use Elio\ElioSearch\Core\Export\SeoRoute;
 use Elio\ElioSearch\Core\Features\FeatureServiceInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Shopware\Core\Content\Category\CategoryEntity;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Dbal\Common\RepositoryIterator;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -54,6 +55,14 @@ use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Shopware\Storefront\Framework\Seo\SeoUrlRoute\ProductPageSeoUrlRoute;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
+/**
+ * Class ProductExportGenerator
+ * @package Elio\ElioBatteryIncludedSearchExtension\Core\Export\Generator\BatteryIncluded
+ * @category Shopware
+ * @author elio GmbH <support@elio-systems.com>
+ * @author Danil Lukov <dl@elio-systems.com>
+ * @copyright Copyright (c) 2023, elio GmbH (https://www.elio-systems.com)
+ */
 class ProductExportGenerator implements ExportGeneratorInterface
 {
     private const PRODUCT_CHUNK_SIZE = 500;
@@ -83,7 +92,7 @@ class ProductExportGenerator implements ExportGeneratorInterface
             ProductExportDefaults::FIELD_ID
         ];
 
-        // TODO: Add event
+        // TODO: Add _i8n and event
 
         return $model;
     }
@@ -120,7 +129,8 @@ class ProductExportGenerator implements ExportGeneratorInterface
                 $item = new ExportItem();
                 $this->prepareExportItem(
                     $product,
-                    $item
+                    $item,
+                    $context
                 );
                 // TODO: Add mapped properties and event
 
@@ -129,17 +139,34 @@ class ProductExportGenerator implements ExportGeneratorInterface
         }
     }
 
-    protected function prepareExportItem(ProductEntity $product, ExportItem $item): void
+    protected function prepareExportItem(ProductEntity $product, ExportItem $item, SalesChannelContext $context): void
     {
         $item->set(ProductExportDefaults::FIELD_ID, $product->getId());
         [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
         $item->set(ProductExportDefaults::FIELD_CONTAINER, [
-            ProductExportDefaults::FIELD_PRODUCT_NUMBER => $product->getProductNumber(),
+            ProductExportDefaults::FIELD_PRODUCT_NUMBER => [$product->getProductNumber()],
             ProductExportDefaults::FIELD_IMAGES => [],
-            ProductExportDefaults::FIELD_URL => new SeoRoute(
-                ProductPageSeoUrlRoute::ROUTE_NAME, $product->getId(), ['productId' => $product->getId()]
-            ),
+            ProductExportDefaults::FIELD_URL => '', // TODO: Add field url
             ProductExportDefaults::FIELD_PRICE => $price,
+        ]);
+
+        $parentProduct = null;
+        if($product->getParentId()) {
+            /** @var ProductEntity|null  $parentProduct */
+            $parentProduct = $this->productRepository->search(new Criteria([$product->getParentId()]), $context->getContext())->first();
+        }
+
+        // TODO: Mapping for language name
+        $item->set('_i8n', [
+            'de' => [
+                'attributes' => [
+                    'brand' => $product->getManufacturer()?->getName() ?? ''
+                ],
+                'categories' => $this->getProductCategories($product),
+                'description' => $product->getDescription() ?? $parentProduct?->getDescription(),
+                'name' => $product->getName() ?? $parentProduct?->getName(),
+                'url' => ''
+            ]
         ]);
     }
 
@@ -165,5 +192,17 @@ class ProductExportGenerator implements ExportGeneratorInterface
         }
 
         return [$price->getGross(), $redPrice];
+    }
+
+    private function getProductCategories(ProductEntity $product): array
+    {
+        $categories = $product->getCategories();
+        if (!$categories) {
+            return [];
+        }
+
+        return array_values($categories->map(function (CategoryEntity $category) {
+            return $category->getName();
+        }));
     }
 }

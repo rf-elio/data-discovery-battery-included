@@ -30,16 +30,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Core\Export\Generator\BatteryIncluded;
+namespace Elio\ElioBatteryIncludedSearchExtension\Core\Export\Exception;
 
-class ProductExportDefaults
+class BatteryIncludedWriteException extends \Exception
 {
-    public const TYPE = 'batteryIncludedProduct';
-    public const FIELD_CONTAINER = '_product';
-    public const FIELD_ID = 'id';
-    public const FIELD_IMAGES = 'images';
-    public const FIELD_PRODUCT_NUMBER = 'ordernumber';
-    public const FIELD_PRICE = 'price';
-    public const FIELD_URL = 'url';
+    private array $errors;
 
+    public function __construct(
+        array $errors,
+        string $message = "Invalid request",
+        int $code = 0,
+        ?Throwable $previous = null
+    ) {
+        parent::__construct($message, $code, $previous);
+        $this->errors = $errors;
+    }
+
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
 }

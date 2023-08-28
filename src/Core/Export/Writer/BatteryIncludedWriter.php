@@ -32,6 +32,8 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Export\Writer;
 
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigService;
+use Elio\ElioBatteryIncludedSearchExtension\Core\Export\Exception\BatteryIncludedWriteException;
 use Elio\ElioSearch\Core\Export\ExportEntity;
 use Elio\ElioSearch\Core\Export\ExportItem;
 use Elio\ElioSearch\Core\Export\Writer\FileWriterInterface;
@@ -48,12 +50,11 @@ use Shopware\Core\System\SystemConfig\SystemConfigService;
  */
 class BatteryIncludedWriter implements FileWriterInterface
 {
-    public const BATTERY_INCLUDED_BASE_URL = 'https://api.batteryincluded.io/';
     public const TYPE = 'batteryIncluded';
 
     protected array $model = [];
 
-    public function __construct(private SystemConfigService $configService)
+    public function __construct(private BatteryIncludedConfigService $configService)
     {
     }
 
@@ -75,10 +76,11 @@ class BatteryIncludedWriter implements FileWriterInterface
      */
     public function open(SalesChannelContext $context)
     {
+        $credentials = $this->configService->getApiCredentials($context->getSalesChannelId());
         $url = sprintf(
-            '%sapi/v1/collections/%s/documents/import',
-            self::BATTERY_INCLUDED_BASE_URL,
-                $this->configService->get('ElioBatteryIncludedSearchExtension.config.collection')
+            '%s/api/v1/collections/%s/documents/import',
+            $credentials->getApiUrl(),
+                'elio' //TODO: Move to config
         );
 
         $ch = curl_init();
@@ -87,7 +89,7 @@ class BatteryIncludedWriter implements FileWriterInterface
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'X-BI-API-KEY: ' . $this->configService->get('ElioBatteryIncludedSearchExtension.config.serverApiKey'),
+            'X-BI-API-KEY: ' . $credentials->getApiUsername(),
             'Content-Type: application/x-ndjson',
         ]);
         return $ch;
@@ -95,14 +97,15 @@ class BatteryIncludedWriter implements FileWriterInterface
 
     public function registerModel(array $model): void
     {
-        $this->model = array_unique(array_merge($this->model, $model));
+        $this->model = array_merge($this->model, $model);
     }
 
     /**
-     * @param $handle
+     * @param \CurlHandle $handle
      * @param array $items
      * @return void
      * @throws \JsonException
+     * @throws BatteryIncludedWriteException
      */
     public function writeList($handle, array $items): void
     {
@@ -110,11 +113,28 @@ class BatteryIncludedWriter implements FileWriterInterface
         $data = array_map(static function (ExportItem $item) {
             return $item->getParams();
         }, $items);
-        $postFields = json_encode($data, JSON_THROW_ON_ERROR);
+
+        $postFields = $this->ndJsonEncode($data);
         curl_setopt($handle, CURLOPT_POSTFIELDS, $postFields);
         $curlResult = curl_exec($handle);
         $result = json_decode($curlResult, true, 512, JSON_THROW_ON_ERROR);
-        // TODO: Check if response is success and throw an error if not
+        $errors = [];
+        foreach ($result as $item) {
+            if ($item['success'] === false) {
+                $errors[] = [
+                    'code' => $item['code'] ?? 500,
+                    'id' => isset($item['document'])
+                        ? json_decode($item['document'], true, 512, JSON_THROW_ON_ERROR)
+                        : null,
+                    'error' => $item['error'] ?? ''
+                ];
+            }
+        }
+
+        dd($result);
+        if (!empty($errors)) {
+            throw new BatteryIncludedWriteException($errors);
+        }
     }
 
     public function abort($handle): void
@@ -131,5 +151,23 @@ class BatteryIncludedWriter implements FileWriterInterface
         if ($handle instanceof \CurlHandle) {
             curl_close($handle);
         }
+    }
+
+    /**
+     * TODO: Move to another class
+     * Encode data to ndjson format
+     *
+     * @param array $data
+     * @return string
+     * @throws \JsonException
+     */
+    private function ndJsonEncode(array $data): string
+    {
+        $encoded = [];
+        foreach ($data as $dataSet) {
+            $encoded[] = json_encode($dataSet, JSON_THROW_ON_ERROR);
+        }
+
+        return implode(PHP_EOL, $encoded);
     }
 }
