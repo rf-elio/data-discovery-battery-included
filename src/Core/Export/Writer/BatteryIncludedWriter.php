@@ -32,8 +32,9 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Export\Writer;
 
-use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigService;
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Export\Exception\BatteryIncludedWriteException;
+use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
 use Elio\ElioSearch\Core\Export\ExportEntity;
 use Elio\ElioSearch\Core\Export\ExportItem;
 use Elio\ElioSearch\Core\Export\Writer\FileWriterInterface;
@@ -54,7 +55,7 @@ class BatteryIncludedWriter implements FileWriterInterface
 
     protected array $model = [];
 
-    public function __construct(private BatteryIncludedConfigService $configService)
+    public function __construct(private ElioSearchConfigServiceInterface $configService)
     {
     }
 
@@ -76,11 +77,13 @@ class BatteryIncludedWriter implements FileWriterInterface
      */
     public function open(SalesChannelContext $context)
     {
-        $credentials = $this->configService->getApiCredentials($context->getSalesChannelId());
+        $configuration = $this->configService->get($context->getSalesChannelId());
+        /** @var BatteryIncludedConfiguration $batteryIncludedConfig */
+        $batteryIncludedConfig = $configuration->getExtension(BatteryIncludedConfiguration::NAME);
         $url = sprintf(
             '%s/api/v1/collections/%s/documents/import',
-            $credentials->getApiUrl(),
-                'elio' //TODO: Move to config
+            $batteryIncludedConfig->getUrl(),
+            $batteryIncludedConfig->getCollection()
         );
 
         $ch = curl_init();
@@ -89,7 +92,7 @@ class BatteryIncludedWriter implements FileWriterInterface
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'X-BI-API-KEY: ' . $credentials->getApiUsername(),
+            'X-BI-API-KEY: ' . $batteryIncludedConfig->getServerToken(),
             'Content-Type: application/x-ndjson',
         ]);
         return $ch;

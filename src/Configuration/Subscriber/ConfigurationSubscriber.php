@@ -30,48 +30,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
+namespace Elio\ElioBatteryIncludedSearchExtension\Configuration\Subscriber;
 
-use Elio\ElioSearch\Api\ApiClientFactoryInterface;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
-use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
-use Elio\ElioSearch\Api\Search\SearchApi;
-use Elio\ElioSearch\Api\Transform\Transformer;
-use Psr\Log\LoggerInterface;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
+use Elio\ElioBatteryIncludedSearchExtension\ElioBatteryIncludedSearchExtension;
+use Elio\ElioSearch\Configuration\Event\ConfigurationLoadedEvent;
+use Shopware\Core\System\SystemConfig\SystemConfigService;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
- * Class SearchApiDecorator
- * @package Elio\ElioBatteryIncludedSearchExtension\Api\Search
+ * Class ConfigurationSubscriber
+ * @package Elio\ElioBatteryIncludedSearchExtension\Configuration\Subscriber
  * @category Shopware
  * @author elio GmbH <support@elio-systems.com>
  * @author Danil Lukov <dl@elio-systems.com>
  * @copyright Copyright (c) 2023, elio GmbH (https://www.elio-systems.com)
  */
-class SearchApiDecorator extends SearchApi
+class ConfigurationSubscriber implements EventSubscriberInterface
 {
-    public function __construct(
-        private SearchApi $decorated,
-        private ApiClientFactoryInterface $apiFactory,
-        private Transformer $transformer,
-        LoggerInterface $logger
-    ) {
-        parent::__construct($transformer, $logger);
+    public function __construct(private readonly SystemConfigService $configService)
+    {
     }
 
-    public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
+    public static function getSubscribedEvents(): array
     {
-        $this->searchDebug('search', $this, [$searchRequest, $context]);
-        $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        return [
+            ConfigurationLoadedEvent::class => 'onConfigurationLoaded'
+        ];
     }
 
-    public function searchContent(ContentSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
+    /**
+     * Adds battery included configuration into basic configuration
+     *
+     * @param ConfigurationLoadedEvent $event
+     * @return void
+     */
+    public function onConfigurationLoaded(ConfigurationLoadedEvent $event): void
     {
-        $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        $pluginConfig = $this->configService->get(ElioBatteryIncludedSearchExtension::PLUGIN_CONFIG_PREFIX);
+        $configuration = $event->getConfiguration();
+        $configuration->addExtension(BatteryIncludedConfiguration::NAME, new BatteryIncludedConfiguration(
+            $pluginConfig['collection'] ?? '',
+            $pluginConfig['apiUrl'] ?? '',
+            $pluginConfig['browserApiKey'] ?? '',
+            $pluginConfig['serverApiKey'] ?? '',
+            $pluginConfig['apiTimeout'] ?? 60
+        ));
+        $event->setConfiguration($configuration);
     }
 }

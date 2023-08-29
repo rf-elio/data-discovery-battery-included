@@ -4,15 +4,9 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigService">
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Configuration\Subscriber\ConfigurationSubscriber">
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-            <argument type="service" id="event_dispatcher"/>
-            <argument type="service" id="language.repository"/>
+            <tag name="kernel.event_subscriber"/>
         </service>
-<!--        <service id="Elio\ElioSearch\Storefront\TwigExtension\ConfigLanguageBased">-->
-<!--            <argument type="service" id="Shopware\Storefront\Framework\Twig\TemplateConfigAccessor"/>-->
-<!--            <argument type="service" id="language.repository"/>-->
-<!--            <tag name="twig.extension"/>-->
-<!--        </service>-->
     </services>
 </container>

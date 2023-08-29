@@ -6,8 +6,8 @@
     <services>
         <!-- writers -->
         <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Export\Writer\BatteryIncludedWriter">
-            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-            <tag name="elio-ff.export.writer"/>
+            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService"/>
+            <tag name="elio-search.export.writer"/>
         </service>
 
         <!-- generators / product -->
@@ -16,7 +16,7 @@
             <argument type="service" id="event_dispatcher" />
             <argument type="service" id="sales_channel.repository" />
             <argument type="service" id="Elio\ElioSearch\Core\Features\FeatureService" />
-            <tag name="elio-ff.export.generator" />
+            <tag name="elio-search.export.generator" />
         </service>
     </services>
 </container>

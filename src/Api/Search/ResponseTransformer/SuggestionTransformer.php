@@ -39,7 +39,7 @@ use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Configuration\Configuration;
-use Elio\ElioSearch\Configuration\FactFinderConfigServiceInterface;
+use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\Suggest\SuggestGroup;
 use Elio\ElioSearch\Core\Suggest\SuggestItem;
@@ -62,16 +62,16 @@ use Throwable;
  */
 class SuggestionTransformer implements ResponseTransformerInterface
 {
-    private FactFinderConfigServiceInterface $configService;
+    private ElioSearchConfigServiceInterface $configService;
     private EventDispatcherInterface $eventDispatcher;
 
     /**
      * SuggestionTransformer constructor.
-     * @param FactFinderConfigServiceInterface $configService
+     * @param ElioSearchConfigServiceInterface $configService
      * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(
-        FactFinderConfigServiceInterface $configService,
+        ElioSearchConfigServiceInterface $configService,
         EventDispatcherInterface $eventDispatcher
     ) {
         $this->configService = $configService;

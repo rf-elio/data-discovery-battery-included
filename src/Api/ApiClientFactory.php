@@ -32,8 +32,9 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Api;
 
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Api\ApiClientFactoryInterface;
-use Elio\ElioSearch\Configuration\FactFinderConfigServiceInterface;
+use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
 use Elio\ElioSearch\Core\Logging\GuzzleLogWrapper;
 use Elio\ElioSearch\Core\Logging\LoggingService;
 use GuzzleHttp\Client;
@@ -44,28 +45,23 @@ use GuzzleHttp\Middleware;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Api\CampaignApi;
-use Swagger\Client\Api\ImportApi;
-use Swagger\Client\Api\ManagementApi;
-use Swagger\Client\Api\PredbasketApi;
-use Swagger\Client\Api\RecordsApi;
 use Swagger\Client\Api\SearchApi;
-use Swagger\Client\Api\TrackingApi;
 use Swagger\Client\Configuration;
 
 class ApiClientFactory implements ApiClientFactoryInterface
 {
     public function __construct(
-        private FactFinderConfigServiceInterface $configService,
-        private LoggerInterface $logger
+        private readonly ElioSearchConfigServiceInterface $configService,
+        private readonly LoggerInterface $logger
     ) {
+
     }
 
     public function createSearchApi(SalesChannelContext $salesChannelContext): SearchApi
     {
         return new SearchApi(
             $this->createClient($salesChannelContext->getSalesChannelId(), $salesChannelContext),
-            $this->createConfiguration($salesChannelContext->getSalesChannelId())
+            $this->createConfiguration($salesChannelContext->getSalesChannelId(), $salesChannelContext)
         );
     }
 
@@ -96,8 +92,11 @@ class ApiClientFactory implements ApiClientFactoryInterface
             new MessageFormatter(LoggingService::LOG_FORMAT))
         );
 
+        /** @var BatteryIncludedConfiguration $batteryIncludedConfig */
+        $batteryIncludedConfig = $configuration->getExtension(BatteryIncludedConfiguration::NAME);
+
         $config = [
-            'max' => $configuration->getApiTimeout(),
+            'max' => $batteryIncludedConfig->getApiTimeOut(),
             'handler' => $stack,
         ];
 
@@ -110,14 +109,27 @@ class ApiClientFactory implements ApiClientFactoryInterface
      * @param string $salesChannelId
      * @return Configuration
      */
-    protected function createConfiguration(string $salesChannelId): Configuration
+    protected function createConfiguration(string $salesChannelId, SalesChannelContext $salesChannelContext = null): Configuration
     {
-        $credentials = $this->configService->getApiCredentials($salesChannelId);
+        if ($salesChannelContext === null) {
+            $configuration = $this->configService->get($salesChannelId);
+        } else {
+            $configuration = $this->configService->getByContext($salesChannelContext);
+        }
+
+        /** @var BatteryIncludedConfiguration $batteryIncludedConfig */
+        $batteryIncludedConfig = $configuration->getExtension(BatteryIncludedConfiguration::NAME);
         $apiConfiguration = new Configuration();
-        $apiConfiguration->setHost($credentials->getApiUrl());
-        $apiConfiguration->setUsername($credentials->getApiUsername());
-        $apiConfiguration->setPassword($credentials->getApiPassword());
-        $apiConfiguration->setAccessToken(null);
+        $apiConfiguration->setHost($batteryIncludedConfig->getUrl());
+        $apiConfiguration->setApiKey(
+            BatteryIncludedConfiguration::BROWSER_API_KEY,
+            $batteryIncludedConfig->getBrowserToken()
+        );
+        $apiConfiguration->setApiKey(
+            BatteryIncludedConfiguration::SERVER_API_KEY,
+            $batteryIncludedConfig->getServerToken()
+        );
+        $apiConfiguration->setCollection($batteryIncludedConfig->getCollection());
         return $apiConfiguration;
     }
 }

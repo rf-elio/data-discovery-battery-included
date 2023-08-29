@@ -10,6 +10,8 @@ use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 
 class ElioBatteryIncludedSearchExtension extends Plugin
 {
+    public const PLUGIN_CONFIG_PREFIX = 'ElioBatteryIncludedSearchExtension.config';
+
     /**
      * Adds the additional service definitions
      *

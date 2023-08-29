@@ -34,10 +34,9 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Response\SuggestionResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Configuration\Configuration;
-use Elio\ElioSearch\Configuration\FactFinderConfigServiceInterface;
+use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\Suggest\SuggestGroup;
 use Shopware\Core\Content\Product\ProductEntity;
@@ -65,19 +64,19 @@ class SuggestionProductTransformer implements ResponseTransformerInterface
     private const URL_ATTRIBUTE = 'ProductURL';
 
     private EntityRepository $productRepository;
-    private FactFinderConfigServiceInterface $configService;
+    private ElioSearchConfigServiceInterface $configService;
     private SeoUrlPlaceholderHandlerInterface $seoUrlPlaceholderHandler;
 
     /**
      * SuggestionTransformer constructor.
      * @param EntityRepository $productRepository
      * @param SeoUrlPlaceholderHandlerInterface $seoUrlPlaceholderHandler
-     * @param FactFinderConfigServiceInterface $configService
+     * @param ElioSearchConfigServiceInterface $configService
      */
     public function __construct(
         EntityRepository $productRepository,
         SeoUrlPlaceholderHandlerInterface $seoUrlPlaceholderHandler,
-        FactFinderConfigServiceInterface $configService
+        ElioSearchConfigServiceInterface $configService
     ) {
         $this->productRepository = $productRepository;
         $this->configService = $configService;

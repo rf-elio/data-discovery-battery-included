@@ -30,48 +30,80 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
+namespace Elio\ElioBatteryIncludedSearchExtension\Configuration;
 
-use Elio\ElioSearch\Api\ApiClientFactoryInterface;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
-use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
-use Elio\ElioSearch\Api\Search\SearchApi;
-use Elio\ElioSearch\Api\Transform\Transformer;
-use Psr\Log\LoggerInterface;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\Framework\Struct\Struct;
 
 /**
- * Class SearchApiDecorator
- * @package Elio\ElioBatteryIncludedSearchExtension\Api\Search
+ * Class BatteryIncludedConfiguration
+ * @package Elio\ElioBatteryIncludedSearchExtension\Configuration
  * @category Shopware
  * @author elio GmbH <support@elio-systems.com>
  * @author Danil Lukov <dl@elio-systems.com>
  * @copyright Copyright (c) 2023, elio GmbH (https://www.elio-systems.com)
  */
-class SearchApiDecorator extends SearchApi
+class BatteryIncludedConfiguration extends Struct
 {
+    public const NAME = 'batteryIncluded';
+    public const BROWSER_API_KEY = 'browserApiKey';
+    public const SERVER_API_KEY = 'serverApiKey';
+
     public function __construct(
-        private SearchApi $decorated,
-        private ApiClientFactoryInterface $apiFactory,
-        private Transformer $transformer,
-        LoggerInterface $logger
-    ) {
-        parent::__construct($transformer, $logger);
+        private readonly string $collection,
+        private readonly string $url,
+        private readonly string $browserToken,
+        private readonly string $serverToken,
+        private readonly int $apiTimeOut
+    ){
     }
 
-    public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
+    /**
+     * Battery included collection
+     *
+     * @return string
+     */
+    public function getCollection(): string
     {
-        $this->searchDebug('search', $this, [$searchRequest, $context]);
-        $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        return $this->collection;
     }
 
-    public function searchContent(ContentSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
+    /**
+     * Battery included app url
+     *
+     * @return string
+     */
+    public function getUrl(): string
     {
-        $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        return $this->url;
+    }
+
+    /**
+     * Battery included browser token
+     *
+     * @return string
+     */
+    public function getBrowserToken(): string
+    {
+        return $this->browserToken;
+    }
+
+    /**
+     * Battery included server token
+     *
+     * @return string
+     */
+    public function getServerToken(): string
+    {
+        return $this->serverToken;
+    }
+
+    /**
+     * Battery included timeout
+     *
+     * @return int
+     */
+    public function getApiTimeOut(): int
+    {
+        return $this->apiTimeOut;
     }
 }
