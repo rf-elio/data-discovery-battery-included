@@ -124,8 +124,10 @@ class ProductExportGenerator implements ExportGeneratorInterface
 
         $iterator = new RepositoryIterator($this->productRepository, $context->getContext(), $criteria);
         while ($products = $iterator->fetch()) {
+            // TODO: Fetch products from compare table
             /** @var ProductEntity $product */
             foreach ($products as $product) {
+                // TODO: Compare hashes if they are similar continue
                 $item = new ExportItem();
                 $this->prepareExportItem(
                     $product,

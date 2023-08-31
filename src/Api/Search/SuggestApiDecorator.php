@@ -34,43 +34,45 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
-use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
-use Elio\ElioSearch\Api\Search\SearchApi;
+use Elio\ElioSearch\Api\Search\Request\SuggestRequest;
+use Elio\ElioSearch\Api\Search\SuggestApi;
 use Elio\ElioSearch\Api\Transform\Transformer;
-use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Throwable;
 
 /**
- * Class SearchApiDecorator
+ * Class SuggestApiDecorator
  * @package Elio\ElioBatteryIncludedSearchExtension\Api\Search
  * @category Shopware
  * @author elio GmbH <support@elio-systems.com>
  * @author Danil Lukov <dl@elio-systems.com>
  * @copyright Copyright (c) 2023, elio GmbH (https://www.elio-systems.com)
  */
-class SearchApiDecorator extends SearchApi
+class SuggestApiDecorator extends SuggestApi
 {
+    /**
+     * SearchApi constructor.
+     * @param Transformer $transformer
+     */
     public function __construct(
         private ApiClientFactory $apiFactory,
-        private Transformer $transformer,
-        LoggerInterface $logger
-    ) {
-        parent::__construct($transformer, $logger);
+        private Transformer $transformer
+    )
+    {
+        parent::__construct($this->transformer);
     }
 
-    public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
-    {
-        $this->searchDebug('search', $this, [$searchRequest, $context]);
-        $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
-    }
-
-    public function searchContent(ContentSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
+    /**
+     * @param SuggestRequest $suggestRequest
+     * @param SalesChannelContext $context
+     * @return ResponseCollection
+     * @throws Throwable
+     */
+    public function suggest(SuggestRequest $suggestRequest, SalesChannelContext $context): ResponseCollection
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        // TODO: Add suggestion result model response
+        $result = $apiClient->suggest($suggestRequest->getQuery());
+        return $this->transformer->transformResponse($result, $context, $suggestRequest);
     }
 }

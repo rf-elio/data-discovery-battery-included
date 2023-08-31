@@ -33,7 +33,6 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api;
 
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
-use Elio\ElioSearch\Api\ApiClientFactoryInterface;
 use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
 use Elio\ElioSearch\Core\Logging\GuzzleLogWrapper;
 use Elio\ElioSearch\Core\Logging\LoggingService;
@@ -48,15 +47,20 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Swagger\Client\Api\SearchApi;
 use Swagger\Client\Configuration;
 
-class ApiClientFactory implements ApiClientFactoryInterface
+class ApiClientFactory
 {
     public function __construct(
         private readonly ElioSearchConfigServiceInterface $configService,
         private readonly LoggerInterface $logger
     ) {
-
     }
 
+    /**
+     * Creates a search api client
+     *
+     * @param SalesChannelContext $salesChannelContext
+     * @return SearchApi
+     */
     public function createSearchApi(SalesChannelContext $salesChannelContext): SearchApi
     {
         return new SearchApi(
@@ -107,6 +111,7 @@ class ApiClientFactory implements ApiClientFactoryInterface
      * Creates the configuration struct that contains the api address and credentials
      *
      * @param string $salesChannelId
+     * @param SalesChannelContext|null $salesChannelContext
      * @return Configuration
      */
     protected function createConfiguration(string $salesChannelId, SalesChannelContext $salesChannelContext = null): Configuration
