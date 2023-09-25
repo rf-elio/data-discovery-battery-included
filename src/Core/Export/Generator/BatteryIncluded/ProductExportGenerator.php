@@ -118,6 +118,7 @@ class ProductExportGenerator implements ExportGeneratorInterface
         $criteria->addAssociation('properties.group');
         $criteria->addAssociation('categories');
         $criteria->addAssociation('tags');
+        $criteria->addAssociation('translations');
         $criteria->addFilter(new EqualsFilter('product.active', true));
         $criteria->addFilter(new EqualsFilter('product.visibilities.salesChannelId', $export->getSalesChannelId()));
         $criteria->setLimit(self::PRODUCT_CHUNK_SIZE);
@@ -127,6 +128,10 @@ class ProductExportGenerator implements ExportGeneratorInterface
             // TODO: Fetch products from compare table
             /** @var ProductEntity $product */
             foreach ($products as $product) {
+                if ($product->getProductNumber() === 'SWDEMO10005.4') {
+                    dd($product->getTranslations());
+                }
+
                 // TODO: Compare hashes if they are similar continue
                 $item = new ExportItem();
                 $this->prepareExportItem(

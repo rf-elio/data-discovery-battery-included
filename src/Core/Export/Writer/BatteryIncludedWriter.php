@@ -134,7 +134,6 @@ class BatteryIncludedWriter implements FileWriterInterface
             }
         }
 
-        dd($result);
         if (!empty($errors)) {
             throw new BatteryIncludedWriteException($errors);
         }

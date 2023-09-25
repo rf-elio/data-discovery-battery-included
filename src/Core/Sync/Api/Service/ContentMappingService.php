@@ -1,0 +1,154 @@
+<?php declare(strict_types=1);
+/**
+ * Copyright (c) 2023, elio GmbH.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ * this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service;
+
+use Elio\ElioSearch\Core\Defaults;
+use Elio\ElioSearch\Core\Export\Generator\Util\ValueUtil;
+use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
+use Elio\ElioSearch\Core\Sync\Defaults\ContentSyncDefaults;
+use Elio\ElioSearch\Core\Sync\Export\Converter\Exception\InvalidDataTypeException;
+use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
+use Shopware\Core\Content\Seo\SeoUrl\SeoUrlEntity;
+use Shopware\Core\System\SalesChannel\SalesChannelContext;
+
+/**
+ * Class ContentMappingService
+ * @package Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service
+ * @category Shopware
+ * @author elio GmbH <support@elio-systems.com>
+ * @author Danil Lukov <dl@elio-systems.com>
+ * @copyright Copyright (c) 2023, elio GmbH (https://www.elio-systems.com)
+ */
+class ContentMappingService
+{
+    public const TYPE = ContentType::class;
+
+    /**
+     * Maps data for create, update request
+     *
+     * @param array $collection
+     * @param SyncProfileEntity $syncProfile
+     * @param SalesChannelContext $context
+     * @return array
+     * @throws InvalidDataTypeException
+     */
+    public function mapData(array $collection, SyncProfileEntity $syncProfile, SalesChannelContext $context): array
+    {
+        $content = array_values($collection)[0] ?? null;
+        if (!$content instanceof ContentType) {
+            throw new InvalidDataTypeException('Unsupported type');
+        }
+
+        $convertedData = [];
+        $convertedData['_content'] = $this->prepareBaseFields($content);
+        $convertedData['_i8n'] = $this->prepareTranslatedFields($collection);
+
+        // TODO: Add mapping
+        return $convertedData;
+    }
+
+    /**
+     * Prepares base fields
+     *
+     * @param ContentType $content
+     * @return array
+     */
+    protected function prepareBaseFields(ContentType $content): array
+    {
+        return [
+            ContentSyncDefaults::FIELD_ID => $content->getId(),
+            ContentSyncDefaults::FIELD_TYPE => $content->getType(),
+            ContentSyncDefaults::FIELD_IMAGE_URL => $content->getMedia()?->getUrl(),
+            ContentSyncDefaults::FIELD_PUBLICATION_DATE => $content->getCreatedAt()?->format('Y-m-d'),
+        ];
+    }
+
+    /**
+     * Prepare translation fields
+     *
+     * @param array $collection
+     * @return array
+     */
+    protected function prepareTranslatedFields(array $collection): array
+    {
+        $translatedFields = [];
+        foreach ($collection as $languageId => $content) {
+            $translatedFields[$languageId] = [
+                ContentSyncDefaults::FIELD_NAME => $content->getName(),
+                ContentSyncDefaults::FIELD_TITLE => $content->getTitle(),
+                ContentSyncDefaults::FIELD_SEO_TEXT => $content->getSeoText(),
+                ContentSyncDefaults::FIELD_URL => $this->getUrl($languageId, $content),
+                ContentSyncDefaults::FIELD_KEYWORDS => $content->getKeywords(),
+                ContentSyncDefaults::FIELD_DESCRIPTION => $content->getDescription(),
+                ContentSyncDefaults::FIELD_CONTENT_STRUCTURE => ValueUtil::cleanValue(implode('/', array_map('rawurlencode', array_slice($content->getBreadcrumb(), 1)))),
+                ContentSyncDefaults::FIELD_TAGS => $this->getTags($content),
+            ];
+        }
+
+        return $translatedFields;
+    }
+
+    /**
+     * Get content url
+     *
+     * @param string $languageId
+     * @param ContentType $content
+     * @return string|null
+     */
+    protected function getUrl(string $languageId, ContentType $content): ?string
+    {
+        return $content->getSeoUrls()?->filter(fn(SeoUrlEntity $seoUrl) => $seoUrl->getLanguageId() === $languageId)
+            ->first()
+            ->getUrl();
+    }
+
+    /**
+     * Creates the content tags string
+     *
+     * @param ContentType $content
+     * @return string
+     */
+    protected function getTags(ContentType $content) : string
+    {
+        if(!$content->getTags()) {
+            return '';
+        }
+
+        $tags = [];
+        foreach ($content->getTags() as $tag) {
+            $tags[] = $tag->getTranslation('name') ?? $tag->getName();
+        }
+
+        return implode(Defaults::VALUE_SEPARATOR, $tags);
+    }
+}
