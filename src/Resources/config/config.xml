@@ -4,20 +4,20 @@
 
     <card>
         <title>BatteryIncluded configuration</title>
-        <title lang="de-DE">BatteryIncluded Konfiguration</title>
+        <title lang="de-DE">BatterieInklusive Konfiguration</title>
 
         <input-field>
             <name>apiUrl</name>
             <required>true</required>
-            <label>Api url</label>
-            <label lang="de-DE">Api url</label>
+            <label>BatteryIncluded api url</label>
+            <label lang="de-DE">BatteryIncluded api url</label>
         </input-field>
 
         <input-field>
             <name>collection</name>
             <required>true</required>
-            <label>Collection</label>
-            <label lang="de-DE">Collection</label>
+            <label>BatteryIncluded collection</label>
+            <label lang="de-DE">BatterieInbegriffene Sammlung</label>
         </input-field>
 
         <input-field>
@@ -37,7 +37,7 @@
         <input-field type="int">
             <name>apiTimeout</name>
             <label>Api timeout</label>
-            <label lang="de-DE">Api Timeout</label>
+            <label lang="de-DE">Api-Zeitüberschreitung</label>
         </input-field>
     </card>
 </config>

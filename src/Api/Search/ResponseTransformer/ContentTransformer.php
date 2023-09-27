@@ -7,14 +7,14 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Request\ContentSearchRequest;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Response\ContentListingResponse;
+use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
+use Elio\ElioSearch\Api\Search\Response\ContentListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Core\Content\Content\SalesChannel\ContentGroup;
 use Elio\ElioSearch\Core\Content\Content\SalesChannel\ContentItem;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Core\Export\Generator\Content\ContentExportDefaults;
-use Elio\ElioSearch\Core\Export\Generator\ExportDefaults;
+use Elio\ElioSearch\Core\Sync\Defaults\ContentSyncDefaults;
+use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Swagger\Client\Model\ModelInterface;
 use Swagger\Client\Model\Result;
@@ -65,16 +65,16 @@ class ContentTransformer implements ResponseTransformerInterface
             $masterValues = $hit->getMasterValues();
             $content = new ContentItem(
                 $hit->getId(),
-                $this->getFirstValue($masterValues, ContentExportDefaults::FIELD_TYPE) ?? '',
-                $this->getFirstValue($masterValues, ContentExportDefaults::FIELD_CONTENT_STRUCTURE) ?? '',
-                $this->getFirstValue($masterValues, ContentExportDefaults::FIELD_TITLE) ?? '',
-                $this->getFirstValue($masterValues, ContentExportDefaults::FIELD_DESCRIPTION) ?? '',
-                $this->getFirstValue($masterValues, ContentExportDefaults::FIELD_URL) ?? '',
-                $this->getFirstValue($masterValues, ContentExportDefaults::FIELD_IMAGE_URL) ?? '',
+                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_TYPE) ?? '',
+                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_CONTENT_STRUCTURE) ?? '',
+                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_TITLE) ?? '',
+                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_DESCRIPTION) ?? '',
+                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_URL) ?? '',
+                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_IMAGE_URL) ?? '',
                 $this->restoreDateTime(
-                    $this->getFirstValue($masterValues, ContentExportDefaults::FIELD_PUBLICATION_DATE) ?? ''
+                    $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_PUBLICATION_DATE) ?? ''
                 ),
-                (int)($this->getFirstValue($masterValues, ContentExportDefaults::FIELD_PRIORITY) ?? ContentExportDefaults::DEFAULT_PRIORITY),
+                (int)($this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_PRIORITY) ?? ContentSyncDefaults::DEFAULT_PRIORITY),
                 $hit->getPosition()
             );
             $listing->addContentItem($content);
@@ -115,7 +115,7 @@ class ContentTransformer implements ResponseTransformerInterface
         }
 
         $value = trim($value, '"');
-        $dateTime = DateTimeImmutable::createFromFormat(ExportDefaults::DATE_TIME_FORMAT, $value);
+        $dateTime = DateTimeImmutable::createFromFormat(SyncDefaults::DATE_TIME_FORMAT, $value);
         return $dateTime ?: null;
     }
 

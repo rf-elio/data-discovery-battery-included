@@ -30,12 +30,64 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Core\Export;
+namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Profile;
 
-class ExportBatteryIncludedService
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Output\BIOutput;
+use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
+use Elio\ElioSearch\Core\Sync\DataTypes\ProductType;
+use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
+use Elio\ElioSearch\Core\Sync\Export\Converter\ContentConverter;
+use Elio\ElioSearch\Core\Sync\Export\Converter\ProductConverter;
+use Elio\ElioSearch\Core\Sync\Profile\SyncProfileInterface;
+
+/**
+ * Class ProductProfile
+ * @package Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Profile
+ * @category Shopware
+ * @author elio GmbH <support@elio-systems.com>
+ * @author Danil Lukov <dl@elio-systems.com>
+ * @copyright Copyright (c) 2023, elio GmbH (https://www.elio-systems.com)
+ */
+class BIProfile implements SyncProfileInterface
 {
-    public function sync()
+    public function getTypes(): array
     {
-        
+        return [SyncDefaults::PROFILE_SYNC];
+    }
+
+    public function getName(): string
+    {
+        return 'BI Sync';
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getDataTypes(): array
+    {
+        return [ProductType::class, ContentType::class];
+    }
+
+    public function getConverters(): array
+    {
+        return [
+            ProductType::class => ProductConverter::class,
+            ContentType::class => ContentConverter::class,
+        ];
+    }
+
+    public function getOutputs(): array
+    {
+        return [BIOutput::TYPE];
+    }
+
+    /**
+     * TODO: Remove support?
+     *
+     * @return bool
+     */
+    public function isMultiLanguageSupport(): bool
+    {
+        return false;
     }
 }
