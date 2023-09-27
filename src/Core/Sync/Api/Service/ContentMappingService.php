@@ -87,10 +87,9 @@ class ContentMappingService
     protected function prepareBaseFields(ContentType $content): array
     {
         return [
-            ContentSyncDefaults::FIELD_ID => $content->getId(),
-            ContentSyncDefaults::FIELD_TYPE => $content->getType(),
-            ContentSyncDefaults::FIELD_IMAGE_URL => $content->getMedia()?->getUrl(),
-            ContentSyncDefaults::FIELD_PUBLICATION_DATE => $content->getCreatedAt()?->format('Y-m-d'),
+            'type' => $content->getType(),
+            'imageurl' => $content->getMedia()?->getUrl(),
+            'publicationdate' => $content->getCreatedAt()?->format('Y-m-d'),
         ];
     }
 
@@ -105,14 +104,14 @@ class ContentMappingService
         $translatedFields = [];
         foreach ($collection as $languageId => $content) {
             $translatedFields[$languageId] = [
-                ContentSyncDefaults::FIELD_NAME => $content->getName(),
-                ContentSyncDefaults::FIELD_TITLE => $content->getTitle(),
-                ContentSyncDefaults::FIELD_SEO_TEXT => $content->getSeoText(),
-                ContentSyncDefaults::FIELD_URL => $this->getUrl($languageId, $content),
-                ContentSyncDefaults::FIELD_KEYWORDS => $content->getKeywords(),
-                ContentSyncDefaults::FIELD_DESCRIPTION => $content->getDescription(),
-                ContentSyncDefaults::FIELD_CONTENT_STRUCTURE => ValueUtil::cleanValue(implode('/', array_map('rawurlencode', array_slice($content->getBreadcrumb(), 1)))),
-                ContentSyncDefaults::FIELD_TAGS => $this->getTags($content),
+                'name' => $content->getName(),
+                'title' => $content->getTitle(),
+                'seotext' => $content->getSeoText(),
+                'url' => $this->getUrl($languageId, $content),
+                'keywords' => $content->getKeywords(),
+                'description' => $content->getDescription(),
+                'contentstructure' => ValueUtil::cleanValue(implode('/', array_map('rawurlencode', array_slice($content->getBreadcrumb() ?? [], 1)))),
+                'tags' => $this->getTags($content),
             ];
         }
 

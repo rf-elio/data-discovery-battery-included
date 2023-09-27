@@ -110,25 +110,25 @@ class ProductMappingService
 
         [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
         return [
-            ProductSyncDefaults::FIELD_ID => $product->getId(),
-            ProductSyncDefaults::FIELD_MASTER_PRODUCT_NUMBER => $parentProduct?->getProductNumber(),
+            'id' => $product->getId(),
+            'masterproductnumber' => $parentProduct?->getProductNumber(),
             'ordernumber' => [$product->getProductNumber()],
-            ProductSyncDefaults::FIELD_MANUFACTURER_NUMBER => $product->getManufacturerNumber(),
-            ProductSyncDefaults::FIELD_PRICE => ValueUtil::formatPrice($price),
-            ProductSyncDefaults::FIELD_RED_PRICE => ValueUtil::formatPrice($redPrice),
-            ProductSyncDefaults::FIELD_CATEGORY_IDS => $this->getCategoryIds($product),
-            ProductSyncDefaults::FIELD_EAN => $product->getEan(),
-            ProductSyncDefaults::FIELD_STOCK => $product->getStock(),
-            ProductSyncDefaults::FIELD_CLOSEOUT => $product->getIsCloseout() ? 1 : 0,
-            ProductSyncDefaults::FIELD_RATING_AVERAGE => $product->getRatingAverage(),
-            ProductSyncDefaults::FIELD_SHIPPING_FREE => $product->getShippingFree(),
-            ProductSyncDefaults::FIELD_SALES_COUNT => $product->getSales(),
-            ProductSyncDefaults::FIELD_RELEASE_DATE => $product->getReleaseDate()
+            'manufacturer' => $product->getManufacturerNumber(),
+            'price' => (float)ValueUtil::formatPrice($price),
+            'redprice' => (float)ValueUtil::formatPrice($redPrice),
+            'categoryids' => $this->getCategoryIds($product),
+            'ean' => $product->getEan(),
+            'stock' => $product->getStock(),
+            'closeout' => $product->getIsCloseout() ? 1 : 0,
+            'ratingaverage' => $product->getRatingAverage(),
+            'shippingfree' => $product->getShippingFree(),
+            'salescount' => $product->getSales(),
+            'releasedate'=> $product->getReleaseDate()
                 ? $product->getReleaseDate()->format(SyncDefaults::DATE_TIME_FORMAT)
                 : '',
-            ProductSyncDefaults::FIELD_IMAGE_URL => $product->getCover()?->getMedia()?->getUrl(),
-            ProductSyncDefaults::FIELD_THUMBNAIL_URL => $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails()),
-            ProductSyncDefaults::FIELD_PRODUCT_URL => '',
+            'imageurl' => $product->getCover()?->getMedia()?->getUrl(),
+            'thumbnailurl' => $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails()),
+            'producturl' => '', // TODO
         ];
     }
 
@@ -145,16 +145,16 @@ class ProductMappingService
         foreach ($collection as $languageId => $product) {
             $translated = $product->getTranslated();
             $translatedFields[$languageId] = [
-                ProductSyncDefaults::FIELD_NAME => $product->getName() ?? $translated['name'] ?? '',
-                ProductSyncDefaults::FIELD_DESCRIPTION => ValueUtil::cleanValue($product->getDescription() ?? $translated['description'] ?? ''),
-                ProductSyncDefaults::FIELD_META_TITLE => ValueUtil::cleanValue($product->getMetaTitle() ?? $translated['metaTitle'] ?? ''),
-                ProductSyncDefaults::FIELD_MANUFACTURER => $product->getManufacturer()?->getTranslation('name') ?? $product->getManufacturer()?->getName(),
-                ProductSyncDefaults::FIELD_KEYWORDS => $product->getKeywords() ?? $translated['keywords'] ?? '',
-                ProductSyncDefaults::FIELD_SEARCH_KEYWORDS => implode(', ', $product->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? []),
-                ProductSyncDefaults::FIELD_CATEGORY_PATH => $this->getCategoryPath($product),
-                ProductSyncDefaults::FIELD_ATTRIBUTE => $this->getProductAttribute($this->getFilterableProductProperties($product)),
-                ProductSyncDefaults::FIELD_ATTRIBUTE_NON_FILTERABLE => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
-                ProductSyncDefaults::FIELD_TAGS => $this->getProductTags($product),
+                'name' => $product->getName() ?? $translated['name'] ?? '',
+                'description' => ValueUtil::cleanValue($product->getDescription() ?? $translated['description'] ?? ''),
+                'metatitle' => ValueUtil::cleanValue($product->getMetaTitle() ?? $translated['metaTitle'] ?? ''),
+                'manufacturer' => $product->getManufacturer()?->getTranslation('name') ?? $product->getManufacturer()?->getName(),
+                'keywords' => $product->getKeywords() ?? $translated['keywords'] ?? '',
+                'searchkeywords' => implode(', ', $product->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? []),
+                'categorypath' => $this->getCategoryPath($product),
+                'attribute' => $this->getProductAttribute($this->getFilterableProductProperties($product)),
+                'attributenotfilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
+                'tags' => $this->getProductTags($product),
             ];
         }
 

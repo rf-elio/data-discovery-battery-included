@@ -167,7 +167,7 @@ class BIOutput implements OutputInterface
         if ($response->getStatusCode() !== 200) {
             throw new ApiSyncException(sprintf('Invalid status code %s', $response->getStatusCode()));
         }
-dd($body);
+
         $errors = [];
         foreach ($body as $item) {
             if ($item['success'] === false) {
@@ -186,6 +186,7 @@ dd($body);
                 'plugin' => 'ElioBatteryIncluded',
                 'errors' => $errors,
             ]);
+            throw new ApiSyncException(sprintf('Invalid status code %s', $response->getStatusCode()));
         }
     }
 }
