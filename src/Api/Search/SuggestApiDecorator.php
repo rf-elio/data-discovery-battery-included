@@ -52,14 +52,13 @@ class SuggestApiDecorator extends SuggestApi
 {
     /**
      * SearchApi constructor.
+     * @param ApiClientFactory $apiFactory
      * @param Transformer $transformer
      */
     public function __construct(
-        private ApiClientFactory $apiFactory,
-        private Transformer $transformer
-    )
-    {
-        parent::__construct($this->transformer);
+        private readonly ApiClientFactory $apiFactory,
+        private readonly Transformer $transformer
+    ) {
     }
 
     /**

@@ -53,10 +53,10 @@ class SearchApiDecorator extends SearchApi
 {
     public function __construct(
         private ApiClientFactory $apiFactory,
-        private Transformer $transformer,
+        private readonly Transformer $transformer,
         LoggerInterface $logger
     ) {
-        parent::__construct($transformer, $logger);
+        parent::__construct($logger);
     }
 
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
