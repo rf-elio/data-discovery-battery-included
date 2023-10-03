@@ -57,11 +57,15 @@ class ContentTransformer implements ResponseTransformerInterface
         if(!$model instanceof Result) {
             throw new InvalidTypeException($model, Result::class);
         }
-
         $listing = $responseCollection->get(ContentListingResponse::class) ?? new ContentListingResponse();
         $responseCollection->set(ContentListingResponse::class, $listing);
 
         foreach ($model->getHits() as $hit) {
+            if (!isset($hit['document']['_content'])) {
+                continue;
+            }
+
+            // TODO: Implement content
             $masterValues = $hit->getMasterValues();
             $content = new ContentItem(
                 $hit->getId(),

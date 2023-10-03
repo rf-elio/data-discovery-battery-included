@@ -34,7 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Response\SuggestionResponse;
+use Elio\ElioSearch\Api\Search\Response\SuggestionResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\Suggest\SuggestGroup;

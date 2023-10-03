@@ -38,25 +38,25 @@
             <argument type="service" id="Doctrine\DBAL\Connection"/>
             <tag name="elio-search.api.transformer.response"/>
         </service>
-<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionTransformer">-->
-<!--            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigService" />-->
-<!--            <argument type="service" id="event_dispatcher"/>-->
-<!--            <tag name="elio-search.api.transformer.response" priority="50"/>-->
-<!--        </service>-->
-<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionProductTransformer">-->
-<!--            <argument type="service" id="product.repository" />-->
-<!--            <argument type="service" id="Shopware\Core\Content\Seo\SeoUrlPlaceholderHandlerInterface" />-->
-<!--            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigService" />-->
-<!--            <tag name="elio-search.api.transformer.response" priority="49"/>-->
-<!--        </service>-->
-<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionCategoryTransformer">-->
-<!--            <argument type="service" id="category.repository" />-->
-<!--            <argument type="service" id="Shopware\Core\Content\Category\Service\CategoryUrlGenerator"/>-->
-<!--            <tag name="elio-search.api.transformer.response" priority="49"/>-->
-<!--        </service>-->
-<!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ContentTransformer">-->
-<!--            <tag name="elio-search.api.transformer.response"/>-->
-<!--        </service>-->
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionTransformer">
+            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService" />
+            <argument type="service" id="event_dispatcher"/>
+            <tag name="elio-search.api.transformer.response" priority="50"/>
+        </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionProductTransformer">
+            <argument type="service" id="product.repository" />
+            <argument type="service" id="Shopware\Core\Content\Seo\SeoUrlPlaceholderHandlerInterface" />
+            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService" />
+            <tag name="elio-search.api.transformer.response" priority="49"/>
+        </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionCategoryTransformer">
+            <argument type="service" id="category.repository" />
+            <argument type="service" id="Shopware\Core\Content\Category\Service\CategoryUrlGenerator"/>
+            <tag name="elio-search.api.transformer.response" priority="49"/>
+        </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ContentTransformer">
+            <tag name="elio-search.api.transformer.response"/>
+        </service>
 <!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TrackingTransformer">-->
 <!--            <tag name="elio-search.api.transformer.response" priority="-1000"/>-->
 <!--        </service>-->

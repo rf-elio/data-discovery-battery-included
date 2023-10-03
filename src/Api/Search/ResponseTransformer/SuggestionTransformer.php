@@ -33,8 +33,8 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
 
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Response\SuggestionResponse;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Event\SuggestItemTransformEvent;
+use Elio\ElioSearch\Api\Search\Response\SuggestionResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
@@ -46,7 +46,6 @@ use Elio\ElioSearch\Core\Suggest\SuggestItem;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Swagger\Client\Model\ModelInterface;
-use Swagger\Client\Model\ResultSuggestion;
 use Swagger\Client\Model\SuggestionResult;
 use Throwable;
 
@@ -83,7 +82,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
      */
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {
-        return false;
+        return $model instanceof SuggestionResult;
     }
 
     /**
@@ -109,8 +108,8 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $groupLabels = $config->getSuggestTypeLabels();
         $suggestGroups = [];
 
-        foreach ($model->getSuggestions() as $suggestion) {
-            $suggestItem = $this->transformSuggestion($suggestion);
+        foreach ($model->getHits() as $hit) {
+            $suggestItem = $this->transformSuggestion($hit);
 
             $event = new SuggestItemTransformEvent($suggestItem, $model, $responseCollection, $request, $context);
             $this->eventDispatcher->dispatch($event);
@@ -130,23 +129,22 @@ class SuggestionTransformer implements ResponseTransformerInterface
     }
 
     /**
-     * @param ResultSuggestion $suggestion
      * @return SuggestItem
      */
-    private function transformSuggestion(ResultSuggestion $suggestion): SuggestItem
+    private function transformSuggestion(object $hit): SuggestItem
     {
         $suggestItem = new SuggestItem();
-        $suggestItem->setName($suggestion->getName());
-        $suggestItem->setType($suggestion->getType());
-        if ($suggestion->getImage() !== '') {
-            $suggestItem->setImgUrl($suggestion->getImage());
-        }
+        $suggestItem->setName($hit->highlighted);
+        $suggestItem->setType(SuggestionProductTransformer::TYPE);
+//        if ($hit->getImage() !== '') {
+//            $suggestItem->setImgUrl($hit->getImage());
+//        }
 
-        /** @var array $attributes */
-        $attributes = $suggestion->getAttributes();
-        if (!empty($attributes)) {
-            $suggestItem->setAttributes($this->parseAttributes($attributes));
-        }
+//        /** @var array $attributes */
+//        $attributes = $suggestion->getAttributes();
+//        if (!empty($attributes)) {
+//            $suggestItem->setAttributes($this->parseAttributes($attributes));
+//        }
         return $suggestItem;
     }
 

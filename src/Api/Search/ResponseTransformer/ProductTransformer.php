@@ -112,7 +112,7 @@ class ProductTransformer implements ResponseTransformerInterface
             $model->getHits()
         );
         $productsData = $this->extractMainAndVariantProducts($mainNumbers);
-//        $this->resolveMainVariants($productsData, $model->getHits(), $context->getContext());
+        // TODO: Resolve main variant
 
         $productNumbers = array_keys($productsData);
         $productNumberSort = array_flip($productNumbers);
@@ -144,44 +144,6 @@ class ProductTransformer implements ResponseTransformerInterface
 
         $difference = $shouldCount - $isCount;
         $listing->setTotalHits($listing->getTotalHits() - $difference);
-    }
-
-    /**
-     * @param array<string, array<string, string>> $productsData
-     * @param array<SearchRecord> $hits
-     * @param Context $context
-     *
-     * @return void
-     */
-    private function resolveMainVariants(array $productsData, array $hits, Context $context): void
-    {
-        $mainVariantsMapping = [];
-        $parentVariantMapping = [];
-
-        foreach ($hits as $hit) {
-            foreach ($hit->getVariantValues() as $variantValue) {
-                if ($variantValue->getProductId() !== $hit->getDocument()['id']) {
-                    $parentVariantMapping[$hit->getDocument()['id']] = $variantValue->getProductId();
-                    break;
-                }
-            }
-        }
-
-        foreach ($productsData as $productNumber => $data) {
-            if (!array_key_exists($data['parentNumber'], $parentVariantMapping)) {
-                continue;
-            }
-            $mainVariantNumber = $parentVariantMapping[$data['parentNumber']];
-            if (!array_key_exists($mainVariantNumber, $productsData)) {
-                continue;
-            }
-            $mainVariantsMapping[$data['id']] = $productsData[$mainVariantNumber]['id'];
-        }
-
-        $context->addExtension(
-            MainVariantMappingExtension::KEY,
-            new MainVariantMappingExtension($mainVariantsMapping)
-        );
     }
 
     /**
