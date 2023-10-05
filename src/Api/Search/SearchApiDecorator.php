@@ -35,11 +35,13 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
+use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
 use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\SearchApi;
 use Elio\ElioSearch\Api\Transform\Transformer;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Throwable;
 
 /**
  * Class SearchApiDecorator
@@ -71,6 +73,21 @@ class SearchApiDecorator extends SearchApi
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
         $result = $apiClient->filter($searchRequest->getQuery());
+        return $this->transformer->transformResponse($result, $context, $searchRequest);
+    }
+
+    /**
+     * Executes the elio search navigation request
+     *
+     * @param NavigationRequestProduct $searchRequest
+     * @param SalesChannelContext $context
+     * @return ResponseCollection
+     * @throws Throwable
+     */
+    public function navigation(NavigationRequestProduct $searchRequest, SalesChannelContext $context): ResponseCollection
+    {
+        $apiClient = $this->apiFactory->createSearchApi($context);
+        $result = $apiClient->filter($searchRequest->getQuery(), ['category' => 'Clothing']);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 }

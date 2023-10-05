@@ -106,23 +106,23 @@ class BIOutput implements OutputInterface
     /**
      * Deletes entries in battery api
      *
-     * @param array $collection
+     * @param array $ids
      * @param SyncProfileEntity $syncProfile
      * @param SalesChannelContext $context
      * @return void
+     * @throws ApiSyncException
      * @throws GuzzleException
      * @throws JsonException
      */
-    public function delete(array $collection, SyncProfileEntity $syncProfile, SalesChannelContext $context): void
+    public function delete(array $ids, SyncProfileEntity $syncProfile, SalesChannelContext $context): void
     {
         $url = $this->batteryIncludedService->getApiUrl($context) . 'delete';
-        $ids = $this->batteryIncludedService->prepareDeleteParameters($collection);
         $response = $this->client->request('DELETE', $url, [
             'headers' => [
                 'X-BI-API-KEY' => $this->batteryIncludedService->getConfiguration($context)->getServerToken(),
-                'Content-Type' => 'application/x-ndjson'
+                'Content-Type' => 'application/json'
             ],
-            'body' => $ids,
+            'body' => json_encode($ids),
         ]);
 
         $this->handleErrors($response);
@@ -170,7 +170,7 @@ class BIOutput implements OutputInterface
 
         $errors = [];
         foreach ($body as $item) {
-            if ($item['success'] === false) {
+            if (isset($item['success']) && $item['success'] === false) {
                 $errors[] = [
                     'code' => $item['code'] ?? 500,
                     'id' => isset($item['document'])

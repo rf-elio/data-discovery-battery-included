@@ -82,7 +82,8 @@ class ProductMappingService
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $convertedData = [];
-        $convertedData['id'] = $product->getProductNumber();
+        // TODO: Move to const
+        $convertedData['id'] = $product->getId();
         $convertedData['_product'] = $this->prepareBaseFields($product, $context);
         $convertedData['_i8n'] = $this->prepareTranslatedFields($collection);
         $mappedData = $this->addMappedPropertiesToExportItem($product, $syncProfile->getMapping(), $propertyAccessor);
@@ -116,7 +117,7 @@ class ProductMappingService
             'manufacturer' => $product->getManufacturerNumber(),
             'price' => (float)ValueUtil::formatPrice($price),
             'redprice' => (float)ValueUtil::formatPrice($redPrice),
-            'categoryids' => $this->getCategoryIds($product),
+            'categoryids' => $product->getCategoryIds(),
             'ean' => $product->getEan(),
             'stock' => $product->getStock(),
             'closeout' => $product->getIsCloseout() ? 1 : 0,
@@ -151,7 +152,7 @@ class ProductMappingService
                 'manufacturer' => $product->getManufacturer()?->getTranslation('name') ?? $product->getManufacturer()?->getName(),
                 'keywords' => $product->getKeywords() ?? $translated['keywords'] ?? '',
                 'searchkeywords' => implode(', ', $product->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? []),
-                'categorypath' => $this->getCategoryPath($product),
+                'categories' => $this->getCategoryPath($product),
                 'attribute' => $this->getProductAttribute($this->getFilterableProductProperties($product)),
                 'attributenotfilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
                 'tags' => $this->getProductTags($product),
@@ -201,24 +202,21 @@ class ProductMappingService
      * Builds the category path for elio search
      *
      * @param ProductEntity $product
-     * @return string
+     * @return array
      */
-    protected function getCategoryPath(ProductEntity $product): string
+    protected function getCategoryPath(ProductEntity $product): array
     {
         if(!$product->getCategories()) {
-            return '';
+            return [];
         }
 
-        $path = '';
+        $path = [];
         $categories = $product->getCategories()->getElements();
-
-        $index = 0;
-        $numCategories = count($categories);
         foreach ($categories as $category) {
-            $path .= implode('/', array_map('rawurlencode', array_slice($category->getBreadcrumb(), 1)));
-            if (++$index < $numCategories) {
-                $path .= Defaults::VALUE_SEPARATOR;
+            foreach ($category->getBreadcrumb() as $breadcrumb) {
+                $path[] = $breadcrumb;
             }
+
         }
 
         return $path;

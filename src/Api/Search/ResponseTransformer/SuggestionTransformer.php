@@ -47,6 +47,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Swagger\Client\Model\ModelInterface;
 use Swagger\Client\Model\SuggestionResult;
+use Swagger\Client\Model\SuggestionResultCollection;
 use Throwable;
 
 /**
@@ -82,7 +83,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
      */
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {
-        return $model instanceof SuggestionResult;
+        return $model instanceof SuggestionResultCollection;
     }
 
     /**
@@ -97,8 +98,8 @@ class SuggestionTransformer implements ResponseTransformerInterface
         SalesChannelContext $context,
         ApiRequest $request
     ): void {
-        if (!$model instanceof SuggestionResult) {
-            throw new InvalidTypeException($model, SuggestionResult::class);
+        if (!$model instanceof SuggestionResultCollection) {
+            throw new InvalidTypeException($model, SuggestionResultCollection::class);
         }
 
         /** @var SuggestionResponse|null $suggestionResponse */
@@ -108,20 +109,26 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $groupLabels = $config->getSuggestTypeLabels();
         $suggestGroups = [];
 
-        foreach ($model->getHits() as $hit) {
-            $suggestItem = $this->transformSuggestion($hit);
-
-            $event = new SuggestItemTransformEvent($suggestItem, $model, $responseCollection, $request, $context);
-            $this->eventDispatcher->dispatch($event);
-
-            if($event->isRemoveSuggestItemFromResult()) {
+        foreach ($model->getSuggestionResults() as $suggestionResult) {
+            if ($suggestionResult->getKind() === SuggestionResult::RESULT_TYPE_QUERY_COMPLETION) {
                 continue;
             }
 
-            $type = $suggestItem->getType();
-            $group = $suggestGroups[$type] ?? new SuggestGroup($type, $groupLabels[$type] ?? $type);
-            $suggestGroups[$type] = $group;
-            $group->addItem($suggestItem);
+            foreach ($suggestionResult->getHits() as $hit) {
+                $suggestItem = $this->transformSuggestion($hit, $suggestionResult->getKind());
+
+                $event = new SuggestItemTransformEvent($suggestItem, $model, $responseCollection, $request, $context);
+                $this->eventDispatcher->dispatch($event);
+
+                if($event->isRemoveSuggestItemFromResult()) {
+                    continue;
+                }
+
+                $type = $suggestItem->getType();
+                $group = $suggestGroups[$type] ?? new SuggestGroup($type, $groupLabels[$type] ?? $type);
+                $suggestGroups[$type] = $group;
+                $group->addItem($suggestItem);
+            }
         }
 
         $suggestGroups = $this->setResultRepresentation($suggestGroups, $config);
@@ -129,13 +136,28 @@ class SuggestionTransformer implements ResponseTransformerInterface
     }
 
     /**
+     * @param object $hit
+     * @param string $type
      * @return SuggestItem
      */
-    private function transformSuggestion(object $hit): SuggestItem
+    private function transformSuggestion(object $hit, string $type): SuggestItem
     {
         $suggestItem = new SuggestItem();
-        $suggestItem->setName($hit->highlighted);
-        $suggestItem->setType(SuggestionProductTransformer::TYPE);
+
+        if ($type === SuggestionResult::RESULT_TYPE_DOCUMENT) {
+            $suggestItem->setName(strip_tags($hit->highlighted));
+            // TODO: Get from const
+            if (isset($hit->{'_product'})) {
+                $suggestItem->setType(SuggestionProductTransformer::TYPE);
+                $suggestItem->setAttributes(['MasterProductNumber' => $hit->value]);
+            } elseif (isset($hit->{'_content'})) {
+                $suggestItem->setType(SuggestionCategoryTransformer::TYPE);
+            }
+        } else {
+            $suggestItem->setName($hit->value);
+            $suggestItem->setType($type);
+        }
+
 //        if ($hit->getImage() !== '') {
 //            $suggestItem->setImgUrl($hit->getImage());
 //        }

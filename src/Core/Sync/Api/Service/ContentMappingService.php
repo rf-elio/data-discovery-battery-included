@@ -71,6 +71,7 @@ class ContentMappingService
 
         $convertedData = [];
         $convertedData['id'] = $content->getId();
+        // TODO: Move to const
         $convertedData['_content'] = $this->prepareBaseFields($content);
         $convertedData['_i8n'] = $this->prepareTranslatedFields($collection);
 

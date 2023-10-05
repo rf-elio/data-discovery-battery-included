@@ -40,6 +40,7 @@ use Elio\ElioSearch\Api\Transform\Transformer;
 use Elio\ElioSearch\Core\Exception\ElioSearchException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Swagger\Client\Model\SuggestionResult;
+use Swagger\Client\Model\SuggestionResultCollection;
 use Throwable;
 
 /**
@@ -72,15 +73,7 @@ class SuggestApiDecorator extends SuggestApi
     public function suggest(SuggestRequest $suggestRequest, SalesChannelContext $context): ResponseCollection
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
-        /** @var SuggestionResult[] $result */
-        $result = $apiClient->suggest($suggestRequest->getQuery());
-        foreach ($result as $item) {
-            if ($item->getKind() === 'document') {
-                return $this->transformer->transformResponse($item, $context, $suggestRequest);
-            }
-        }
-
-        throw new ElioSearchException('Invalid response');
-
+        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery()));
+        return $this->transformer->transformResponse($result, $context, $suggestRequest);
     }
 }
