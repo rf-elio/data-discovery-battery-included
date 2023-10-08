@@ -50,9 +50,9 @@ use Elio\ElioSearch\Core\Sync\Profile\SyncProfileInterface;
  */
 class BIProfile implements SyncProfileInterface
 {
-    public function getTypes(): array
+    public function getType(): string
     {
-        return [SyncDefaults::PROFILE_SYNC];
+        return SyncDefaults::PROFILE_SYNC;
     }
 
     public function getName(): string
@@ -78,16 +78,11 @@ class BIProfile implements SyncProfileInterface
 
     public function getOutputs(): array
     {
-        return [BIOutput::TYPE];
+        return [BIOutput::TYPE, 'JSON'];
     }
 
-    /**
-     * TODO: Remove support?
-     *
-     * @return bool
-     */
-    public function isMultiLanguageSupport(): bool
+    public function getFeatures(): array
     {
-        return false;
+        return SyncProfileInterface::FEATURES;
     }
 }
