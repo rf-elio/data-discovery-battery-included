@@ -87,7 +87,10 @@ class SearchApiDecorator extends SearchApi
     public function navigation(NavigationRequestProduct $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery(), ['category' => 'Clothing']);
+        $filters = [
+            '_product.categoryids' => $searchRequest->getCategoryId()
+        ];
+        $result = $apiClient->filter($searchRequest->getQuery(), $filters);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 }
