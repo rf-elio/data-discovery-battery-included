@@ -30,12 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service;
+namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
 use Elio\ElioSearch\Core\Defaults;
+use Elio\ElioSearch\Core\Exception\InvalidTypeException;
+use Elio\ElioSearch\Core\Sync\Collector\TranslatedEntity;
 use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
-use Elio\ElioSearch\Core\Sync\Defaults\ContentSyncDefaults;
-use Elio\ElioSearch\Core\Sync\Export\Converter\Exception\InvalidDataTypeException;
+use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Seo\SeoUrl\SeoUrlEntity;
@@ -43,7 +44,7 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
  * Class ContentMappingService
- * @package Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service
+ * @package Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service
  * @category Shopware
  * @author elio GmbH <support@elio-systems.com>
  * @author Danil Lukov <dl@elio-systems.com>
@@ -56,24 +57,22 @@ class ContentMappingService
     /**
      * Maps data for create, update request
      *
-     * @param array $collection
-     * @param SyncProfileEntity $syncProfile
-     * @param SalesChannelContext $context
+     * @param TranslatedEntity $entity
+     * @param SyncContext $syncContext
      * @return array
-     * @throws InvalidDataTypeException
      */
-    public function mapData(array $collection, SyncProfileEntity $syncProfile, SalesChannelContext $context): array
+    public function mapData(TranslatedEntity $entity, SyncContext $syncContext): array
     {
-        $content = array_values($collection)[0] ?? null;
+        $content = $entity->getFirst();
         if (!$content instanceof ContentType) {
-            throw new InvalidDataTypeException('Unsupported type');
+            throw new InvalidTypeException($content, ContentType::class);
         }
 
         $convertedData = [];
         $convertedData['id'] = $content->getId();
         // TODO: Move to const
         $convertedData['_content'] = $this->prepareBaseFields($content);
-        $convertedData['_i8n'] = $this->prepareTranslatedFields($collection);
+        $convertedData['_i8n'] = $this->prepareTranslatedFields($entity->getTranslations());
 
         // TODO: Add mapping
         return $convertedData;

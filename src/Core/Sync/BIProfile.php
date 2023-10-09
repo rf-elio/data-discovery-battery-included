@@ -30,15 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Profile;
+namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync;
 
-use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Output\BIOutput;
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\BIOutput;
 use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
 use Elio\ElioSearch\Core\Sync\DataTypes\ProductType;
-use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioSearch\Core\Sync\Export\Converter\ContentConverter;
 use Elio\ElioSearch\Core\Sync\Export\Converter\ProductConverter;
-use Elio\ElioSearch\Core\Sync\Profile\SyncProfileInterface;
+use Elio\ElioSearch\Core\Sync\Input\DeltaInput;
+use Elio\ElioSearch\Core\Sync\Output\SeoRouteOutput;
+use Elio\ElioSearch\Core\Sync\ProfileInterface;
 
 /**
  * Class ProductProfile
@@ -48,13 +49,8 @@ use Elio\ElioSearch\Core\Sync\Profile\SyncProfileInterface;
  * @author Danil Lukov <dl@elio-systems.com>
  * @copyright Copyright (c) 2023, elio GmbH (https://www.elio-systems.com)
  */
-class BIProfile implements SyncProfileInterface
+class BIProfile implements ProfileInterface
 {
-    public function getType(): string
-    {
-        return SyncDefaults::PROFILE_SYNC;
-    }
-
     public function getName(): string
     {
         return 'BI Sync';
@@ -78,11 +74,16 @@ class BIProfile implements SyncProfileInterface
 
     public function getOutputs(): array
     {
-        return [BIOutput::TYPE, 'JSON'];
+        return [SeoRouteOutput::TYPE, BIOutput::TYPE];
     }
 
     public function getFeatures(): array
     {
-        return SyncProfileInterface::FEATURES;
+        return self::FEATURES;
+    }
+
+    public function getInput(): string
+    {
+        return DeltaInput::class;
     }
 }

@@ -30,17 +30,20 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Output;
+namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output;
 
-use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service\BatteryIncludedService;
-use Elio\ElioSearch\Core\Sync\Api\OutputInterface;
-use Elio\ElioSearch\Core\Sync\Api\Exception\ApiSyncException;
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\BatteryIncludedService;
+use Elio\ElioSearch\Core\Sync\Output\DeltaAwareInterface;
+use Elio\ElioSearch\Core\Sync\Output\Exception\OutputException;
+use Elio\ElioSearch\Core\Sync\Output\OutputInterface;
+use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use Shopware\Core\Framework\Struct\Collection;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
@@ -51,9 +54,9 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  * @author Danil Lukov <dl@elio-systems.com>
  * @copyright Copyright (c) 2023, elio GmbH (https://www.elio-systems.com)
  */
-class BIOutput implements OutputInterface
+class BIOutput implements OutputInterface, DeltaAwareInterface
 {
-    public const TYPE = 'batteryIncluded';
+    public const TYPE = self::class;
 
     public function __construct(
         private readonly Client $client,
@@ -76,46 +79,43 @@ class BIOutput implements OutputInterface
     /**
      * Created entries in battery api
      *
-     * @param array $collection
-     * @param SyncProfileEntity $syncProfile
-     * @param SalesChannelContext $context
+     * @param Collection $collection
+     * @param SyncContext $syncContext
      * @return void
      * @throws GuzzleException
      * @throws JsonException
      */
-    public function create(array $collection, SyncProfileEntity $syncProfile, SalesChannelContext $context): void
+    public function create(Collection $collection, SyncContext $syncContext): void
     {
-        $this->sync($collection, $syncProfile, $context);
+        $this->sync($collection, $syncContext);
     }
 
     /**
      * Updates entries in battery api
      *
-     * @param array $collection
-     * @param SyncProfileEntity $syncProfile
-     * @param SalesChannelContext $context
+     * @param Collection $collection
+     * @param SyncContext $syncContext
      * @return void
      * @throws GuzzleException
      * @throws JsonException
      */
-    public function update(array $collection, SyncProfileEntity $syncProfile, SalesChannelContext $context): void
+    public function update(Collection $collection, SyncContext $syncContext): void
     {
-        $this->sync($collection, $syncProfile, $context);
+        $this->sync($collection, $syncContext);
     }
 
     /**
      * Deletes entries in battery api
      *
-     * @param array $ids
-     * @param SyncProfileEntity $syncProfile
-     * @param SalesChannelContext $context
+     * @param Collection $collection
+     * @param SyncContext $syncContext
      * @return void
-     * @throws ApiSyncException
      * @throws GuzzleException
      * @throws JsonException
      */
-    public function delete(array $ids, SyncProfileEntity $syncProfile, SalesChannelContext $context): void
+    public function delete(Collection $collection, SyncContext $syncContext): void
     {
+        $context = $syncContext->getSalesChannelContexts()->getFirst();
         $url = $this->batteryIncludedService->getApiUrl($context) . 'delete';
         $response = $this->client->request('DELETE', $url, [
             'headers' => [
@@ -138,10 +138,15 @@ class BIOutput implements OutputInterface
      * @throws GuzzleException
      * @throws JsonException
      */
-    private function sync(array $collection, SyncProfileEntity $syncProfile, SalesChannelContext $context): void
+    private function sync(Collection $collection, SyncContext $syncContext): void
     {
+        $context = $syncContext->getSalesChannelContexts()->getFirst();
+
         $url = $this->batteryIncludedService->getApiUrl($context) . 'import';
-        $postFields = $this->batteryIncludedService->prepareSyncParameters($collection, $syncProfile, $context);
+        $postFields = $this->batteryIncludedService->prepareSyncParameters($collection, $syncContext, $context);
+
+        echo $postFields;
+
         $response = $this->client->request('POST', $url, [
             'headers' => [
                 'X-BI-API-KEY' => $this->batteryIncludedService->getConfiguration($context)->getServerToken(),
@@ -159,13 +164,13 @@ class BIOutput implements OutputInterface
      * @param ResponseInterface $response
      * @return void
      * @throws JsonException
-     * @throws ApiSyncException
+     * @throws OutputException
      */
     private function handleErrors(ResponseInterface $response): void
     {
         $body = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
         if ($response->getStatusCode() !== 200) {
-            throw new ApiSyncException(sprintf('Invalid status code %s', $response->getStatusCode()));
+            throw new OutputException(sprintf('Invalid status code %s', $response->getStatusCode()));
         }
 
         $errors = [];
@@ -186,7 +191,7 @@ class BIOutput implements OutputInterface
                 'plugin' => 'ElioBatteryIncluded',
                 'errors' => $errors,
             ]);
-            throw new ApiSyncException(sprintf('Invalid status code %s', $response->getStatusCode()));
+            throw new OutputException(sprintf('Invalid status code %s', $response->getStatusCode()));
         }
     }
 }

@@ -110,10 +110,6 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $suggestGroups = [];
 
         foreach ($model->getSuggestionResults() as $suggestionResult) {
-            if ($suggestionResult->getKind() === SuggestionResult::RESULT_TYPE_QUERY_COMPLETION) {
-                continue;
-            }
-
             foreach ($suggestionResult->getHits() as $hit) {
                 $suggestItem = $this->transformSuggestion($hit, $suggestionResult->getKind());
 
@@ -168,24 +164,6 @@ class SuggestionTransformer implements ResponseTransformerInterface
 //            $suggestItem->setAttributes($this->parseAttributes($attributes));
 //        }
         return $suggestItem;
-    }
-
-    /**
-     * Parsing attributes from FactFinder attributes to ours
-     * @param array $attributes
-     * @return array
-     */
-    private function parseAttributes(array $attributes): array
-    {
-        $result = [];
-        foreach ($attributes as $key => $attribute) {
-            try {
-                if (is_array($attribute) && count($attribute) > 0 && is_string($attribute[0])) {
-                    $result[$key] = $attribute[0];
-                }
-            } catch (Throwable $e) {}
-        }
-        return $result;
     }
 
     /**

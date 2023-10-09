@@ -34,6 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
@@ -108,7 +109,7 @@ class ProductTransformer implements ResponseTransformerInterface
         }
 
         $mainNumbers = array_map(
-            static fn (SearchRecord $record) => $record->getDocument()['_product']->ordernumber[0],
+            static fn (SearchRecord $record) => $record->getDocument()['_product']->productNumber[0],
             $model->getHits()
         );
         $productsData = $this->extractMainAndVariantProducts($mainNumbers);
@@ -152,6 +153,7 @@ class ProductTransformer implements ResponseTransformerInterface
      * @param array<int, string> $mainNumbers
      *
      * @return array<string, array<string, string>>
+     * @throws Exception
      */
     protected function extractMainAndVariantProducts(array $mainNumbers): array
     {

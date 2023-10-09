@@ -35,10 +35,10 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Request\NavigationRequestProduct;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Request\ProductSearchRequest;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Response\ProductListingResponse;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\Response\TrackingResponse;
+use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
+use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
+use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
+use Elio\ElioSearch\Api\Search\Response\TrackingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;

@@ -30,13 +30,15 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service;
+namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
 use Elio\ElioSearch\Core\Defaults;
+use Elio\ElioSearch\Core\Exception\InvalidTypeException;
+use Elio\ElioSearch\Core\Sync\Collector\TranslatedEntity;
 use Elio\ElioSearch\Core\Sync\DataTypes\ProductType;
-use Elio\ElioSearch\Core\Sync\Defaults\ProductSyncDefaults;
 use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
-use Elio\ElioSearch\Core\Sync\Export\Converter\Exception\InvalidDataTypeException;
+use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
+use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Media\Aggregate\MediaThumbnail\MediaThumbnailCollection;
@@ -44,13 +46,14 @@ use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\Struct\Struct;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 /**
  * Class ProductMappingService
- * @package Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service
+ * @package Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service
  * @category Shopware
  * @author elio GmbH <support@elio-systems.com>
  * @author Danil Lukov <dl@elio-systems.com>
@@ -67,28 +70,25 @@ class ProductMappingService
     /**
      * Maps data for create, update request
      *
-     * @param array $collection
-     * @param SyncProfileEntity $syncProfile
-     * @param SalesChannelContext $context
+     * @param TranslatedEntity $entity
+     * @param SyncContext $syncContext
      * @return array
-     * @throws InvalidDataTypeException
      */
-    public function mapData(array $collection, SyncProfileEntity $syncProfile, SalesChannelContext $context): array
+    public function mapData(TranslatedEntity $entity, SyncContext $syncContext): array
     {
-        $product = array_values($collection)[0] ?? null;
+        $product = $entity->getFirst();
         if (!$product instanceof ProductType) {
-            throw new InvalidDataTypeException('Unsupported type');
+            throw new InvalidTypeException($product, ProductType::class);
         }
 
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $convertedData = [];
-        // TODO: Move to const
-        $convertedData['id'] = $product->getId();
-        $convertedData['_product'] = $this->prepareBaseFields($product, $context);
-        $convertedData['_i8n'] = $this->prepareTranslatedFields($collection);
-        $mappedData = $this->addMappedPropertiesToExportItem($product, $syncProfile->getMapping(), $propertyAccessor);
+        $convertedData['id'] = $product->getProductNumber();
+        $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext->getSalesChannelContexts()->getFirst());
+        $convertedData['_history'] = $this->prepareHistoryFields($product);
+        $convertedData['_i8n'] = $this->prepareTranslatedFields($entity->getTranslations(), $syncContext);
+        $mappedData = $this->addMappedPropertiesToExportItem($product, $syncContext->getSyncProfile()->getMapping(), $propertyAccessor);
         $convertedData['_product'] = array_merge($convertedData['_product'], $mappedData);
-
         return $convertedData;
     }
 
@@ -111,51 +111,55 @@ class ProductMappingService
 
         [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
         return [
-            'id' => $product->getId(),
-            'masterproductnumber' => $parentProduct?->getProductNumber(),
-            'ordernumber' => [$product->getProductNumber()],
-            'manufacturer' => $product->getManufacturerNumber(),
+            'masterProductNumber' => $parentProduct?->getProductNumber(),
+            'productNumber' => [$product->getProductNumber()],
+            'manufacturerNumber' => $product->getManufacturerNumber(),
             'price' => (float)ValueUtil::formatPrice($price),
-            'redprice' => (float)ValueUtil::formatPrice($redPrice),
-            'categoryids' => $product->getCategoryIds(),
+            'redPrice' => (float)ValueUtil::formatPrice($redPrice),
+            'categoryIds' => $product->getCategoryIds(),
             'ean' => $product->getEan(),
             'stock' => $product->getStock(),
             'closeout' => $product->getIsCloseout() ? 1 : 0,
-            'ratingaverage' => $product->getRatingAverage(),
-            'shippingfree' => $product->getShippingFree(),
-            'salescount' => $product->getSales(),
-            'releasedate'=> $product->getReleaseDate()
+            'shippingFree' => $product->getShippingFree(),
+            'releaseDate'=> $product->getReleaseDate()
                 ? $product->getReleaseDate()->format(SyncDefaults::DATE_TIME_FORMAT)
                 : '',
-            'imageurl' => $product->getCover()?->getMedia()?->getUrl(),
-            'thumbnailurl' => $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails()),
-            'producturl' => '', // TODO
+            'imageUrl' => $product->getCover()?->getMedia()?->getUrl(),
+            'thumbnailUrl' => $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails()),
+            'id' => $product->getId()
         ];
     }
 
     /**
      * Prepare translation fields
      *
-     * @param array $collection
+     * @param Struct[] $collection
+     * @param SyncContext $syncContext
      * @return array
      */
-    protected function prepareTranslatedFields(array $collection): array
+    protected function prepareTranslatedFields(array $collection, SyncContext $syncContext): array
     {
         $translatedFields = [];
-        // TODO: Change language id to locale
+        /**
+         * @var string $languageId
+         * @var ProductType $product
+         **/
         foreach ($collection as $languageId => $product) {
+            $locale = $syncContext->getSalesChannelContexts()->getLanguage($languageId)->getLocale()?->getCode() ?? 'default';
+            $locale = substr($locale, 0, 2);
             $translated = $product->getTranslated();
-            $translatedFields[$languageId] = [
+            $translatedFields[$locale] = [
                 'name' => $product->getName() ?? $translated['name'] ?? '',
                 'description' => ValueUtil::cleanValue($product->getDescription() ?? $translated['description'] ?? ''),
-                'metatitle' => ValueUtil::cleanValue($product->getMetaTitle() ?? $translated['metaTitle'] ?? ''),
+                'metaTitle' => ValueUtil::cleanValue($product->getMetaTitle() ?? $translated['metaTitle'] ?? ''),
                 'manufacturer' => $product->getManufacturer()?->getTranslation('name') ?? $product->getManufacturer()?->getName(),
                 'keywords' => $product->getKeywords() ?? $translated['keywords'] ?? '',
-                'searchkeywords' => implode(', ', $product->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? []),
+                'searchKeywords' => $product->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? [],
                 'categories' => $this->getCategoryPath($product),
-                'attribute' => $this->getProductAttribute($this->getFilterableProductProperties($product)),
-                'attributenotfilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
+                'attributes' => $this->getProductAttribute($this->getFilterableProductProperties($product)),
+                'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
                 'tags' => $this->getProductTags($product),
+                'url' => $product->getExtension(SeoRoute::class)?->getUrl() ?? ''
             ];
         }
 
@@ -172,6 +176,7 @@ class ProductMappingService
      * @param ProductType $product
      * @param array $mappings
      * @param PropertyAccessorInterface $propertyAccessor
+     * @return array
      */
     protected function addMappedPropertiesToExportItem(
         ProductType $product, array $mappings, PropertyAccessorInterface $propertyAccessor
@@ -213,8 +218,17 @@ class ProductMappingService
         $path = [];
         $categories = $product->getCategories()->getElements();
         foreach ($categories as $category) {
+            $parentBreadCrumb = '';
+            $firstSkipped = false;
             foreach ($category->getBreadcrumb() as $breadcrumb) {
-                $path[] = $breadcrumb;
+                // first one is home, we don't want to have home
+                if (!$firstSkipped) {
+                    $firstSkipped = true;
+                    continue;
+                }
+
+                $path[] = $parentBreadCrumb.$breadcrumb;
+                $parentBreadCrumb .= $breadcrumb.' > ';
             }
 
         }
@@ -251,21 +265,21 @@ class ProductMappingService
      * Appends the product attributes
      *
      * @param array<PropertyGroupOptionEntity> $properties
-     * @return string
+     * @return array
      */
-    protected function getProductAttribute(array $properties): string
+    protected function getProductAttribute(array $properties): array
     {
-        $resultAttribute = Defaults::VALUE_SEPARATOR;
+        $attributes = [];
         foreach ($properties as $property) {
             $group = $property->getGroup();
             if($group !== null) {
                 $name = $group->getTranslation('name') ?? $group->getName();
                 $value = $property->getTranslation('name') ?? $property->getName();
-                $resultAttribute .= $name . '=' . $value . Defaults::VALUE_SEPARATOR;
+                $attributes[$name] = ValueUtil::cleanValue($value);
             }
         }
 
-        return ValueUtil::cleanValue($resultAttribute);
+        return $attributes;
     }
 
     /**
@@ -300,12 +314,12 @@ class ProductMappingService
      * Creates the product tags string
      *
      * @param ProductEntity $product
-     * @return string
+     * @return array
      */
-    protected function getProductTags(ProductEntity $product) : string
+    protected function getProductTags(ProductEntity $product) : array
     {
         if(!$product->getTags()) {
-            return '';
+            return [];
         }
 
         $tags = [];
@@ -313,7 +327,7 @@ class ProductMappingService
             $tags[] = $tag->getTranslation('name') ?? $tag->getName();
         }
 
-        return implode(Defaults::VALUE_SEPARATOR, $tags);
+        return $tags;
     }
 
     /**
@@ -402,5 +416,13 @@ class ProductMappingService
         }
 
         return $bestMatching ? $bestMatching->getUrl() : '';
+    }
+
+    private function prepareHistoryFields(ProductType $product): array
+    {
+        return [
+            'ratingAverage' => $product->getRatingAverage(),
+            'salesCount' => $product->getSales(),
+        ];
     }
 }

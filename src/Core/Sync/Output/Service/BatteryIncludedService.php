@@ -30,22 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service;
+namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
 use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
 use Elio\ElioSearch\Core\Sync\DataTypes\ProductType;
 use Elio\ElioSearch\Core\Sync\DataTypes\TypeInterface;
-use Elio\ElioSearch\Core\Sync\Export\Converter\Exception\InvalidDataTypeException;
+use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
 use InvalidArgumentException;
 use JsonException;
+use Shopware\Core\Framework\Struct\Collection;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
  * Class BatteryIncludedService
- * @package Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service
+ * @package Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service
  * @category Shopware
  * @author elio GmbH <support@elio-systems.com>
  * @author Danil Lukov <dl@elio-systems.com>
@@ -63,24 +64,23 @@ class BatteryIncludedService
     /**
      * Prepare collection fields for battery included sync
      *
-     * @param array $collection
-     * @param SyncProfileEntity $syncProfile
+     * @param Collection $collection
+     * @param SyncContext $syncContext
      * @param SalesChannelContext $context
      * @return string
-     * @throws InvalidDataTypeException
      * @throws JsonException
      */
-    public function prepareSyncParameters(array $collection, SyncProfileEntity $syncProfile, SalesChannelContext $context): string
+    public function prepareSyncParameters(Collection $collection, SyncContext $syncContext, SalesChannelContext $context): string
     {
-        $mapper = match ($syncProfile->getDataType()) {
+        $mapper = match ($syncContext->getSyncProfile()->getDataType()) {
             ProductType::class => $this->productMappingService,
             ContentType::class => $this->contentMappingService,
             default => throw new InvalidArgumentException(),
         };
 
         $data = [];
-        foreach ($collection as $entities) {
-            $data[] = $mapper->mapData($entities, $syncProfile, $context);
+        foreach ($collection->getElements() as $entity) {
+            $data[] = $mapper->mapData($entity, $syncContext);
         }
 
         return $this->ndJsonEncode($data);

@@ -4,25 +4,25 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Profile\BIProfile">
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\BIProfile">
             <tag name="elio-search.sync.profile" />
         </service>
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Output\BIOutput">
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\BIOutput">
             <argument type="service" id="shopware.app_system.guzzle"/>
-            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service\BatteryIncludedService"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\BatteryIncludedService"/>
             <argument type="service" id="elio.search.core.logging.debug"/>
-            <tag name="elio-search.sync.api.writer" />
+            <tag name="elio-search.sync.api.output" />
         </service>
 
         <!--   Services    -->
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service\ProductMappingService">
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\ProductMappingService">
             <argument type="service" id="product.repository"/>
         </service>
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service\ContentMappingService" />
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service\BatteryIncludedService">
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\ContentMappingService" />
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\BatteryIncludedService">
             <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService"/>
-            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service\ProductMappingService"/>
-            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Api\Service\ContentMappingService"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\ProductMappingService"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\ContentMappingService"/>
         </service>
     </services>
 </container>
