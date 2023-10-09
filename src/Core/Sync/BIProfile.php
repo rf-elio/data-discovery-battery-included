@@ -64,14 +64,6 @@ class BIProfile implements ProfileInterface
         return [ProductType::class, ContentType::class];
     }
 
-    public function getConverters(): array
-    {
-        return [
-            ProductType::class => ProductConverter::class,
-            ContentType::class => ContentConverter::class,
-        ];
-    }
-
     public function getOutputs(): array
     {
         return [SeoRouteOutput::TYPE, BIOutput::TYPE];
@@ -79,7 +71,9 @@ class BIProfile implements ProfileInterface
 
     public function getFeatures(): array
     {
-        return self::FEATURES;
+        $features = self::FEATURES;
+        $features['multiLanguageSupport'] = true;
+        return $features;
     }
 
     public function getInput(): string

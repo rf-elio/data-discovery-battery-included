@@ -33,18 +33,17 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output;
 
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\BatteryIncludedService;
+use Elio\ElioSearch\Core\Sync\ChangeSet\EntityStatusEntity;
 use Elio\ElioSearch\Core\Sync\Output\DeltaAwareInterface;
 use Elio\ElioSearch\Core\Sync\Output\Exception\OutputException;
 use Elio\ElioSearch\Core\Sync\Output\OutputInterface;
 use Elio\ElioSearch\Core\Sync\SyncContext;
-use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use JsonException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Struct\Collection;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
  * Class BatteryIncludedApi
@@ -87,6 +86,7 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
      */
     public function create(Collection $collection, SyncContext $syncContext): void
     {
+        $this->logger->info('BIOutput: Create');
         $this->sync($collection, $syncContext);
     }
 
@@ -101,6 +101,7 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
      */
     public function update(Collection $collection, SyncContext $syncContext): void
     {
+        $this->logger->info('BIOutput: Update');
         $this->sync($collection, $syncContext);
     }
 
@@ -115,6 +116,13 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
      */
     public function delete(Collection $collection, SyncContext $syncContext): void
     {
+        $identifiers = [];
+        /** @var EntityStatusEntity $entityStatus */
+        foreach ($collection as $entityStatus) {
+            $identifiers[] = $entityStatus->getIdentifier();
+        }
+
+        $this->logger->info('BIOutput: Delete', ['identifier' => $identifiers]);
         $context = $syncContext->getSalesChannelContexts()->getFirst();
         $url = $this->batteryIncludedService->getApiUrl($context) . 'delete';
         $response = $this->client->request('DELETE', $url, [
@@ -122,18 +130,17 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
                 'X-BI-API-KEY' => $this->batteryIncludedService->getConfiguration($context)->getServerToken(),
                 'Content-Type' => 'application/json'
             ],
-            'body' => json_encode($ids),
+            'body' => json_encode($identifiers, JSON_THROW_ON_ERROR),
         ]);
 
-        $this->handleErrors($response);
+        $this->handleResponse($response);
     }
 
     /**
      * Sync entries in battery api
      *
-     * @param array $collection
-     * @param SyncProfileEntity $syncProfile
-     * @param SalesChannelContext $context
+     * @param Collection $collection
+     * @param SyncContext $syncContext
      * @return void
      * @throws GuzzleException
      * @throws JsonException
@@ -141,21 +148,24 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
     private function sync(Collection $collection, SyncContext $syncContext): void
     {
         $context = $syncContext->getSalesChannelContexts()->getFirst();
-
         $url = $this->batteryIncludedService->getApiUrl($context) . 'import';
-        $postFields = $this->batteryIncludedService->prepareSyncParameters($collection, $syncContext, $context);
+        $data = $this->batteryIncludedService->prepareSyncParameters($collection, $syncContext, $context);
+        $this->logger->info('BIOutput: Sync', ['data' => count($data)]);
 
-        echo $postFields;
+        if (empty($data)) {
+            $this->logger->info('BIOutput: Sync not executed, empty changeset');
+            return;
+        }
 
         $response = $this->client->request('POST', $url, [
             'headers' => [
                 'X-BI-API-KEY' => $this->batteryIncludedService->getConfiguration($context)->getServerToken(),
                 'Content-Type' => 'application/x-ndjson'
             ],
-            'body' => $postFields,
+            'body' => $this->batteryIncludedService->ndJsonEncode($data),
         ]);
 
-        $this->handleErrors($response);
+        $this->handleResponse($response);
     }
 
     /**
@@ -166,8 +176,9 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
      * @throws JsonException
      * @throws OutputException
      */
-    private function handleErrors(ResponseInterface $response): void
+    private function handleResponse(ResponseInterface $response): void
     {
+        $this->logger->info('BIOutput: Response', ['statusCode' => $response->getStatusCode()]);
         $body = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
         if ($response->getStatusCode() !== 200) {
             throw new OutputException(sprintf('Invalid status code %s', $response->getStatusCode()));
@@ -187,7 +198,7 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
         }
 
         if (!empty($errors)) {
-            $this->logger->warning('Unable to update products', [
+            $this->logger->warning('BIOutput: Unable to update products', [
                 'plugin' => 'ElioBatteryIncluded',
                 'errors' => $errors,
             ]);

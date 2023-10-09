@@ -38,7 +38,6 @@ use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
 use Elio\ElioSearch\Core\Sync\DataTypes\ProductType;
 use Elio\ElioSearch\Core\Sync\DataTypes\TypeInterface;
 use Elio\ElioSearch\Core\Sync\SyncContext;
-use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
 use InvalidArgumentException;
 use JsonException;
 use Shopware\Core\Framework\Struct\Collection;
@@ -67,10 +66,9 @@ class BatteryIncludedService
      * @param Collection $collection
      * @param SyncContext $syncContext
      * @param SalesChannelContext $context
-     * @return string
-     * @throws JsonException
+     * @return array
      */
-    public function prepareSyncParameters(Collection $collection, SyncContext $syncContext, SalesChannelContext $context): string
+    public function prepareSyncParameters(Collection $collection, SyncContext $syncContext, SalesChannelContext $context): array
     {
         $mapper = match ($syncContext->getSyncProfile()->getDataType()) {
             ProductType::class => $this->productMappingService,
@@ -83,7 +81,7 @@ class BatteryIncludedService
             $data[] = $mapper->mapData($entity, $syncContext);
         }
 
-        return $this->ndJsonEncode($data);
+        return $data;
     }
 
     /**
@@ -141,7 +139,7 @@ class BatteryIncludedService
      * @return string
      * @throws JsonException
      */
-    private function ndJsonEncode(array $data): string
+    public function ndJsonEncode(array $data): string
     {
         $encoded = [];
         foreach ($data as $dataSet) {
