@@ -33,14 +33,10 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
 use Elio\ElioSearch\Core\Defaults;
-use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Core\Sync\Collector\TranslatedEntity;
-use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
+use Elio\ElioSearch\Core\Sync\DataTypes\ContentDataType;
 use Elio\ElioSearch\Core\Sync\SyncContext;
-use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Seo\SeoUrl\SeoUrlEntity;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
  * Class ContentMappingService
@@ -52,27 +48,22 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  */
 class ContentMappingService
 {
-    public const TYPE = ContentType::class;
+    public const TYPE = ContentDataType::class;
 
     /**
      * Maps data for create, update request
      *
-     * @param TranslatedEntity $entity
+     * @param ContentDataType $content
      * @param SyncContext $syncContext
      * @return array
      */
-    public function mapData(TranslatedEntity $entity, SyncContext $syncContext): array
+    public function mapData(ContentDataType $content, SyncContext $syncContext): array
     {
-        $content = $entity->getFirst();
-        if (!$content instanceof ContentType) {
-            throw new InvalidTypeException($content, ContentType::class);
-        }
-
         $convertedData = [];
-        $convertedData['id'] = $content->getId();
+        $convertedData['id'] = $content->getIdentifier();
         // TODO: Move to const
         $convertedData['_content'] = $this->prepareBaseFields($content);
-        $convertedData['_i8n'] = $this->prepareTranslatedFields($entity->getTranslations());
+        $convertedData['_i8n'] = $this->prepareTranslatedFields($content->getDataTypeTranslations());
 
         // TODO: Add mapping
         return $convertedData;
@@ -81,10 +72,10 @@ class ContentMappingService
     /**
      * Prepares base fields
      *
-     * @param ContentType $content
+     * @param ContentDataType $content
      * @return array
      */
-    protected function prepareBaseFields(ContentType $content): array
+    protected function prepareBaseFields(ContentDataType $content): array
     {
         return [
             'type' => $content->getType(),
@@ -122,10 +113,10 @@ class ContentMappingService
      * Get content url
      *
      * @param string $languageId
-     * @param ContentType $content
+     * @param ContentDataType $content
      * @return string|null
      */
-    protected function getUrl(string $languageId, ContentType $content): ?string
+    protected function getUrl(string $languageId, ContentDataType $content): ?string
     {
         return $content->getSeoUrls()?->filter(fn(SeoUrlEntity $seoUrl) => $seoUrl->getLanguageId() === $languageId)
             ->first()
@@ -135,10 +126,10 @@ class ContentMappingService
     /**
      * Creates the content tags string
      *
-     * @param ContentType $content
+     * @param ContentDataType $content
      * @return string
      */
-    protected function getTags(ContentType $content) : string
+    protected function getTags(ContentDataType $content) : string
     {
         if(!$content->getTags()) {
             return '';

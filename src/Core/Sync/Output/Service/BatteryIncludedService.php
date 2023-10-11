@@ -34,9 +34,9 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
-use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
-use Elio\ElioSearch\Core\Sync\DataTypes\ProductType;
-use Elio\ElioSearch\Core\Sync\DataTypes\TypeInterface;
+use Elio\ElioSearch\Core\Sync\DataTypes\ContentDataType;
+use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
+use Elio\ElioSearch\Core\Sync\DataTypes\DataTypeInterface;
 use Elio\ElioSearch\Core\Sync\SyncContext;
 use InvalidArgumentException;
 use JsonException;
@@ -71,8 +71,8 @@ class BatteryIncludedService
     public function prepareSyncParameters(Collection $collection, SyncContext $syncContext, SalesChannelContext $context): array
     {
         $mapper = match ($syncContext->getSyncProfile()->getDataType()) {
-            ProductType::class => $this->productMappingService,
-            ContentType::class => $this->contentMappingService,
+            ProductDataType::class => $this->productMappingService,
+            ContentDataType::class => $this->contentMappingService,
             default => throw new InvalidArgumentException(),
         };
 
@@ -94,7 +94,7 @@ class BatteryIncludedService
     {
         $ids = [];
         foreach ($collection as $entities) {
-            /** @var TypeInterface $element */
+            /** @var DataTypeInterface $element */
             $element = array_values($entities)[0];
             $ids[] = $element->getId();
         }

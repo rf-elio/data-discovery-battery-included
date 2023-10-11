@@ -33,20 +33,17 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
 use Elio\ElioSearch\Core\Defaults;
-use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Core\Sync\Collector\TranslatedEntity;
-use Elio\ElioSearch\Core\Sync\DataTypes\ProductType;
+use Elio\ElioSearch\Core\Sync\DataTypes\DataTypeInterface;
+use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
 use Elio\ElioSearch\Core\Sync\SyncContext;
-use Elio\ElioSearch\Core\Sync\SyncProfileEntity;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Media\Aggregate\MediaThumbnail\MediaThumbnailCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\Struct\Struct;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -70,23 +67,18 @@ class ProductMappingService
     /**
      * Maps data for create, update request
      *
-     * @param TranslatedEntity $entity
+     * @param ProductDataType $entity
      * @param SyncContext $syncContext
      * @return array
      */
-    public function mapData(TranslatedEntity $entity, SyncContext $syncContext): array
+    public function mapData(ProductDataType $product, SyncContext $syncContext): array
     {
-        $product = $entity->getFirst();
-        if (!$product instanceof ProductType) {
-            throw new InvalidTypeException($product, ProductType::class);
-        }
-
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $convertedData = [];
-        $convertedData['id'] = $product->getProductNumber();
+        $convertedData['id'] = $product->getIdentifier();
         $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext->getSalesChannelContexts()->getFirst());
         $convertedData['_history'] = $this->prepareHistoryFields($product);
-        $convertedData['_i8n'] = $this->prepareTranslatedFields($entity->getTranslations(), $syncContext);
+        $convertedData['_i8n'] = $this->prepareTranslatedFields($product->getDataTypeTranslations(), $syncContext);
         $mappedData = $this->addMappedPropertiesToExportItem($product, $syncContext->getSyncProfile()->getMapping(), $propertyAccessor);
         $convertedData['_product'] = array_merge($convertedData['_product'], $mappedData);
         return $convertedData;
@@ -95,12 +87,12 @@ class ProductMappingService
     /**
      * Prepare base fields
      *
-     * @param ProductType $product
+     * @param ProductDataType $product
      * @param SalesChannelContext $context
      * @return array
      */
     protected function prepareBaseFields(
-        ProductType $product,
+        ProductDataType $product,
         SalesChannelContext $context
     ): array {
         $parentProduct = null;
@@ -133,7 +125,7 @@ class ProductMappingService
     /**
      * Prepare translation fields
      *
-     * @param Struct[] $collection
+     * @param DataTypeInterface[] $collection
      * @param SyncContext $syncContext
      * @return array
      */
@@ -142,7 +134,7 @@ class ProductMappingService
         $translatedFields = [];
         /**
          * @var string $languageId
-         * @var ProductType $product
+         * @var ProductDataType $product
          **/
         foreach ($collection as $languageId => $product) {
             $locale = $syncContext->getSalesChannelContexts()->getLanguage($languageId)->getLocale()?->getCode() ?? 'default';
@@ -173,13 +165,13 @@ class ProductMappingService
      * - supports different levels and Collection::first()
      * - examples: manufacturer.name, price.first.gross
      * - can be extended to provide more options for mapping language
-     * @param ProductType $product
+     * @param ProductDataType $product
      * @param array $mappings
      * @param PropertyAccessorInterface $propertyAccessor
      * @return array
      */
     protected function addMappedPropertiesToExportItem(
-        ProductType $product, array $mappings, PropertyAccessorInterface $propertyAccessor
+        ProductDataType $product, array $mappings, PropertyAccessorInterface $propertyAccessor
     ): array
     {
         $mappedData = [];
@@ -211,12 +203,8 @@ class ProductMappingService
      */
     protected function getCategoryPath(ProductEntity $product): array
     {
-        if(!$product->getCategories()) {
-            return [];
-        }
-
         $path = [];
-        $categories = $product->getCategories()->getElements();
+        $categories = $product->getCategories();
         foreach ($categories as $category) {
             $parentBreadCrumb = '';
             $firstSkipped = false;
@@ -418,7 +406,7 @@ class ProductMappingService
         return $bestMatching ? $bestMatching->getUrl() : '';
     }
 
-    private function prepareHistoryFields(ProductType $product): array
+    private function prepareHistoryFields(ProductDataType $product): array
     {
         return [
             'ratingAverage' => $product->getRatingAverage(),

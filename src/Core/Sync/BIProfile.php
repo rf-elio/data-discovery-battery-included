@@ -33,8 +33,8 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync;
 
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\BIOutput;
-use Elio\ElioSearch\Core\Sync\DataTypes\ContentType;
-use Elio\ElioSearch\Core\Sync\DataTypes\ProductType;
+use Elio\ElioSearch\Core\Sync\DataTypes\ContentDataType;
+use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioSearch\Core\Sync\Export\Converter\ContentConverter;
 use Elio\ElioSearch\Core\Sync\Export\Converter\ProductConverter;
 use Elio\ElioSearch\Core\Sync\Input\DeltaInput;
@@ -61,7 +61,7 @@ class BIProfile implements ProfileInterface
      */
     public function getDataTypes(): array
     {
-        return [ProductType::class, ContentType::class];
+        return [ProductDataType::class, ContentDataType::class];
     }
 
     public function getOutputs(): array
