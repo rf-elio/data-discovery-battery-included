@@ -34,6 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Event\SuggestItemTransformEvent;
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioSearch\Api\Search\Response\SuggestionResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Api\Request\ApiRequest;
@@ -44,10 +45,14 @@ use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\Suggest\SuggestGroup;
 use Elio\ElioSearch\Core\Suggest\SuggestItem;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Swagger\Client\Model\ModelInterface;
 use Swagger\Client\Model\SuggestionResult;
 use Swagger\Client\Model\SuggestionResultCollection;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Throwable;
 
 /**
@@ -64,18 +69,22 @@ class SuggestionTransformer implements ResponseTransformerInterface
 {
     private ElioSearchConfigServiceInterface $configService;
     private EventDispatcherInterface $eventDispatcher;
+    private EntityRepository $languageRepository;
 
     /**
      * SuggestionTransformer constructor.
      * @param ElioSearchConfigServiceInterface $configService
      * @param EventDispatcherInterface $eventDispatcher
+     * @param EntityRepository $languageRepository
      */
     public function __construct(
         ElioSearchConfigServiceInterface $configService,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        EntityRepository $languageRepository
     ) {
         $this->configService = $configService;
         $this->eventDispatcher = $eventDispatcher;
+        $this->languageRepository = $languageRepository;
     }
 
     /**
@@ -102,6 +111,13 @@ class SuggestionTransformer implements ResponseTransformerInterface
             throw new InvalidTypeException($model, SuggestionResultCollection::class);
         }
 
+
+        $criteria = new Criteria([$context->getLanguageId()]);
+        $criteria->addAssociation('locale');
+        /** @var LanguageEntity $language */
+        $language = $this->languageRepository->search($criteria, $context->getContext())->first();
+        $locale = LocaleUtil::getLocaleByLanguage($language);
+
         /** @var SuggestionResponse|null $suggestionResponse */
         $suggestionResponse = $responseCollection->get(SuggestionResponse::class) ?? new SuggestionResponse();
         $responseCollection->set(SuggestionResponse::class, $suggestionResponse);
@@ -115,7 +131,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
             }
 
             foreach ($suggestionResult->getHits() as $hit) {
-                $suggestItem = $this->transformSuggestion($hit, $suggestionResult->getKind());
+                $suggestItem = $this->transformSuggestion($hit, $suggestionResult->getKind(), $locale);
 
                 $event = new SuggestItemTransformEvent($suggestItem, $model, $responseCollection, $request, $context);
                 $this->eventDispatcher->dispatch($event);
@@ -138,35 +154,53 @@ class SuggestionTransformer implements ResponseTransformerInterface
     /**
      * @param object $hit
      * @param string $type
+     * @param string $locale
      * @return SuggestItem
      */
-    private function transformSuggestion(object $hit, string $type): SuggestItem
+    private function transformSuggestion(object $hit, string $type, string $locale): SuggestItem
     {
+        $propertyAccess = PropertyAccess::createPropertyAccessor();
         $suggestItem = new SuggestItem();
+        $suggestItem->setType('other');
 
         if ($type === SuggestionResult::RESULT_TYPE_DOCUMENT) {
-            $suggestItem->setName(strip_tags($hit->highlighted));
-            // TODO: Get from const
-            if (isset($hit->{'_product'})) {
+            $namePropertyPath = 'highlight._i8n.'.$locale.'.name';
+            if ($propertyAccess->isReadable($hit, $namePropertyPath)) {
+                $suggestItem->setName(strip_tags($propertyAccess->getValue($hit, $namePropertyPath)));
+            }
+
+            $urlPropertyPath = 'highlight._i8n.'.$locale.'.url';
+            if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
+                $suggestItem->setUrl(strip_tags($propertyAccess->getValue($hit, $urlPropertyPath)));
+            }
+
+            $productPropertyPath = 'highlight._product';
+            if ($propertyAccess->isReadable($hit, $productPropertyPath)) {
+                $attributes = [];
+                $productMasterProductNumberPropertyPath = 'highlight._product.masterProductNumber';
+                if ($propertyAccess->isReadable($hit, $productMasterProductNumberPropertyPath)) {
+                    $attributes['MasterProductNumber'] = $propertyAccess->getValue($hit, $productMasterProductNumberPropertyPath);
+                }
+
+                $productThumbnailPropertyPath = 'highlight._product.thumbnailUrl';
+                if ($propertyAccess->isReadable($hit, $productThumbnailPropertyPath)) {
+                    $suggestItem->setImgUrl($propertyAccess->getValue($hit, $productThumbnailPropertyPath));
+                }
+
                 $suggestItem->setType(SuggestionProductTransformer::TYPE);
-                $suggestItem->setAttributes(['MasterProductNumber' => $hit->value]);
-            } elseif (isset($hit->{'_content'})) {
+                $suggestItem->setAttributes($attributes);
+            }
+
+            $contentPropertyPath = 'highlight._content';
+            if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
                 $suggestItem->setType(SuggestionCategoryTransformer::TYPE);
             }
-        } else {
-            $suggestItem->setName($hit->value);
-            $suggestItem->setType($type);
+
+            return $suggestItem;
         }
 
-//        if ($hit->getImage() !== '') {
-//            $suggestItem->setImgUrl($hit->getImage());
-//        }
-
-//        /** @var array $attributes */
-//        $attributes = $suggestion->getAttributes();
-//        if (!empty($attributes)) {
-//            $suggestItem->setAttributes($this->parseAttributes($attributes));
-//        }
+        $suggestItem->setName($hit->value);
+        $suggestItem->setType($type);
         return $suggestItem;
     }
 

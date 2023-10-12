@@ -47,7 +47,7 @@ class LocaleUtil
 {
     public static function getLocaleByLanguage(LanguageEntity $language): string
     {
-        $locale = $language->getLocale()?->getCode() ?? 'default';
+        $locale = $language->getLocale()?->getCode() ?? '--';
         return substr($locale, 0, 2);
     }
 }

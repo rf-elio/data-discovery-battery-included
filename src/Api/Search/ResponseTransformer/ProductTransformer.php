@@ -146,6 +146,7 @@ class ProductTransformer implements ResponseTransformerInterface
 
         $difference = $shouldCount - $isCount;
         $listing->setTotalHits($listing->getTotalHits() - $difference);
+        $listing->setHitsPerPage($model->getRequestParams()['per_page']);
     }
 
     /**

@@ -46,6 +46,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Throwable;
 
 /**
@@ -62,14 +63,15 @@ class SearchApiDecorator extends SearchApi
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
         private readonly EntityRepository $languageRepository,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        private readonly SystemConfigService $systemConfigService
     ) {
         parent::__construct($logger);
     }
 
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
-        $filters = $this->prepareFilters($searchRequest);
+        $filters = $this->prepareFilters($searchRequest, $context);
         $this->searchDebug('search', $this, [$searchRequest, $context]);
         $apiClient = $this->apiFactory->createSearchApi($context);
         $result = $apiClient->filter($searchRequest->getQuery(), $filters);
@@ -95,11 +97,13 @@ class SearchApiDecorator extends SearchApi
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
 
+        $criteria = new Criteria([$context->getLanguageId()]);
+        $criteria->addAssociation('locale');
         /** @var LanguageEntity $language */
-        $language = $this->languageRepository->search(new Criteria([$context->getLanguageId()]), $context->getContext())->first();
+        $language = $this->languageRepository->search($criteria, $context->getContext())->first();
         $locale = LocaleUtil::getLocaleByLanguage($language);
 
-        $filters = $this->prepareFilters($searchRequest);
+        $filters = $this->prepareFilters($searchRequest, $context);
 
         $categoryPath = $searchRequest->getCategoryPath();
         $categoryPath = implode(' > ', $categoryPath);
@@ -109,12 +113,17 @@ class SearchApiDecorator extends SearchApi
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
-    protected function prepareFilters(SearchRequest $searchRequest): array
+    protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $filters = [];
         foreach ($searchRequest->getFilter() as $key => $values) {
             $filters['f['.$key.']'] = array_shift($values['values']);
         }
+
+        $filters['page'] = $searchRequest->getPage();
+
+        $limit = $this->systemConfigService->getInt('core.listing.productsPerPage', $context->getSalesChannel()->getId());
+        $filters['per_page'] = $limit <= 0 ? 24 : $limit;
         return $filters;
     }
 }
