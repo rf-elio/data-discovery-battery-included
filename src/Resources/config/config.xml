@@ -40,4 +40,18 @@
             <label lang="de-DE">Api-Zeitüberschreitung</label>
         </input-field>
     </card>
+
+    <card>
+        <title>Facet configuration</title>
+        <title lang="de-DE">Facet Konfiguration</title>
+
+        <component name="sw-textarea-field">
+            <name>facetLabels</name>
+            <label>Labels for Facet Names</label>
+            <label lang="de-DE">Labels für Facets</label>
+            <placeholder>_i8n.de.categories:Kategorien|_i8n.en.categories:Categories</placeholder>
+            <helpText>With this configuration labels can be set for facets: _i8n.de.categories:Kategorien|_i8n.en.categories:Categories|...</helpText>
+            <helpText lang="de-DE">Mit dieser Konfiguration können Label für Facets gesetzt werden: _i8n.de.categories:Kategorien|_i8n.en.categories:Categories|...</helpText>
+        </component>
+    </card>
 </config>

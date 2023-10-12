@@ -110,6 +110,10 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $suggestGroups = [];
 
         foreach ($model->getSuggestionResults() as $suggestionResult) {
+            if (!$suggestionResult->getHits()) {
+                continue;
+            }
+
             foreach ($suggestionResult->getHits() as $hit) {
                 $suggestItem = $this->transformSuggestion($hit, $suggestionResult->getKind());
 

@@ -32,6 +32,8 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\CategoryPathUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioSearch\Core\Defaults;
 use Elio\ElioSearch\Core\Sync\DataTypes\DataTypeInterface;
 use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
@@ -137,8 +139,7 @@ class ProductMappingService
          * @var ProductDataType $product
          **/
         foreach ($collection as $languageId => $product) {
-            $locale = $syncContext->getSalesChannelContexts()->getLanguage($languageId)->getLocale()?->getCode() ?? 'default';
-            $locale = substr($locale, 0, 2);
+            $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
             $translated = $product->getTranslated();
             $translatedFields[$locale] = [
                 'name' => $product->getName() ?? $translated['name'] ?? '',
@@ -216,7 +217,7 @@ class ProductMappingService
                 }
 
                 $path[] = $parentBreadCrumb.$breadcrumb;
-                $parentBreadCrumb .= $breadcrumb.' > ';
+                $parentBreadCrumb .= $breadcrumb.CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
             }
 
         }

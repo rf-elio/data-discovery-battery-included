@@ -12,6 +12,7 @@
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SearchApiDecorator" decorates="Elio\ElioSearch\Api\Search\SearchApi">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
             <argument type="service" id="Elio\ElioSearch\Api\Transform\Transformer"/>
+            <argument type="service" id="language.repository"/>
             <argument type="service" id="elio.search.core.logging.debug"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SuggestApiDecorator" decorates="Elio\ElioSearch\Api\Search\SuggestApi">
@@ -19,6 +20,10 @@
             <argument type="service" id="Elio\ElioSearch\Api\Transform\Transformer"/>
         </service>
 
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\FacetTransformer">
+            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService"/>
+            <tag name="elio-search.api.transformer.response"/>
+        </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PagingTransformer">
             <tag name="elio-search.api.transformer.response"/>
         </service>

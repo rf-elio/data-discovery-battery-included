@@ -33,13 +33,18 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
 use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
+use Elio\ElioSearch\Api\Search\Request\SearchRequest;
 use Elio\ElioSearch\Api\Search\SearchApi;
 use Elio\ElioSearch\Api\Transform\Transformer;
 use Psr\Log\LoggerInterface;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Throwable;
 
@@ -54,8 +59,9 @@ use Throwable;
 class SearchApiDecorator extends SearchApi
 {
     public function __construct(
-        private ApiClientFactory $apiFactory,
+        private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
+        private readonly EntityRepository $languageRepository,
         LoggerInterface $logger
     ) {
         parent::__construct($logger);
@@ -63,9 +69,10 @@ class SearchApiDecorator extends SearchApi
 
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
+        $filters = $this->prepareFilters($searchRequest);
         $this->searchDebug('search', $this, [$searchRequest, $context]);
         $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery());
+        $result = $apiClient->filter($searchRequest->getQuery(), $filters);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
@@ -87,7 +94,27 @@ class SearchApiDecorator extends SearchApi
     public function navigation(NavigationRequestProduct $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery(), ['category' => 'Clothing']);
+
+        /** @var LanguageEntity $language */
+        $language = $this->languageRepository->search(new Criteria([$context->getLanguageId()]), $context->getContext())->first();
+        $locale = LocaleUtil::getLocaleByLanguage($language);
+
+        $filters = $this->prepareFilters($searchRequest);
+
+        $categoryPath = $searchRequest->getCategoryPath();
+        $categoryPath = implode(' > ', $categoryPath);
+        $filters['f[_i8n.'.$locale.'.categories]'] = $categoryPath;
+
+        $result = $apiClient->filter($searchRequest->getQuery(), $filters);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
+    }
+
+    protected function prepareFilters(SearchRequest $searchRequest): array
+    {
+        $filters = [];
+        foreach ($searchRequest->getFilter() as $key => $values) {
+            $filters['f['.$key.']'] = array_shift($values['values']);
+        }
+        return $filters;
     }
 }

@@ -198,11 +198,11 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
         }
 
         if (!empty($errors)) {
-            $this->logger->warning('BIOutput: Unable to update products', [
+            $this->logger->warning('BIOutput: Unable to update entities', [
                 'plugin' => 'ElioBatteryIncluded',
                 'errors' => $errors,
             ]);
-            throw new OutputException(sprintf('Invalid status code %s', $response->getStatusCode()));
+            throw new OutputException('Response contains errors');
         }
     }
 }
