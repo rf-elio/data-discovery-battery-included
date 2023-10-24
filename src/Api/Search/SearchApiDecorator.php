@@ -110,6 +110,7 @@ class SearchApiDecorator extends SearchApi
         $filters['f[_i8n.'.$locale.'.categories]'] = $categoryPath;
 
         $result = $apiClient->filter($searchRequest->getQuery(), $filters);
+
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 

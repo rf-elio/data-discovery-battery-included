@@ -91,6 +91,10 @@ class FacetTransformer implements ResponseTransformerInterface
             throw new InvalidTypeException($model, Result::class);
         }
 
+        if (!$model->getFacetCounts()) {
+            return;
+        }
+
         $level = FilterService::LEVEL_GLOBAL;
         if ($request instanceof NavigationRequestProduct) {
             $level = FilterService::LEVEL_CATEGORY;

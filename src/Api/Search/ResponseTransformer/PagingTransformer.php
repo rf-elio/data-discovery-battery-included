@@ -75,7 +75,7 @@ class PagingTransformer implements ResponseTransformerInterface
         }
 
         $page = $model->getPage();
-        $hitsPerPage = $model->getRequestParams()['per_page'] ?? 50;
+        $hitsPerPage = $model->getRequestParams()['per_page'] ?? 24;
         $listing = $responseCollection->get(ProductListingResponse::class) ?? new ProductListingResponse();
         $responseCollection->set(ProductListingResponse::class, $listing);
         $listing->setCurrentPage($page);
