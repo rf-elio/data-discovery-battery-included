@@ -40,7 +40,9 @@ use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
 use Elio\ElioSearch\Core\Sync\SyncContext;
+use Elio\ElioSearch\Core\Sync\Util\ProductUtil;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
+use Elio\ElioSearch\ElioSearch;
 use Shopware\Core\Content\Media\Aggregate\MediaThumbnail\MediaThumbnailCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
@@ -69,18 +71,27 @@ class ProductMappingService
     /**
      * Maps data for create, update request
      *
-     * @param ProductDataType $entity
+     * @param ProductDataType $product
      * @param SyncContext $syncContext
      * @return array
      */
     public function mapData(ProductDataType $product, SyncContext $syncContext): array
     {
+        $parentProduct = null;
+        if ($product->getParentId()) {
+            /** @var ProductEntity|null $parentProduct */
+            $parentProduct = $this->productRepository->search(
+                new Criteria([$product->getParentId()]),
+                $syncContext->getSalesChannelContexts()->getFirst()->getContext()
+            )->first();
+        }
+
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
-        $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext->getSalesChannelContexts()->getFirst());
+        $convertedData['_product'] = $this->prepareBaseFields($product, $parentProduct);
         $convertedData['_history'] = $this->prepareHistoryFields($product);
-        $convertedData['_i8n'] = $this->prepareTranslatedFields($product->getDataTypeTranslations(), $syncContext);
+        $convertedData['_i8n'] = $this->prepareTranslatedFields($product->getDataTypeTranslations(), $parentProduct, $syncContext);
         $mappedData = $this->addMappedPropertiesToExportItem($product, $syncContext->getSyncProfile()->getMapping(), $propertyAccessor);
         $convertedData['_product'] = array_merge($convertedData['_product'], $mappedData);
         return $convertedData;
@@ -90,19 +101,14 @@ class ProductMappingService
      * Prepare base fields
      *
      * @param ProductDataType $product
-     * @param SalesChannelContext $context
+     * @param ProductEntity|null $parentProduct
      * @return array
      */
     protected function prepareBaseFields(
         ProductDataType $product,
-        SalesChannelContext $context
-    ): array {
-        $parentProduct = null;
-        if($product->getParentId()) {
-            /** @var ProductEntity|null  $parentProduct */
-            $parentProduct = $this->productRepository->search(new Criteria([$product->getParentId()]), $context->getContext())->first();
-        }
-
+        ?ProductEntity $parentProduct
+    ): array
+    {
         [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
         return [
             'masterProductNumber' => $parentProduct?->getProductNumber(),
@@ -115,12 +121,13 @@ class ProductMappingService
             'stock' => $product->getStock(),
             'closeout' => $product->getIsCloseout() ? 1 : 0,
             'shippingFree' => $product->getShippingFree(),
-            'releaseDate'=> $product->getReleaseDate()
+            'releaseDate' => $product->getReleaseDate()
                 ? $product->getReleaseDate()->format(SyncDefaults::DATE_TIME_FORMAT)
                 : '',
             'imageUrl' => $product->getCover()?->getMedia()?->getUrl(),
             'thumbnailUrl' => $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails()),
-            'id' => $product->getId()
+            'displayByDefault' => ProductUtil::isDisplayedByDefault($product, $parentProduct),
+            'id' => $product->getId(),
         ];
     }
 
@@ -128,10 +135,15 @@ class ProductMappingService
      * Prepare translation fields
      *
      * @param DataTypeInterface[] $collection
+     * @param ProductEntity|null $parentProduct
      * @param SyncContext $syncContext
      * @return array
      */
-    protected function prepareTranslatedFields(array $collection, SyncContext $syncContext): array
+    protected function prepareTranslatedFields(
+        array $collection,
+        ?ProductEntity $parentProduct,
+        SyncContext $syncContext
+    ): array
     {
         $translatedFields = [];
         /**
@@ -152,7 +164,11 @@ class ProductMappingService
                 'attributes' => $this->getProductAttribute($this->getFilterableProductProperties($product)),
                 'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
                 'tags' => $this->getProductTags($product),
-                'url' => $product->getExtension(SeoRoute::class)?->getUrl() ?? ''
+                'url' => $product->getExtension(SeoRoute::class)?->getUrl() ?? '',
+                'displayByDefaultInListing' => $product->getCustomFields()[ElioSearch::CUSTOM_FIELD_DISPLAY_PRODUCT_BY_DEFAULT_IN_LISTING]
+                    ?? ProductUtil::isDisplayedByDefault($product, $parentProduct),
+                'displayByDefaultInSearch' => $product->getCustomFields()[ElioSearch::CUSTOM_FIELD_DISPLAY_PRODUCT_BY_DEFAULT_IN_SEARCH]
+                    ?? ProductUtil::isDisplayedByDefault($product, $parentProduct)
             ];
         }
 
@@ -178,7 +194,7 @@ class ProductMappingService
         $mappedData = [];
         foreach ($mappings as $mapping) {
             if (str_contains($mapping['source'], '.')) {
-                $parts = explode('.',$mapping['source']);
+                $parts = explode('.', $mapping['source']);
                 $previousObj = $product;
                 foreach ($parts as $part) {
                     if ($part === 'first') {
@@ -216,8 +232,8 @@ class ProductMappingService
                     continue;
                 }
 
-                $path[] = $parentBreadCrumb.$breadcrumb;
-                $parentBreadCrumb .= $breadcrumb.CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
+                $path[] = $parentBreadCrumb . $breadcrumb;
+                $parentBreadCrumb .= $breadcrumb . CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
             }
 
         }
@@ -233,7 +249,7 @@ class ProductMappingService
      */
     protected function getCategoryIds(ProductEntity $product): string
     {
-        if(!$product->getCategories()) {
+        if (!$product->getCategories()) {
             return '';
         }
 
@@ -261,7 +277,7 @@ class ProductMappingService
         $attributes = [];
         foreach ($properties as $property) {
             $group = $property->getGroup();
-            if($group !== null) {
+            if ($group !== null) {
                 $name = $group->getTranslation('name') ?? $group->getName();
                 $value = $property->getTranslation('name') ?? $property->getName();
                 $attributes[$name] = ValueUtil::cleanValue($value);
@@ -281,7 +297,7 @@ class ProductMappingService
             return [];
         }
         return $product->getProperties()->filter(
-            static fn (PropertyGroupOptionEntity $option) => $option->getGroup() !== null && $option->getGroup()->getFilterable()
+            static fn(PropertyGroupOptionEntity $option) => $option->getGroup() !== null && $option->getGroup()->getFilterable()
         )->getElements();
     }
 
@@ -295,7 +311,7 @@ class ProductMappingService
             return [];
         }
         return $product->getProperties()->filter(
-            static fn (PropertyGroupOptionEntity $option) => $option->getGroup() !== null && !$option->getGroup()->getFilterable()
+            static fn(PropertyGroupOptionEntity $option) => $option->getGroup() !== null && !$option->getGroup()->getFilterable()
         )->getElements();
     }
 
@@ -305,9 +321,9 @@ class ProductMappingService
      * @param ProductEntity $product
      * @return array
      */
-    protected function getProductTags(ProductEntity $product) : array
+    protected function getProductTags(ProductEntity $product): array
     {
-        if(!$product->getTags()) {
+        if (!$product->getTags()) {
             return [];
         }
 
@@ -325,7 +341,7 @@ class ProductMappingService
      * @param ProductEntity $product
      * @return array|null
      */
-    protected function getProductPrice(ProductEntity $product) : ?array
+    protected function getProductPrice(ProductEntity $product): ?array
     {
         if ($product->getPrice() === null || !$price = $product->getPrice()->first()) {
             return null;
@@ -351,7 +367,7 @@ class ProductMappingService
      *
      * @return string
      */
-    protected function getProductPrices(ProductEntity $product, SalesChannelContext $context) : string
+    protected function getProductPrices(ProductEntity $product, SalesChannelContext $context): string
     {
         [$price] = $this->getProductPrice($product) ?? [null];
         if (!$price) {
