@@ -80,8 +80,10 @@ class ProductMappingService
         $parentProduct = null;
         if ($product->getParentId()) {
             /** @var ProductEntity|null $parentProduct */
+            $criteria = new Criteria([$product->getParentId()]);
+            $criteria->addAssociation('children');
             $parentProduct = $this->productRepository->search(
-                new Criteria([$product->getParentId()]),
+                $criteria,
                 $syncContext->getSalesChannelContexts()->getFirst()->getContext()
             )->first();
         }
