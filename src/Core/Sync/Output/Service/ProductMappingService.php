@@ -64,10 +64,6 @@ class ProductMappingService
 {
     private const PRODUCT_THUMBNAIL_SIZE = 200;
 
-    public function __construct(private readonly EntityRepository $productRepository)
-    {
-    }
-
     /**
      * Maps data for create, update request
      *
@@ -77,23 +73,12 @@ class ProductMappingService
      */
     public function mapData(ProductDataType $product, SyncContext $syncContext): array
     {
-        $parentProduct = null;
-        if ($product->getParentId()) {
-            /** @var ProductEntity|null $parentProduct */
-            $criteria = new Criteria([$product->getParentId()]);
-            $criteria->addAssociation('children');
-            $parentProduct = $this->productRepository->search(
-                $criteria,
-                $syncContext->getSalesChannelContexts()->getFirst()->getContext()
-            )->first();
-        }
-
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
-        $convertedData['_product'] = $this->prepareBaseFields($product, $parentProduct);
+        $convertedData['_product'] = $this->prepareBaseFields($product);
         $convertedData['_history'] = $this->prepareHistoryFields($product);
-        $convertedData['_i8n'] = $this->prepareTranslatedFields($product->getDataTypeTranslations(), $parentProduct, $syncContext);
+        $convertedData['_i8n'] = $this->prepareTranslatedFields($product->getDataTypeTranslations(), $syncContext);
         $mappedData = $this->addMappedPropertiesToExportItem($product, $syncContext->getSyncProfile()->getMapping(), $propertyAccessor);
         $convertedData['_product'] = array_merge($convertedData['_product'], $mappedData);
         return $convertedData;
@@ -103,17 +88,15 @@ class ProductMappingService
      * Prepare base fields
      *
      * @param ProductDataType $product
-     * @param ProductEntity|null $parentProduct
      * @return array
      */
     protected function prepareBaseFields(
-        ProductDataType $product,
-        ?ProductEntity $parentProduct
+        ProductDataType $product
     ): array
     {
         [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
         return [
-            'masterProductNumber' => $parentProduct?->getProductNumber(),
+            'masterProductNumber' => $product->getVariant()?->getParentProduct()?->getIdentifier(),
             'productNumber' => [$product->getProductNumber()],
             'manufacturerNumber' => $product->getManufacturerNumber(),
             'price' => (float)ValueUtil::formatPrice($price),
@@ -128,7 +111,12 @@ class ProductMappingService
                 : '',
             'imageUrl' => $product->getCover()?->getMedia()?->getUrl(),
             'thumbnailUrl' => $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails()),
-            'displayByDefault' => ProductUtil::isDisplayedByDefault($product, $parentProduct),
+            'variant' => [
+                'position' => $product->getVariant()->getPosition(),
+                'displayByDefault' => $product->getVariant()->isDisplayByDefault(),
+                'displayByDefaultInListing' => $product->getVariant()->isDisplayByDefaultInListing(),
+                'displayByDefaultInSearch' => $product->getVariant()->isDisplayByDefaultInSearch()
+            ],
             'id' => $product->getId(),
         ];
     }
@@ -137,13 +125,11 @@ class ProductMappingService
      * Prepare translation fields
      *
      * @param DataTypeInterface[] $collection
-     * @param ProductEntity|null $parentProduct
      * @param SyncContext $syncContext
      * @return array
      */
     protected function prepareTranslatedFields(
         array $collection,
-        ?ProductEntity $parentProduct,
         SyncContext $syncContext
     ): array
     {
@@ -167,10 +153,6 @@ class ProductMappingService
                 'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
                 'tags' => $this->getProductTags($product),
                 'url' => $product->getExtension(SeoRoute::class)?->getUrl() ?? '',
-                'displayByDefaultInListing' => $product->getCustomFields()[ElioSearch::CUSTOM_FIELD_DISPLAY_PRODUCT_BY_DEFAULT_IN_LISTING]
-                    ?? ProductUtil::isDisplayedByDefault($product, $parentProduct),
-                'displayByDefaultInSearch' => $product->getCustomFields()[ElioSearch::CUSTOM_FIELD_DISPLAY_PRODUCT_BY_DEFAULT_IN_SEARCH]
-                    ?? ProductUtil::isDisplayedByDefault($product, $parentProduct)
             ];
         }
 
