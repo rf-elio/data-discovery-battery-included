@@ -45,6 +45,7 @@ use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Elio\ElioSearch\ElioSearch;
 use Shopware\Core\Content\Media\Aggregate\MediaThumbnail\MediaThumbnailCollection;
 use Shopware\Core\Content\Product\ProductEntity;
+use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -96,7 +97,7 @@ class ProductMappingService
     {
         [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
         return [
-            'masterProductNumber' => $product->getVariant()?->getParentProduct()?->getIdentifier(),
+            'masterProductNumber' => $product->getVariant()?->getParentProduct()?->getIdentifier() ?? $product->getIdentifier(),
             'productNumber' => [$product->getProductNumber()],
             'manufacturerNumber' => $product->getManufacturerNumber(),
             'price' => (float)ValueUtil::formatPrice($price),
@@ -113,7 +114,6 @@ class ProductMappingService
             'thumbnailUrl' => $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails()),
             'variant' => [
                 'position' => $product->getVariant()->getPosition(),
-                'displayByDefault' => $product->getVariant()->isDisplayByDefault(),
                 'displayByDefaultInListing' => $product->getVariant()->isDisplayByDefaultInListing(),
                 'displayByDefaultInSearch' => $product->getVariant()->isDisplayByDefaultInSearch()
             ],
@@ -153,6 +153,9 @@ class ProductMappingService
                 'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
                 'tags' => $this->getProductTags($product),
                 'url' => $product->getExtension(SeoRoute::class)?->getUrl() ?? '',
+                'variant' => [
+                    'options' => $this->getProductOptions($product->getOptions())
+                ]
             ];
         }
 
@@ -248,6 +251,28 @@ class ProductMappingService
         }
 
         return implode(Defaults::VALUE_SEPARATOR, $productCategoryIds);
+    }
+
+    /**
+     * Appends the product attributes
+     *
+     * @param array<PropertyGroupOptionEntity> $properties
+     * @return array
+     */
+    protected function getProductOptions(?PropertyGroupOptionCollection $groupOptionCollection): array
+    {
+        if (!$groupOptionCollection) {
+            return [];
+        }
+
+        $attributes = [];
+        foreach ($groupOptionCollection as $groupOption) {
+            $group = $groupOption->getGroup();
+            $name = $group->getTranslation('name') ?? $group->getName();
+            $attributes[$name] = ValueUtil::cleanValue($groupOption->getTranslation('name') ?? $group->getName());
+        }
+
+        return $attributes;
     }
 
     /**
