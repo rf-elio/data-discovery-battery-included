@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">= 8.1",
-    "elio/battery-included-api-client": "1.0.2",
+    "elio/battery-included-api-client": "1.0.3",
     "elio/search": "1.0.12",
     "shopware/core": "^6.5",
     "ext-curl": "*"

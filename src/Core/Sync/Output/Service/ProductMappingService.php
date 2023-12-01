@@ -40,14 +40,11 @@ use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
 use Elio\ElioSearch\Core\Sync\SyncContext;
-use Elio\ElioSearch\Core\Sync\Util\ProductUtil;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
-use Elio\ElioSearch\ElioSearch;
 use Shopware\Core\Content\Media\Aggregate\MediaThumbnail\MediaThumbnailCollection;
 use Shopware\Core\Content\Product\ProductEntity;
+use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -255,7 +252,7 @@ class ProductMappingService
     /**
      * Appends the product attributes
      *
-     * @param array<PropertyGroupOptionEntity> $properties
+     * @param PropertyGroupOptionCollection|null $groupOptionCollection
      * @return array
      */
     protected function getProductOptions(?PropertyGroupOptionCollection $groupOptionCollection): array

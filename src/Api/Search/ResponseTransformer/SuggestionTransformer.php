@@ -111,7 +111,6 @@ class SuggestionTransformer implements ResponseTransformerInterface
             throw new InvalidTypeException($model, SuggestionResultCollection::class);
         }
 
-
         $criteria = new Criteria([$context->getLanguageId()]);
         $criteria->addAssociation('locale');
         /** @var LanguageEntity $language */
