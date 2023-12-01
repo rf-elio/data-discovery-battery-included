@@ -23,6 +23,8 @@
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\FacetTransformer">
             <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService"/>
+            <argument type="service" id="Shopware\Core\Content\Category\Service\NavigationLoader"/>
+            <argument type="service" id="category.repository"/>
             <tag name="elio-search.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PagingTransformer">
