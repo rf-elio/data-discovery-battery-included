@@ -46,6 +46,7 @@ use Elio\ElioSearch\Core\FilterRestrictions\FilterService;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\DefaultFacetExtension;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\FacetCollection;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\SliderResult;
+use Shopware\Core\Content\Category\CategoryEntity;
 use Shopware\Core\Content\Category\Service\NavigationLoader;
 use Shopware\Core\Content\Category\Tree\Tree;
 use Shopware\Core\Content\Category\Tree\TreeItem;
@@ -206,6 +207,24 @@ class FacetTransformer implements ResponseTransformerInterface
                 break;
             }
         }
+
+        $a = new CategoryEntity();
+        $a->setId(Uuid::randomHex());
+        $a->setName('Werkzeuge');
+        $a->setTranslated(['name' => 'Werkzeuge']);
+
+        $b = new CategoryEntity();
+        $b->setId(Uuid::randomHex());
+        $b->setName('Rasenmäher');
+        $b->setTranslated(['name' => 'Rasenmäher']);
+
+        $tree = new Tree(
+            null, [
+                new TreeItem($a, [new TreeItem($b, [])])
+            ]
+        );
+
+        return $tree;
 
         $tree = $this->navigationLoader->load(
             $category ? $category->getId() : $salesChannelContext->getSalesChannel()->getNavigationCategoryId(),
