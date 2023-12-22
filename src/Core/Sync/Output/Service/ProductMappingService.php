@@ -39,6 +39,8 @@ use Elio\ElioSearch\Core\Sync\DataTypes\DataTypeInterface;
 use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
+use Elio\ElioSearch\Core\Sync\Sorting\ProductSortingCollection;
+use Elio\ElioSearch\Core\Sync\Sorting\ProductSortingEntity;
 use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Media\Aggregate\MediaThumbnail\MediaThumbnailCollection;
@@ -111,7 +113,7 @@ class ProductMappingService
             'variant' => [
                 'position' => $product->getVariant()->getPosition(),
                 'displayByDefaultInListing' => $product->getVariant()->isDisplayByDefaultInListing(),
-                'displayByDefaultInSearch' => $product->getVariant()->isDisplayByDefaultInSearch()
+                'displayByDefaultInSearch' => $product->getVariant()->isDisplayByDefaultInSearch(),
             ],
             'id' => $product->getId(),
         ];
@@ -145,13 +147,14 @@ class ProductMappingService
                 'keywords' => $product->getKeywords() ?? $translated['keywords'] ?? '',
                 'searchKeywords' => $product->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? [],
                 'categories' => $this->getCategoryPath($product),
+                'categorySort' => $this->getCategorySort($product),
                 'attributes' => $this->getProductAttribute($this->getFilterableProductProperties($product)),
                 'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
                 'tags' => $this->getProductTags($product),
                 'url' => $product->getExtension(SeoRoute::class)?->getUrl() ?? '',
                 'variant' => [
-                    'options' => $this->getProductOptions($product->getOptions())
-                ]
+                    'options' => $this->getProductOptions($product->getOptions()),
+                ],
             ];
         }
 
@@ -225,6 +228,42 @@ class ProductMappingService
     }
 
     /**
+     * Builds the category sort for elio search
+     *
+     * @param ProductDataType $product
+     * @return array
+     */
+    protected function getCategorySort(ProductDataType $product): array
+    {
+        $sort = [];
+        $categories = $product->getCategories();
+        /** @var ProductSortingCollection $productSortingCollection */
+        $productSortingCollection = $product->getExtension('elioSearchProductSorting');
+        foreach ($categories as $category) {
+            $parentBreadCrumb = '';
+            $firstSkipped = false;
+
+            foreach ($category->getPlainBreadcrumb() as $categoryId => $breadcrumb) {
+                // first one is home, we don't want to have home
+                if (!$firstSkipped) {
+                    $firstSkipped = true;
+                    continue;
+                }
+
+                /** @var ProductSortingEntity $productSorting */
+                if (!$productSorting = $productSortingCollection->filterByProperty('categoryId', $categoryId)->first()) {
+                    continue;
+                }
+
+                $sort[] = $parentBreadCrumb . $breadcrumb . ': ' . $productSorting->getPosition();
+                $parentBreadCrumb .= $breadcrumb . CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
+            }
+        }
+
+        return $sort;
+    }
+
+    /**
      * Builds the category path for elio search
      *
      * @param ProductEntity $product
@@ -252,7 +291,7 @@ class ProductMappingService
     /**
      * Appends the product attributes
      *
-     * @param PropertyGroupOptionCollection|null $groupOptionCollection
+     * @param array<PropertyGroupOptionEntity> $properties
      * @return array
      */
     protected function getProductOptions(?PropertyGroupOptionCollection $groupOptionCollection): array
