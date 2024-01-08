@@ -43,6 +43,7 @@ use Elio\ElioSearch\Core\Sync\Sorting\ProductSortingCollection;
 use Elio\ElioSearch\Core\Sync\Sorting\ProductSortingEntity;
 use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
+use Elio\ElioSearch\Configuration\ElioSearchConfigService;
 use Shopware\Core\Content\Media\Aggregate\MediaThumbnail\MediaThumbnailCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
@@ -61,7 +62,10 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  */
 class ProductMappingService
 {
-    private const PRODUCT_THUMBNAIL_SIZE = 200;
+    public function __construct(
+        private ElioSearchConfigService $configService
+    ) {}
+
 
     /**
      * Maps data for create, update request
@@ -75,9 +79,9 @@ class ProductMappingService
         $propertyAccessor = PropertyAccess::createPropertyAccessor();
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
-        $convertedData['_product'] = $this->prepareBaseFields($product);
         $convertedData['_history'] = $this->prepareHistoryFields($product);
-        $convertedData['_i8n'] = $this->prepareTranslatedFields($product->getDataTypeTranslations(), $syncContext);
+        $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext);
+        $convertedData['_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
         $mappedData = $this->addMappedPropertiesToExportItem($product, $syncContext->getSyncProfile()->getMapping(), $propertyAccessor);
         $convertedData['_product'] = array_merge($convertedData['_product'], $mappedData);
         return $convertedData;
@@ -90,10 +94,15 @@ class ProductMappingService
      * @return array
      */
     protected function prepareBaseFields(
-        ProductDataType $product
-    ): array
-    {
+        ProductDataType $product,
+        SyncContext $syncContext
+    ): array {
         [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
+
+        $salesChannelContext = $syncContext->getSalesChannelContexts()->getFirst();
+        $thumbnailSize = $this->configService->getByContext($salesChannelContext)->getProductThumbnailSize();
+        $thumbnailUrl = $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails(), $thumbnailSize);
+
         return [
             'masterProductNumber' => $product->getVariant()?->getParentProduct()?->getIdentifier() ?? $product->getIdentifier(),
             'productNumber' => [$product->getProductNumber()],
@@ -109,8 +118,9 @@ class ProductMappingService
                 ? $product->getReleaseDate()->format(SyncDefaults::DATE_TIME_FORMAT)
                 : '',
             'imageUrl' => $product->getCover()?->getMedia()?->getUrl(),
-            'thumbnailUrl' => $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails()),
+            'thumbnailUrl' => $thumbnailUrl,
             'variant' => [
+                'groupingKey' => $product->getVariant()->getGroupingKey(),
                 'position' => $product->getVariant()->getPosition(),
                 'displayByDefaultInListing' => $product->getVariant()->isDisplayByDefaultInListing(),
                 'displayByDefaultInSearch' => $product->getVariant()->isDisplayByDefaultInSearch(),
@@ -127,10 +137,12 @@ class ProductMappingService
      * @return array
      */
     protected function prepareTranslatedFields(
-        array $collection,
+        ProductDataType $product,
         SyncContext $syncContext
     ): array
     {
+        $collection = $product->getDataTypeTranslations();
+
         $translatedFields = [];
         /**
          * @var string $languageId
@@ -139,6 +151,10 @@ class ProductMappingService
         foreach ($collection as $languageId => $product) {
             $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
             $translated = $product->getTranslated();
+
+            /** @var SeoRoute|null $seoRoute */
+            $seoRoute = $product->getExtension(SeoRoute::class);
+
             $translatedFields[$locale] = [
                 'name' => $product->getName() ?? $translated['name'] ?? '',
                 'description' => ValueUtil::cleanValue($product->getDescription() ?? $translated['description'] ?? ''),
@@ -151,7 +167,7 @@ class ProductMappingService
                 'attributes' => $this->getProductAttribute($this->getFilterableProductProperties($product)),
                 'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
                 'tags' => $this->getProductTags($product),
-                'url' => $product->getExtension(SeoRoute::class)?->getUrl() ?? '',
+                'url' => $seoRoute?->getUrl() ?? '',
                 'variant' => [
                     'options' => $this->getProductOptions($product->getOptions()),
                 ],
@@ -447,13 +463,12 @@ class ProductMappingService
      * @param MediaThumbnailCollection|null $thumbnailCollection
      * @return string
      */
-    protected function getThumbnailUrl(?MediaThumbnailCollection $thumbnailCollection): string
+    protected function getThumbnailUrl(?MediaThumbnailCollection $thumbnailCollection, int $targetSize): string
     {
         if (!$thumbnailCollection || $thumbnailCollection->count() <= 0) {
             return '';
         }
 
-        $targetSize = self::PRODUCT_THUMBNAIL_SIZE;
         $bestMatching = null;
         $bestMatchingSizeDifference = 0;
         foreach ($thumbnailCollection as $thumbnail) {
