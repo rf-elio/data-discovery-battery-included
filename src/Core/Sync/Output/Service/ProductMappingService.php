@@ -43,8 +43,6 @@ use Elio\ElioSearch\Core\Sync\Sorting\ProductSortingCollection;
 use Elio\ElioSearch\Core\Sync\Sorting\ProductSortingEntity;
 use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
-use Elio\ElioSearch\Configuration\ElioSearchConfigService;
-use Shopware\Core\Content\Media\Aggregate\MediaThumbnail\MediaThumbnailCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
@@ -62,11 +60,6 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  */
 class ProductMappingService
 {
-    public function __construct(
-        private ElioSearchConfigService $configService
-    ) {}
-
-
     /**
      * Maps data for create, update request
      *
@@ -80,7 +73,7 @@ class ProductMappingService
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
         $convertedData['_history'] = $this->prepareHistoryFields($product);
-        $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext);
+        $convertedData['_product'] = $this->prepareBaseFields($product);
         $convertedData['_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
         $mappedData = $this->addMappedPropertiesToExportItem($product, $syncContext->getSyncProfile()->getMapping(), $propertyAccessor);
         $convertedData['_product'] = array_merge($convertedData['_product'], $mappedData);
@@ -94,14 +87,9 @@ class ProductMappingService
      * @return array
      */
     protected function prepareBaseFields(
-        ProductDataType $product,
-        SyncContext $syncContext
+        ProductDataType $product
     ): array {
         [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
-
-        $salesChannelContext = $syncContext->getSalesChannelContexts()->getFirst();
-        $thumbnailSize = $this->configService->getByContext($salesChannelContext)->getProductThumbnailSize();
-        $thumbnailUrl = $this->getThumbnailUrl($product->getCover()?->getMedia()?->getThumbnails(), $thumbnailSize);
 
         return [
             'masterProductNumber' => $product->getVariant()?->getParentProduct()?->getIdentifier() ?? $product->getIdentifier(),
@@ -118,12 +106,11 @@ class ProductMappingService
                 ? $product->getReleaseDate()->format(SyncDefaults::DATE_TIME_FORMAT)
                 : '',
             'imageUrl' => $product->getCover()?->getMedia()?->getUrl(),
-            'thumbnailUrl' => $thumbnailUrl,
+            'thumbnailUrl' => $product->getThumbnailUrl(),
             'variant' => [
                 'groupingKey' => $product->getVariant()->getGroupingKey(),
                 'position' => $product->getVariant()->getPosition(),
-                'displayByDefaultInListing' => $product->getVariant()->isDisplayByDefaultInListing(),
-                'displayByDefaultInSearch' => $product->getVariant()->isDisplayByDefaultInSearch(),
+                'displayByDefault' => $product->getVariant()->isDisplayByDefault()
             ],
             'id' => $product->getId(),
         ];
@@ -455,31 +442,6 @@ class ProductMappingService
             implode(Defaults::VALUE_SEPARATOR, $prices),
             Defaults::VALUE_SEPARATOR
         ) : '';
-    }
-
-    /**
-     * Searches for the best matching thumbnail
-     *
-     * @param MediaThumbnailCollection|null $thumbnailCollection
-     * @return string
-     */
-    protected function getThumbnailUrl(?MediaThumbnailCollection $thumbnailCollection, int $targetSize): string
-    {
-        if (!$thumbnailCollection || $thumbnailCollection->count() <= 0) {
-            return '';
-        }
-
-        $bestMatching = null;
-        $bestMatchingSizeDifference = 0;
-        foreach ($thumbnailCollection as $thumbnail) {
-            $targetSizeDifference = abs($targetSize - $thumbnail->getWidth());
-            if (!$bestMatching || $targetSizeDifference < $bestMatchingSizeDifference) {
-                $bestMatching = $thumbnail;
-                $bestMatchingSizeDifference = $targetSizeDifference;
-            }
-        }
-
-        return $bestMatching ? $bestMatching->getUrl() : '';
     }
 
     private function prepareHistoryFields(ProductDataType $product): array

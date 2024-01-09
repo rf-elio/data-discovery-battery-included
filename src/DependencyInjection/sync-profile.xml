@@ -15,9 +15,7 @@
         </service>
 
         <!--   Services    -->
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\ProductMappingService">
-            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService"/>
-        </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\ProductMappingService"/>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\ContentMappingService" />
         <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\BatteryIncludedService">
             <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService"/>
