@@ -36,16 +36,12 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
-use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Configuration\ElioSearchConfigService;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Core\FilterRestrictions\FilterService;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\DefaultFacetExtension;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\FacetCollection;
-use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\SliderResult;
 use Shopware\Core\Content\Category\CategoryEntity;
 use Shopware\Core\Content\Category\Service\NavigationLoader;
 use Shopware\Core\Content\Category\Tree\Tree;
@@ -76,9 +72,7 @@ use Swagger\Client\Model\Result;
 class FacetTransformer implements ResponseTransformerInterface
 {
     public function __construct(
-        private readonly ElioSearchConfigService $configService,
-        private readonly NavigationLoader $navigationLoader,
-        private readonly EntityRepository $categoryRepository
+        private readonly ElioSearchConfigService $configService
     ) {
     }
 
@@ -194,44 +188,33 @@ class FacetTransformer implements ResponseTransformerInterface
      */
     protected function transformCategoryTree(object $facet, SalesChannelContext $salesChannelContext): Tree
     {
-        $category = null;
-        foreach (array_reverse($facet->counts) as $element) {
-            $elementLabel = !empty( $label = explode('>', $element->value)) ? trim(end($label)) : null;
-            if (!$elementLabel) {
-                continue;
-            }
-            $criteria = new Criteria();
-            $criteria->addFilter(new EqualsFilter('name', $elementLabel));
-            $category = $this->categoryRepository->search($criteria, $salesChannelContext->getContext())->first();
-            if ($category !== null) {
-                break;
+        $rootTree = [];
+        $treeItems = [];
+        foreach ($facet->counts as $element) {
+            $labels = array_map('trim', explode('>', $element->value));
+            $level = count($labels) - 1;
+            $elementLabel = !empty($labels) ? trim(end($labels)) : $element->value;
+
+            $category = new CategoryEntity();
+            $category->setId(Uuid::randomHex());
+            $category->setName($elementLabel);
+            $category->setTranslated(['name' => $elementLabel]);
+
+            $treeItem = new TreeItem($category, []);
+
+            if ($level === 0) {
+                $treeItems[$level][$elementLabel] = $treeItem;
+                $rootTree[] = $treeItem;
+            } else {
+                /** @var TreeItem $previousItem */
+                $previousItem = $treeItems[$level - 1][prev($labels)];
+                $treeItems[$level][$elementLabel] = $treeItem;
+                $previousItem->addChildren($treeItem);
             }
         }
 
-        $a = new CategoryEntity();
-        $a->setId(Uuid::randomHex());
-        $a->setName('Werkzeuge');
-        $a->setTranslated(['name' => 'Werkzeuge']);
+        $tree = new Tree(null, $rootTree);
 
-        $b = new CategoryEntity();
-        $b->setId(Uuid::randomHex());
-        $b->setName('Rasenmäher');
-        $b->setTranslated(['name' => 'Rasenmäher']);
-
-        $tree = new Tree(
-            null, [
-                new TreeItem($a, [new TreeItem($b, [])])
-            ]
-        );
-
-        return $tree;
-
-        $tree = $this->navigationLoader->load(
-            $category ? $category->getId() : $salesChannelContext->getSalesChannel()->getNavigationCategoryId(),
-            $salesChannelContext,
-            $salesChannelContext->getSalesChannel()->getNavigationCategoryId(),
-            $salesChannelContext->getSalesChannel()->getNavigationCategoryDepth()
-        );
         $counts = [];
         foreach ($facet->counts as $element){
             $elementLabel = !empty( $label = explode('>', $element->value)) ? trim(end($label)) : null;
@@ -307,6 +290,7 @@ class FacetTransformer implements ResponseTransformerInterface
             ));
             $options->add($option);
         }
+
         foreach ($facet->counts as $element) {
             $elementLabel = $element->value;
             $option = new PropertyGroupOptionEntity();
@@ -320,6 +304,7 @@ class FacetTransformer implements ResponseTransformerInterface
             ));
             $options->add($option);
         }
+
         return $group;
     }
 }
