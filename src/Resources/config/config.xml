@@ -49,9 +49,23 @@
             <name>facetLabels</name>
             <label>Labels for Facet Names</label>
             <label lang="de-DE">Labels für Facets</label>
-            <placeholder>_i8n.de.categories:Kategorien|_i8n.en.categories:Categories</placeholder>
-            <helpText>With this configuration labels can be set for facets: _i8n.de.categories:Kategorien|_i8n.en.categories:Categories|...</helpText>
-            <helpText lang="de-DE">Mit dieser Konfiguration können Label für Facets gesetzt werden: _i8n.de.categories:Kategorien|_i8n.en.categories:Categories|...</helpText>
+            <placeholder>_i18n.de.categories:Kategorien|_i18n.en.categories:Categories</placeholder>
+            <helpText>With this configuration labels can be set for facets: _i18n.de.categories:Kategorien|_i18n.en.categories:Categories|...</helpText>
+            <helpText lang="de-DE">Mit dieser Konfiguration können Label für Facets gesetzt werden: _i18n.de.categories:Kategorien|_i18n.en.categories:Categories|...</helpText>
+        </component>
+    </card>
+
+    <card>
+        <title>Sorting configuration</title>
+        <title lang="de-DE">Konfiguration der Sortierung</title>
+
+        <component name="sw-textarea-field">
+            <name>sortingLabels</name>
+            <label>Labels for sorting</label>
+            <label lang="de-DE">Etiketten zum Sortieren</label>
+            <placeholder>_i18n.de.name:desc:Name des Produkts|_i18n.en.name:desc:Product name</placeholder>
+            <helpText>With this configuration labels can be set for sorting: _i18n.de.name:desc:Name des Produkts|_i18n.en.name:desc:Product name|...</helpText>
+            <helpText lang="de-DE">Mit dieser Konfiguration können Labels für die Sortierung gesetzt werden: _i18n.de.categories:Kategorien|_i18n.en.categories:Categories|...</helpText>
         </component>
     </card>
 </config>

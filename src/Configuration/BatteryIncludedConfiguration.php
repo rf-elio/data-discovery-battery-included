@@ -54,7 +54,8 @@ class BatteryIncludedConfiguration extends Struct
         private readonly string $browserToken,
         private readonly string $serverToken,
         private readonly int $apiTimeOut,
-        private readonly array $facetLabels
+        private readonly array $facetLabels,
+        private readonly array $sortingLabels
     ){
     }
 
@@ -111,5 +112,10 @@ class BatteryIncludedConfiguration extends Struct
     public function getFacetLabels(): array
     {
         return $this->facetLabels;
+    }
+
+    public function getSortingLabels(): array
+    {
+        return $this->sortingLabels;
     }
 }

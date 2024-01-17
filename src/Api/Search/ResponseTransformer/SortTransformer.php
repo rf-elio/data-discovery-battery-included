@@ -33,12 +33,19 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
 
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
+use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioSearch\Configuration\ElioSearchConfigService;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingCollection;
+use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
+use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Swagger\Client\Model\DescribedSortItem;
 use Swagger\Client\Model\ModelInterface;
@@ -58,6 +65,14 @@ class SortTransformer implements ResponseTransformerInterface
 {
     public const ASCENDING = 'asc';
     public const DESCENDING = 'desc';
+    public const CATEGORY_PATH_REPLACE = '%categoryPath%';
+
+    public function __construct(
+        private readonly ElioSearchConfigService $configService,
+        private readonly LoggerInterface $logger
+    )
+    {
+    }
 
     /**
      * @inheritDoc
@@ -85,40 +100,58 @@ class SortTransformer implements ResponseTransformerInterface
         $sortingCollection = new ProductSortingCollection();
         $listing->setAvailableSortings($sortingCollection);
 
-//        foreach ($model->getSortItems() as $priority => $sortItem) {
-//            $label = $sortItem->getName() . ' ' . $sortItem->getOrder();
-//            $sorting = new ProductSortingEntity();
-//            $sorting->setId(Uuid::randomHex());
-//            $sorting->setKey($this->createSortingKey($sortItem));
-//            $sorting->setPriority($priority);
-//            $sorting->setActive(true);
-//            $sorting->setLabel($label);
-//            $sorting->setTranslated(['label' => $label]);
-//            $sorting->setFields([[
-//                'field' => '_'.$sorting->getKey(),
-//                'order' => $sortItem->getOrder() === self::ASCENDING ? FieldSorting::ASCENDING : FieldSorting::DESCENDING,
-//                'priority' => $sorting->getPriority(),
-//                'naturalSorting' => false
-//            ]]);
-//            $sorting->setLocked(false);
-//            $sorting->setUniqueIdentifier($sortItem->getDescription());
-//            $sorting->addExtension(ExtensionWrapper::KEY, new ExtensionWrapper($sortItem));
-//            $sortingCollection->add($sorting);
-//
-//            if($sortItem->getSelected()) {
-//                $listing->setCurrentSorting($sorting);
-//            }
-//        }
-    }
+        /** @var BatteryIncludedConfiguration $config */
+        $config = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
+        $sortingLabels = $config->getSortingLabels();
 
-    /**
-     * Generates the sorting key that identifies the sorting option
-     *
-     * @param DescribedSortItem $sortItem
-     * @return string
-     */
-    protected function createSortingKey(DescribedSortItem $sortItem) : string
-    {
-        return $sortItem->getName().'.'.$sortItem->getOrder();
+        $categoryPath = null;
+        if ($request instanceof NavigationRequestProduct) {
+            $categoryPath = $request->getCategoryPath();
+            $categoryPath = implode(' > ', $categoryPath);
+        }
+
+        $priority = 0;
+        foreach ($sortingLabels as $sortingLabel) {
+            $sortingLabelChunks = explode(':', $sortingLabel);
+            if (count($sortingLabelChunks) !== 3) {
+                $this->logger->warning(sprintf('Wrong configuration for sorting label %s', $sortingLabel));
+                continue;
+            }
+
+            $direction = $sortingLabelChunks[1];
+            $key = $sortingLabelChunks[0] . '.' . $direction;
+
+            if (!$categoryPath && str_contains($key, self::CATEGORY_PATH_REPLACE)) {
+                continue;
+            } elseif ($categoryPath) {
+                $key = str_replace(self::CATEGORY_PATH_REPLACE, $categoryPath, $key);
+            }
+            
+            $label = $sortingLabelChunks[2];
+
+            $sorting = new ProductSortingEntity();
+            $sorting->setId(Uuid::randomHex());
+            $sorting->setKey($key);
+            $sorting->setPriority($priority);
+            $sorting->setActive(true);
+            $sorting->setLabel($label);
+            $sorting->setTranslated(['label' => $label]);
+            $sorting->setFields([[
+                'field' => '_'.$sorting->getKey(),
+                'order' => $direction === self::ASCENDING ? FieldSorting::ASCENDING : FieldSorting::DESCENDING,
+                'priority' => $sorting->getPriority(),
+                'naturalSorting' => false
+            ]]);
+            $sorting->setLocked(false);
+            $sorting->setUniqueIdentifier($key);
+            $sortingCollection->add($sorting);
+
+            if ($request->getSort() !== null && implode('.', $request->getSort()) === $key) {
+                $listing->setCurrentSorting($sorting);
+            }
+
+            $priority++;
+        }
+
     }
 }

@@ -103,8 +103,12 @@ class SearchApiDecorator extends SearchApi
 
         $categoryPath = $searchRequest->getCategoryPath();
         $categoryPath = implode(' > ', $categoryPath);
-        $filters['f[_i8n.'.$locale.'.categories]'] = $categoryPath;
+        $filters['f[_i18n.'.$locale.'.categories]'] = $categoryPath;
 
+        if (!empty($searchRequest->getSort())) {
+            $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
+        }
+        
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
 
         return $this->transformer->transformResponse($result, $context, $searchRequest);
@@ -119,7 +123,7 @@ class SearchApiDecorator extends SearchApi
 
         $filters['page'] = $searchRequest->getPage();
 
-        $limit = $this->systemConfigService->getInt('core.listing.productsPerPage', $context->getSalesChannel()->getId());
+        $limit = $this->systemConfigService->getInt('core.listing.productsPerPage', $context->getSalesChannelId());
         $filters['per_page'] = $limit <= 0 ? 24 : $limit;
         return $filters;
     }

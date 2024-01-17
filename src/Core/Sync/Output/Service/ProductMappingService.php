@@ -258,7 +258,7 @@ class ProductMappingService
                     continue;
                 }
 
-                $sort[] = $parentBreadCrumb . $breadcrumb . ': ' . $productSorting->getPosition();
+                $sort[$parentBreadCrumb . $breadcrumb] = $productSorting->getPosition();
                 $parentBreadCrumb .= $breadcrumb . CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
             }
         }

@@ -133,7 +133,7 @@ class FacetTransformer implements ResponseTransformerInterface
             }
         }
 
-        foreach ($facetCollection->getAggregations() as $aggregation){
+        foreach ($facetCollection->getAggregations() as $aggregation) {
             $aggregationResultCollection->add($aggregation);
         }
     }
@@ -216,8 +216,8 @@ class FacetTransformer implements ResponseTransformerInterface
         $tree = new Tree(null, $rootTree);
 
         $counts = [];
-        foreach ($facet->counts as $element){
-            $elementLabel = !empty( $label = explode('>', $element->value)) ? trim(end($label)) : null;
+        foreach ($facet->counts as $element) {
+            $elementLabel = !empty($label = explode('>', $element->value)) ? trim(end($label)) : null;
             if (!$elementLabel) {
                 continue;
             }
@@ -225,7 +225,7 @@ class FacetTransformer implements ResponseTransformerInterface
         }
 
         $treeItems = [];
-        foreach ($tree->getTree() as $treeItem){
+        foreach ($tree->getTree() as $treeItem) {
             if (!isset($counts[$treeItem->getCategory()->getName()])) {
                 continue;
             }
@@ -248,7 +248,7 @@ class FacetTransformer implements ResponseTransformerInterface
     {
         $itemCategory = $treeItem->getCategory();
 
-        if($itemCategory->getName() !== null)
+        if ($itemCategory->getName() !== null)
             $treeItem->addExtension(DefaultFacetExtension::KEY, new DefaultFacetExtension(
                 $facet->field_name, $itemCategory->getName(),
                 $counts[$itemCategory->getName()] ?? 0

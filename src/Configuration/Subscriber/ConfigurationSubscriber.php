@@ -76,7 +76,8 @@ class ConfigurationSubscriber implements EventSubscriberInterface
             $pluginConfig['browserApiKey'] ?? '',
             $pluginConfig['serverApiKey'] ?? '',
             $pluginConfig['apiTimeout'] ?? 60,
-            ConfigParserUtil::prepareValueListWithKeyValuePair($pluginConfig, 'facetLabels')
+            ConfigParserUtil::prepareValueListWithKeyValuePair($pluginConfig, 'facetLabels'),
+            ConfigParserUtil::prepareValueList($pluginConfig, 'sortingLabels')
         ));
         $event->setConfiguration($configuration);
     }

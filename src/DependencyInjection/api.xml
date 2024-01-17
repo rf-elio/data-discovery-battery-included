@@ -32,6 +32,8 @@
             <tag name="elio-search.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer">
+            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService" />
+            <argument type="service" id="logger" />
             <tag name="elio-search.api.transformer.response"/>
         </service>
 <!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TranslationSortTransformer"-->
