@@ -197,7 +197,7 @@ class FacetTransformer implements ResponseTransformerInterface
 
             $category = new CategoryEntity();
             $category->setId(Uuid::randomHex());
-            $category->setName($elementLabel);
+            $category->setName($element->value);
             $category->setTranslated(['name' => $elementLabel]);
 
             $treeItem = new TreeItem($category, []);
@@ -217,11 +217,7 @@ class FacetTransformer implements ResponseTransformerInterface
 
         $counts = [];
         foreach ($facet->counts as $element) {
-            $elementLabel = !empty($label = explode('>', $element->value)) ? trim(end($label)) : null;
-            if (!$elementLabel) {
-                continue;
-            }
-            $counts[$elementLabel] = $element->count;
+            $counts[$element->value] = $element->count;
         }
 
         $treeItems = [];
