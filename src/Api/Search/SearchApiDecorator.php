@@ -34,7 +34,6 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
-use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
@@ -60,13 +59,6 @@ use Throwable;
  */
 class SearchApiDecorator extends SearchApi
 {
-    /**
-     * @param ApiClientFactory $apiFactory
-     * @param Transformer $transformer
-     * @param LocaleService $localeService
-     * @param LoggerInterface $logger
-     * @param SystemConfigService $systemConfigService
-     */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
@@ -80,6 +72,10 @@ class SearchApiDecorator extends SearchApi
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $filters = $this->prepareFilters($searchRequest, $context);
+        if (!empty($searchRequest->getSort())) {
+            $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
+        }
+
         $locale = $this->localeService->getLocaleByContext($context);
         $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
         $apiClient = $this->apiFactory->createSearchApi($context);

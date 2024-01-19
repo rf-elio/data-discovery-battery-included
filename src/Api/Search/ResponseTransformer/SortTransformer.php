@@ -101,17 +101,14 @@ class SortTransformer implements ResponseTransformerInterface
         $sortingCollection = new ProductSortingCollection();
         $listing->setAvailableSortings($sortingCollection);
 
-        $level = FilterService::LEVEL_GLOBAL;
-        if ($request instanceof NavigationRequestProduct) {
-            $level = FilterService::LEVEL_CATEGORY;
-        } else if ($request instanceof ProductSearchRequest) {
-            $level = FilterService::LEVEL_SEARCH;
+        $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_SORTING, $context);
+        $filterNames = [];
+        /** @var FilterEntity $filter */
+        foreach ($filters as $filter) {
+            $filterNames[] = $filter->getTechnicalName();
         }
 
-        [$allowedSortingOptions, $blockedSortOptions] = $this->filterService->getFilterRestrictionConfiguration(
-            $context, $level, $request, FilterEntity::FILTER_TYPE_SORTING
-        ) ?? [null, []];
-        $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_SORTING, $context);
+        $allowedFilterNames = $this->filterService->filter($filterNames, FilterEntity::FILTER_TYPE_SORTING, $request, $context);
 
         $categoryPath = null;
         if ($request instanceof NavigationRequestProduct) {
@@ -120,19 +117,8 @@ class SortTransformer implements ResponseTransformerInterface
         }
 
         $priority = 0;
-        /** @var FilterEntity $filter */
         foreach ($filters as $filter) {
-            if ($blockedSortOptions === null) { // blocked all
-                continue;
-            }
-
-            if (
-                (($allowedSortingOptions !== null) && !in_array($filter->getTechnicalName(), array_keys($allowedSortingOptions), true))
-                // isn't allowed
-                || in_array($filter->getTechnicalName(), array_keys($blockedSortOptions), true)
-                // not allowed all, but blocked all
-                || ($allowedSortingOptions !== null && $blockedSortOptions == null)
-            ) {
+            if (!in_array($filter->getTechnicalName(), $allowedFilterNames)) {
                 continue;
             }
 
@@ -170,7 +156,12 @@ class SortTransformer implements ResponseTransformerInterface
             $sorting->setUniqueIdentifier($key);
             $sortingCollection->add($sorting);
 
+
             if ($request->getSort() !== null && implode('.', $request->getSort()) === $key) {
+                $listing->setCurrentSorting($sorting);
+            }
+
+            if ($listing->getCurrentSorting() === null && $filter->isDisplayedByDefault()) {
                 $listing->setCurrentSorting($sorting);
             }
 

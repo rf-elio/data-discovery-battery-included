@@ -63,7 +63,7 @@ class ContentMappingService
         $convertedData['id'] = $content->getIdentifier();
         // TODO: Move to const
         $convertedData['_content'] = $this->prepareBaseFields($content);
-        $convertedData['_i18n'] = $this->prepareTranslatedFields($content->getDataTypeTranslations());
+        $convertedData['_content_i18n'] = $this->prepareTranslatedFields($content->getDataTypeTranslations());
 
         // TODO: Add mapping
         return $convertedData;

@@ -39,6 +39,7 @@ use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
 use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioSearch\Configuration\ElioSearchConfigService;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
@@ -94,20 +95,16 @@ class FacetTransformer implements ResponseTransformerInterface
             return;
         }
 
-        $level = FilterService::LEVEL_GLOBAL;
-        if ($request instanceof NavigationRequestProduct) {
-            $level = FilterService::LEVEL_CATEGORY;
-        } else if ($request instanceof ProductSearchRequest) {
-            $level = FilterService::LEVEL_SEARCH;
-        }
-
-        [$allowedFilters, $blockedFilters] = $this->filterService->getFilterRestrictionConfiguration(
-            $context, $level, $request, FilterEntity::FILTER_TYPE_FILTER
-        ) ?? [null, []];
-        $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_FILTER, $context);
         $listing = $responseCollection->get(ProductListingResponse::class) ?? new ProductListingResponse();
         $responseCollection->set(ProductListingResponse::class, $listing);
+        $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_FILTER, $context);
 
+        $filterNames = [];
+        foreach ($model->getFacetCounts() as $facet) {
+            $filterNames[] = $facet->field_name;
+        }
+
+        $allowedFilterNames = $this->filterService->filter($filterNames, FilterEntity::FILTER_TYPE_FILTER, $request, $context);
         $aggregationResultCollection = $listing->getAggregations() ?? new AggregationResultCollection();
         $listing->setAggregations($aggregationResultCollection);
 
@@ -115,17 +112,7 @@ class FacetTransformer implements ResponseTransformerInterface
         $aggregationResultCollection->add($facetCollection);
 
         foreach (array_reverse($model->getFacetCounts()) as $facet) {
-            if ($blockedFilters === null) { // blocked all
-                continue;
-            }
-
-            if (
-                (($allowedFilters !== null) && !in_array($facet->field_name, array_keys($allowedFilters), true))
-                // isn't allowed
-                || in_array($facet->field_name, array_keys($blockedFilters), true)
-                // not allowed all, but blocked all
-                || ($allowedFilters !== null && $blockedFilters == null)
-            ) {
+            if (!in_array($facet->field_name, $allowedFilterNames)) {
                 continue;
             }
 
