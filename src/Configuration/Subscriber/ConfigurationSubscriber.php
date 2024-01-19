@@ -34,7 +34,6 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Configuration\Subscriber;
 
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioBatteryIncludedSearchExtension\ElioBatteryIncludedSearchExtension;
-use Elio\ElioSearch\Configuration\ConfigParserUtil;
 use Elio\ElioSearch\Configuration\Event\ConfigurationLoadedEvent;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -75,9 +74,7 @@ class ConfigurationSubscriber implements EventSubscriberInterface
             $pluginConfig['apiUrl'] ?? '',
             $pluginConfig['browserApiKey'] ?? '',
             $pluginConfig['serverApiKey'] ?? '',
-            $pluginConfig['apiTimeout'] ?? 60,
-            ConfigParserUtil::prepareValueListWithKeyValuePair($pluginConfig, 'facetLabels'),
-            ConfigParserUtil::prepareValueList($pluginConfig, 'sortingLabels')
+            $pluginConfig['apiTimeout'] ?? 60
         ));
         $event->setConfiguration($configuration);
     }

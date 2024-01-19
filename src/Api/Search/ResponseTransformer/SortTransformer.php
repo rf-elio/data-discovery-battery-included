@@ -33,14 +33,16 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
 
-use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
+use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Configuration\ElioSearchConfigService;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
+use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
+use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
+use Elio\ElioSearch\Core\FilterRestrictions\FilterService;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingCollection;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
@@ -68,7 +70,7 @@ class SortTransformer implements ResponseTransformerInterface
     public const CATEGORY_PATH_REPLACE = '%categoryPath%';
 
     public function __construct(
-        private readonly ElioSearchConfigService $configService,
+        private readonly FilterInterface $filterService,
         private readonly LoggerInterface $logger
     )
     {
@@ -100,9 +102,17 @@ class SortTransformer implements ResponseTransformerInterface
         $sortingCollection = new ProductSortingCollection();
         $listing->setAvailableSortings($sortingCollection);
 
-        /** @var BatteryIncludedConfiguration $config */
-        $config = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
-        $sortingLabels = $config->getSortingLabels();
+        $level = FilterService::LEVEL_GLOBAL;
+        if ($request instanceof NavigationRequestProduct) {
+            $level = FilterService::LEVEL_CATEGORY;
+        } else if ($request instanceof ProductSearchRequest) {
+            $level = FilterService::LEVEL_SEARCH;
+        }
+
+        [$allowedFilters, $blockedFilters] = $this->filterService->getFilterRestrictionConfiguration(
+            $context, $level, $request, FilterEntity::FILTER_TYPE_SORTING
+        ) ?? [null, []];
+        $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_SORTING, $context);
 
         $categoryPath = null;
         if ($request instanceof NavigationRequestProduct) {
@@ -111,10 +121,25 @@ class SortTransformer implements ResponseTransformerInterface
         }
 
         $priority = 0;
-        foreach ($sortingLabels as $sortingLabel) {
-            $sortingLabelChunks = explode(':', $sortingLabel);
-            if (count($sortingLabelChunks) !== 3) {
-                $this->logger->warning(sprintf('Wrong configuration for sorting label %s', $sortingLabel));
+        /** @var FilterEntity $filter */
+        foreach ($filters as $filter) {
+            if ($blockedFilters === null) { // blocked all
+                continue;
+            }
+
+            if (
+                (($allowedFilters !== null) && !in_array($filter->getTechnicalName(), array_keys($allowedFilters), true))
+                // isn't allowed
+                || in_array($filter->getTechnicalName(), array_keys($blockedFilters), true)
+                // not allowed all, but blocked all
+                || ($allowedFilters !== null && $blockedFilters == null)
+            ) {
+                continue;
+            }
+
+            $sortingLabelChunks = explode(':', $filter->getTechnicalName());
+            if (count($sortingLabelChunks) !== 2) {
+                $this->logger->warning(sprintf('Wrong configuration for sorting label %s', $filter->getTechnicalName()));
                 continue;
             }
 
@@ -127,7 +152,7 @@ class SortTransformer implements ResponseTransformerInterface
                 $key = str_replace(self::CATEGORY_PATH_REPLACE, $categoryPath, $key);
             }
             
-            $label = $sortingLabelChunks[2];
+            $label = $filter->getTranslation('propertyName');
 
             $sorting = new ProductSortingEntity();
             $sorting->setId(Uuid::randomHex());
@@ -152,6 +177,5 @@ class SortTransformer implements ResponseTransformerInterface
 
             $priority++;
         }
-
     }
 }

@@ -53,9 +53,7 @@ class BatteryIncludedConfiguration extends Struct
         private readonly string $url,
         private readonly string $browserToken,
         private readonly string $serverToken,
-        private readonly int $apiTimeOut,
-        private readonly array $facetLabels,
-        private readonly array $sortingLabels
+        private readonly int $apiTimeOut
     ){
     }
 
@@ -107,15 +105,5 @@ class BatteryIncludedConfiguration extends Struct
     public function getApiTimeOut(): int
     {
         return $this->apiTimeOut;
-    }
-
-    public function getFacetLabels(): array
-    {
-        return $this->facetLabels;
-    }
-
-    public function getSortingLabels(): array
-    {
-        return $this->sortingLabels;
     }
 }

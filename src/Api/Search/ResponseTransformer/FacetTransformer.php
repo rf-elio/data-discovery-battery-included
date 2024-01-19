@@ -33,28 +33,28 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
 
-use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
+use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
+use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Configuration\ElioSearchConfigService;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
+use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
+use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
+use Elio\ElioSearch\Core\FilterRestrictions\FilterService;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\DefaultFacetExtension;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\FacetCollection;
 use Shopware\Core\Content\Category\CategoryEntity;
-use Shopware\Core\Content\Category\Service\NavigationLoader;
 use Shopware\Core\Content\Category\Tree\Tree;
 use Shopware\Core\Content\Category\Tree\TreeItem;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
 use Shopware\Core\Content\Property\PropertyGroupCollection;
 use Shopware\Core\Content\Property\PropertyGroupEntity;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\AggregationResult\AggregationResultCollection;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\AggregationResult\Metric\EntityResult;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -72,7 +72,7 @@ use Swagger\Client\Model\Result;
 class FacetTransformer implements ResponseTransformerInterface
 {
     public function __construct(
-        private readonly ElioSearchConfigService $configService
+        private readonly FilterInterface $filterService
     ) {
     }
 
@@ -95,6 +95,17 @@ class FacetTransformer implements ResponseTransformerInterface
             return;
         }
 
+        $level = FilterService::LEVEL_GLOBAL;
+        if ($request instanceof NavigationRequestProduct) {
+            $level = FilterService::LEVEL_CATEGORY;
+        } else if ($request instanceof ProductSearchRequest) {
+            $level = FilterService::LEVEL_SEARCH;
+        }
+
+        [$allowedFilters, $blockedFilters] = $this->filterService->getFilterRestrictionConfiguration(
+            $context, $level, $request, FilterEntity::FILTER_TYPE_FILTER
+        ) ?? [null, []];
+        $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_FILTER, $context);
         $listing = $responseCollection->get(ProductListingResponse::class) ?? new ProductListingResponse();
         $responseCollection->set(ProductListingResponse::class, $listing);
 
@@ -104,28 +115,40 @@ class FacetTransformer implements ResponseTransformerInterface
         $facetCollection = new FacetCollection('elio-search-default');
         $aggregationResultCollection->add($facetCollection);
 
-        /** @var BatteryIncludedConfiguration $config */
-        $config = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
-
         foreach (array_reverse($model->getFacetCounts()) as $facet) {
+            if ($blockedFilters === null) { // blocked all
+                continue;
+            }
+
+            if (
+                (($allowedFilters !== null) && !in_array($facet->field_name, array_keys($allowedFilters), true))
+                // isn't allowed
+                || in_array($facet->field_name, array_keys($blockedFilters), true)
+                // not allowed all, but blocked all
+                || ($allowedFilters !== null && $blockedFilters == null)
+            ) {
+                continue;
+            }
+
             $style = 'TREE'; // TODO: Fetch style from custom fields
+            $name = $this->getFilterName($facet->field_name, $filters->getElements());
             switch ($style) {
                 case 'DEFAULT':
                     $defaultCollection = new PropertyGroupCollection();
-                    $entity = $this->transformDefault($facet, $request, $config);
+                    $entity = $this->transformDefault($facet, $request);
                     $defaultCollection->add($entity);
                     $facetCollection->addAggregation(
-                        new EntityResult($facet->getName(), $defaultCollection),
+                        new EntityResult($name, $defaultCollection),
                         $style
                     );
                     break;
                 case 'TREE':
                     $tree = $this->transformCategoryTree($facet, $context);
-                    $group = $this->transformTree($facet, $config);
+                    $group = $this->transformTree($facet);
                     $defaultCollection = new PropertyGroupCollection();
                     $defaultCollection->add($group);
                     $facetCollection->addAggregation(
-                        new EntityResult($facet->field_name, $defaultCollection),
+                        new EntityResult($name, $defaultCollection),
                         $style
                     );
                     $defaultCollection->addExtension('elioSearchTree', $tree);
@@ -133,7 +156,7 @@ class FacetTransformer implements ResponseTransformerInterface
             }
         }
 
-        foreach ($facetCollection->getAggregations() as $aggregation) {
+        foreach ($facetCollection->getAggregations() as $aggregation){
             $aggregationResultCollection->add($aggregation);
         }
     }
@@ -143,10 +166,9 @@ class FacetTransformer implements ResponseTransformerInterface
      *
      * @param object $facet
      * @param ApiRequest $request
-     * @param BatteryIncludedConfiguration $config
      * @return PropertyGroupEntity
      */
-    protected function transformDefault(object $facet, ApiRequest $request, BatteryIncludedConfiguration $config): PropertyGroupEntity
+    protected function transformDefault(object $facet, ApiRequest $request): PropertyGroupEntity
     {
         $options = new PropertyGroupOptionCollection();
         //$elements = array_merge($facet->getSelectedElements(), $facet->getElements());
@@ -166,14 +188,12 @@ class FacetTransformer implements ResponseTransformerInterface
             $options->add($option);
         }
 
-        $name = $facet->field_name;
-        $name = $config->getFacetLabels()[$name] ?? $name;
         $group = new PropertyGroupEntity();
         $group->setId(Uuid::randomHex());
         $group->setUniqueIdentifier(Uuid::randomHex());
         $group->setOptions($options);
-        $group->setName($name);
-        $group->setTranslated(['name' => $name]);
+        $group->setName($facet->field_name);
+        $group->setTranslated(['name' => $facet->field_name]);
         $group->setDisplayType('text');
         $group->addExtension(DefaultFacetExtension::KEY, new ArrayStruct([
             'selectedCount' => 0 // @todo: count($facet->getSelectedElements())
@@ -216,12 +236,12 @@ class FacetTransformer implements ResponseTransformerInterface
         $tree = new Tree(null, $rootTree);
 
         $counts = [];
-        foreach ($facet->counts as $element) {
+        foreach ($facet->counts as $element){
             $counts[$element->value] = $element->count;
         }
 
         $treeItems = [];
-        foreach ($tree->getTree() as $treeItem) {
+        foreach ($tree->getTree() as $treeItem){
             if (!isset($counts[$treeItem->getCategory()->getName()])) {
                 continue;
             }
@@ -244,7 +264,7 @@ class FacetTransformer implements ResponseTransformerInterface
     {
         $itemCategory = $treeItem->getCategory();
 
-        if ($itemCategory->getName() !== null)
+        if($itemCategory->getName() !== null)
             $treeItem->addExtension(DefaultFacetExtension::KEY, new DefaultFacetExtension(
                 $facet->field_name, $itemCategory->getName(),
                 $counts[$itemCategory->getName()] ?? 0
@@ -257,20 +277,17 @@ class FacetTransformer implements ResponseTransformerInterface
 
     /**
      * @param object $facet
-     * @param BatteryIncludedConfiguration $config
      * @return PropertyGroupEntity
      */
-    protected function transformTree(object $facet, BatteryIncludedConfiguration $config): PropertyGroupEntity
+    protected function transformTree(object $facet): PropertyGroupEntity
     {
-        $name = $facet->field_name;
-        $name = $config->getFacetLabels()[$name] ?? $name;
         $options = new PropertyGroupOptionCollection();
         $group = new PropertyGroupEntity();
         $group->setId(Uuid::randomHex());
         $group->setUniqueIdentifier(Uuid::randomHex());
         $group->setOptions($options);
-        $group->setName($name);
-        $group->setTranslated(['name' => $name]);
+        $group->setName($facet->field_name);
+        $group->setTranslated(['name' => $facet->field_name]);
         $group->setDisplayType('text');
 
         foreach ($facet->counts as $element) {
@@ -281,12 +298,11 @@ class FacetTransformer implements ResponseTransformerInterface
             $option->setName($elementLabel);
             $option->setTranslated(['name' => $elementLabel]);
             $option->addExtension(DefaultFacetExtension::KEY, new DefaultFacetExtension(
-                $name, $elementLabel,
+                $facet->field_name, $elementLabel,
                 $element->count
             ));
             $options->add($option);
         }
-
         foreach ($facet->counts as $element) {
             $elementLabel = $element->value;
             $option = new PropertyGroupOptionEntity();
@@ -295,12 +311,23 @@ class FacetTransformer implements ResponseTransformerInterface
             $option->setName($elementLabel);
             $option->setTranslated(['name' => $elementLabel]);
             $option->addExtension(DefaultFacetExtension::KEY, new DefaultFacetExtension(
-                $name, $elementLabel,
+                $facet->field_name, $elementLabel,
                 $element->count
             ));
             $options->add($option);
         }
-
         return $group;
+    }
+
+    protected function getFilterName(string $fieldName, array $filters): string
+    {
+        /** @var FilterEntity $filter */
+        foreach ($filters as $filter) {
+            if ($filter->getTechnicalName() === $fieldName) {
+                return $filter->getTranslation('propertyName');
+            }
+        }
+
+        return $fieldName;
     }
 }
