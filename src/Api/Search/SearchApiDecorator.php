@@ -33,6 +33,7 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
@@ -59,10 +60,17 @@ use Throwable;
  */
 class SearchApiDecorator extends SearchApi
 {
+    /**
+     * @param ApiClientFactory $apiFactory
+     * @param Transformer $transformer
+     * @param LocaleService $localeService
+     * @param LoggerInterface $logger
+     * @param SystemConfigService $systemConfigService
+     */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
-        private readonly EntityRepository $languageRepository,
+        private readonly LocaleService $localeService,
         LoggerInterface $logger,
         private readonly SystemConfigService $systemConfigService
     ) {
@@ -72,7 +80,7 @@ class SearchApiDecorator extends SearchApi
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $filters = $this->prepareFilters($searchRequest, $context);
-        $locale = $this->getLocale($context);
+        $locale = $this->localeService->getLocaleByContext($context);
         $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
         $apiClient = $this->apiFactory->createSearchApi($context);
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
@@ -81,7 +89,7 @@ class SearchApiDecorator extends SearchApi
 
     public function searchContent(ContentSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
-        $locale = $this->getLocale($context);
+        $locale = $this->localeService->getLocaleByContext($context);
         $apiClient = $this->apiFactory->createSearchApi($context);
         $result = $apiClient->filter($searchRequest->getQuery(), $locale);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
@@ -98,7 +106,7 @@ class SearchApiDecorator extends SearchApi
     public function navigation(NavigationRequestProduct $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
-        $locale = $this->getLocale($context);
+        $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
 
         $categoryPath = $searchRequest->getCategoryPath();
@@ -108,7 +116,7 @@ class SearchApiDecorator extends SearchApi
         if (!empty($searchRequest->getSort())) {
             $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
         }
-        
+
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
 
         return $this->transformer->transformResponse($result, $context, $searchRequest);
@@ -126,14 +134,5 @@ class SearchApiDecorator extends SearchApi
         $limit = $this->systemConfigService->getInt('core.listing.productsPerPage', $context->getSalesChannelId());
         $filters['per_page'] = $limit <= 0 ? 24 : $limit;
         return $filters;
-    }
-
-    protected function getLocale(SalesChannelContext $context): string
-    {
-        $criteria = new Criteria([$context->getLanguageId()]);
-        $criteria->addAssociation('locale');
-        /** @var LanguageEntity $language */
-        $language = $this->languageRepository->search($criteria, $context->getContext())->first();
-        return LocaleUtil::getLocaleByLanguage($language);
     }
 }

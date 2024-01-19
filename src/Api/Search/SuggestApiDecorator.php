@@ -33,6 +33,7 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\SuggestRequest;
 use Elio\ElioSearch\Api\Search\SuggestApi;
@@ -57,10 +58,12 @@ class SuggestApiDecorator extends SuggestApi
      * SearchApi constructor.
      * @param ApiClientFactory $apiFactory
      * @param Transformer $transformer
+     * @param LocaleService $localeService
      */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
-        private readonly Transformer $transformer
+        private readonly Transformer $transformer,
+        private readonly LocaleService $localeService
     ) {
     }
 
@@ -73,7 +76,8 @@ class SuggestApiDecorator extends SuggestApi
     public function suggest(SuggestRequest $suggestRequest, SalesChannelContext $context): ResponseCollection
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery()));
+        $locale = $this->localeService->getLocaleByContext($context);
+        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery(), $locale));
         return $this->transformer->transformResponse($result, $context, $suggestRequest);
     }
 }

@@ -49,7 +49,6 @@ use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\DescribedSortItem;
 use Swagger\Client\Model\ModelInterface;
 use Swagger\Client\Model\Result;
 
@@ -109,7 +108,7 @@ class SortTransformer implements ResponseTransformerInterface
             $level = FilterService::LEVEL_SEARCH;
         }
 
-        [$allowedFilters, $blockedFilters] = $this->filterService->getFilterRestrictionConfiguration(
+        [$allowedSortingOptions, $blockedSortOptions] = $this->filterService->getFilterRestrictionConfiguration(
             $context, $level, $request, FilterEntity::FILTER_TYPE_SORTING
         ) ?? [null, []];
         $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_SORTING, $context);
@@ -123,16 +122,16 @@ class SortTransformer implements ResponseTransformerInterface
         $priority = 0;
         /** @var FilterEntity $filter */
         foreach ($filters as $filter) {
-            if ($blockedFilters === null) { // blocked all
+            if ($blockedSortOptions === null) { // blocked all
                 continue;
             }
 
             if (
-                (($allowedFilters !== null) && !in_array($filter->getTechnicalName(), array_keys($allowedFilters), true))
+                (($allowedSortingOptions !== null) && !in_array($filter->getTechnicalName(), array_keys($allowedSortingOptions), true))
                 // isn't allowed
-                || in_array($filter->getTechnicalName(), array_keys($blockedFilters), true)
+                || in_array($filter->getTechnicalName(), array_keys($blockedSortOptions), true)
                 // not allowed all, but blocked all
-                || ($allowedFilters !== null && $blockedFilters == null)
+                || ($allowedSortingOptions !== null && $blockedSortOptions == null)
             ) {
                 continue;
             }
