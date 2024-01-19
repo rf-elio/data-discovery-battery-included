@@ -35,6 +35,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Event\SuggestItemTransformEvent;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
+use Elio\ElioSearch\Api\Search\Components\SuggestTypes;
 use Elio\ElioSearch\Api\Search\Response\SuggestionResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Api\Request\ApiRequest;
@@ -163,12 +164,12 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $suggestItem->setType('other');
 
         if ($type === SuggestionResult::RESULT_TYPE_DOCUMENT) {
-            $namePropertyPath = 'highlight._i8n.'.$locale.'.name';
+            $namePropertyPath = 'highlight._i18n.'.$locale.'.name';
             if ($propertyAccess->isReadable($hit, $namePropertyPath)) {
                 $suggestItem->setName(strip_tags($propertyAccess->getValue($hit, $namePropertyPath)));
             }
 
-            $urlPropertyPath = 'highlight._i8n.'.$locale.'.url';
+            $urlPropertyPath = 'highlight._i18n.'.$locale.'.url';
             if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
                 $suggestItem->setUrl(strip_tags($propertyAccess->getValue($hit, $urlPropertyPath)));
             }
@@ -186,13 +187,13 @@ class SuggestionTransformer implements ResponseTransformerInterface
                     $suggestItem->setImgUrl($propertyAccess->getValue($hit, $productThumbnailPropertyPath));
                 }
 
-                $suggestItem->setType(SuggestionProductTransformer::TYPE);
+                $suggestItem->setType(SuggestTypes::PRODUCT->value);
                 $suggestItem->setAttributes($attributes);
             }
 
             $contentPropertyPath = 'highlight._content';
             if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
-                $suggestItem->setType(SuggestionCategoryTransformer::TYPE);
+                $suggestItem->setType(SuggestTypes::CONTENT->value);
             }
 
             return $suggestItem;

@@ -39,7 +39,6 @@ use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
 use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Configuration\ElioSearchConfigService;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
@@ -171,7 +170,6 @@ class FacetTransformer implements ResponseTransformerInterface
     protected function transformDefault(object $facet, ApiRequest $request): PropertyGroupEntity
     {
         $options = new PropertyGroupOptionCollection();
-        //$elements = array_merge($facet->getSelectedElements(), $facet->getElements());
 
         foreach ($facet->counts as $element) {
             $elementLabel = $element->value;
