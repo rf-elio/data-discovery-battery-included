@@ -28,6 +28,7 @@
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\FacetTransformer">
             <argument type="service" id="Elio\ElioSearch\Core\FilterRestrictions\FilterService"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
             <tag name="elio-search.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PagingTransformer">
@@ -38,6 +39,7 @@
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer">
             <argument type="service" id="Elio\ElioSearch\Core\FilterRestrictions\FilterService" />
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService" />
             <argument type="service" id="logger" />
             <tag name="elio-search.api.transformer.response"/>
         </service>

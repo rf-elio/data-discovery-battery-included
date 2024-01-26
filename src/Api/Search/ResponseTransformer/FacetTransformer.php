@@ -33,17 +33,15 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
 
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
-use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Configuration\ElioSearchConfigService;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
-use Elio\ElioSearch\Core\FilterRestrictions\FilterService;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\DefaultFacetExtension;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\FacetCollection;
 use Shopware\Core\Content\Category\CategoryEntity;
@@ -72,7 +70,8 @@ use Swagger\Client\Model\Result;
 class FacetTransformer implements ResponseTransformerInterface
 {
     public function __construct(
-        private readonly FilterInterface $filterService
+        private readonly FilterInterface $filterService,
+        private readonly LocaleService $localeService
     ) {
     }
 
@@ -97,6 +96,7 @@ class FacetTransformer implements ResponseTransformerInterface
 
         $listing = $responseCollection->get(ProductListingResponse::class) ?? new ProductListingResponse();
         $responseCollection->set(ProductListingResponse::class, $listing);
+        $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_FILTER, $context);
 
         $filterNames = [];
@@ -112,12 +112,18 @@ class FacetTransformer implements ResponseTransformerInterface
         $aggregationResultCollection->add($facetCollection);
 
         foreach (array_reverse($model->getFacetCounts()) as $facet) {
-            if (!in_array($facet->field_name, $allowedFilterNames)) {
+            $fieldName = $facet->field_name;
+            if (!in_array($fieldName, $allowedFilterNames, true)) {
+                continue;
+            }
+
+            // only keep filters that match the current locale
+            if (!LocaleFilterUtil::fieldByLocalAllowed($fieldName, $locale)) {
                 continue;
             }
 
             $style = 'TREE'; // TODO: Fetch style from custom fields
-            $name = $this->getFilterName($facet->field_name, $filters->getElements());
+            $name = $this->getFilterName($fieldName, $filters->getElements());
             switch ($style) {
                 case 'DEFAULT':
                     $defaultCollection = new PropertyGroupCollection();

@@ -38,9 +38,7 @@ use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\SuggestRequest;
 use Elio\ElioSearch\Api\Search\SuggestApi;
 use Elio\ElioSearch\Api\Transform\Transformer;
-use Elio\ElioSearch\Core\Exception\ElioSearchException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\SuggestionResult;
 use Swagger\Client\Model\SuggestionResultCollection;
 use Throwable;
 

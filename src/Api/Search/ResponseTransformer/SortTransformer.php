@@ -33,16 +33,16 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
 
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
-use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
-use Elio\ElioSearch\Core\FilterRestrictions\FilterService;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingCollection;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
@@ -70,6 +70,7 @@ class SortTransformer implements ResponseTransformerInterface
 
     public function __construct(
         private readonly FilterInterface $filterService,
+        private readonly LocaleService $localeService,
         private readonly LoggerInterface $logger
     )
     {
@@ -101,6 +102,7 @@ class SortTransformer implements ResponseTransformerInterface
         $sortingCollection = new ProductSortingCollection();
         $listing->setAvailableSortings($sortingCollection);
 
+        $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_SORTING, $context);
         $filterNames = [];
         /** @var FilterEntity $filter */
@@ -118,7 +120,12 @@ class SortTransformer implements ResponseTransformerInterface
 
         $priority = 0;
         foreach ($filters as $filter) {
-            if (!in_array($filter->getTechnicalName(), $allowedFilterNames)) {
+            if (!in_array($filter->getTechnicalName(), $allowedFilterNames, true)) {
+                continue;
+            }
+
+            // only keep filters that match the current locale
+            if (!LocaleFilterUtil::fieldByLocalAllowed($filter->getTechnicalName(), $locale)) {
                 continue;
             }
 
@@ -155,7 +162,6 @@ class SortTransformer implements ResponseTransformerInterface
             $sorting->setLocked(false);
             $sorting->setUniqueIdentifier($key);
             $sortingCollection->add($sorting);
-
 
             if ($request->getSort() !== null && implode('.', $request->getSort()) === $key) {
                 $listing->setCurrentSorting($sorting);

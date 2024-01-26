@@ -39,8 +39,8 @@ use Elio\ElioSearch\Core\Sync\DataTypes\DataTypeInterface;
 use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
-use Elio\ElioSearch\Core\Sync\Sorting\ProductSortingCollection;
-use Elio\ElioSearch\Core\Sync\Sorting\ProductSortingEntity;
+use Elio\ElioSearch\Core\Sorting\ProductSortingCollection;
+use Elio\ElioSearch\Core\Sorting\ProductSortingEntity;
 use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Product\ProductEntity;
@@ -119,7 +119,7 @@ class ProductMappingService
     /**
      * Prepare translation fields
      *
-     * @param DataTypeInterface[] $collection
+     * @param ProductDataType $product
      * @param SyncContext $syncContext
      * @return array
      */
@@ -129,34 +129,34 @@ class ProductMappingService
     ): array
     {
         $collection = $product->getDataTypeTranslations();
-
         $translatedFields = [];
+
         /**
          * @var string $languageId
-         * @var ProductDataType $product
+         * @var ProductDataType $productTranslation
          **/
-        foreach ($collection as $languageId => $product) {
+        foreach ($collection as $languageId => $productTranslation) {
             $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
-            $translated = $product->getTranslated();
+            $translated = $productTranslation->getTranslated();
 
             /** @var SeoRoute|null $seoRoute */
-            $seoRoute = $product->getExtension(SeoRoute::class);
+            $seoRoute = $productTranslation->getExtension(SeoRoute::class);
 
             $translatedFields[$locale] = [
-                'name' => $product->getName() ?? $translated['name'] ?? '',
-                'description' => ValueUtil::cleanValue($product->getDescription() ?? $translated['description'] ?? ''),
-                'metaTitle' => ValueUtil::cleanValue($product->getMetaTitle() ?? $translated['metaTitle'] ?? ''),
-                'manufacturer' => $product->getManufacturer()?->getTranslation('name') ?? $product->getManufacturer()?->getName(),
-                'keywords' => $product->getKeywords() ?? $translated['keywords'] ?? '',
-                'searchKeywords' => $product->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? [],
-                'categories' => $this->getCategoryPath($product),
-                'categorySort' => $this->getCategorySort($product),
-                'attributes' => $this->getProductAttribute($this->getFilterableProductProperties($product)),
-                'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($product)),
-                'tags' => $this->getProductTags($product),
+                'name' => $productTranslation->getName() ?? $translated['name'] ?? '',
+                'description' => ValueUtil::cleanValue($productTranslation->getDescription() ?? $translated['description'] ?? ''),
+                'metaTitle' => ValueUtil::cleanValue($productTranslation->getMetaTitle() ?? $translated['metaTitle'] ?? ''),
+                'manufacturer' => $productTranslation->getManufacturer()?->getTranslation('name') ?? $productTranslation->getManufacturer()?->getName(),
+                'keywords' => $productTranslation->getKeywords() ?? $translated['keywords'] ?? '',
+                'searchKeywords' => $productTranslation->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? [],
+                'categories' => $this->getCategoryPath($productTranslation),
+                'categorySort' => $this->getCategorySort($productTranslation),
+                'attributes' => $this->getProductAttribute($this->getFilterableProductProperties($productTranslation)),
+                'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($productTranslation)),
+                'tags' => $this->getProductTags($productTranslation),
                 'url' => $seoRoute?->getUrl() ?? '',
                 'variant' => [
-                    'options' => $this->getProductOptions($product->getOptions()),
+                    'options' => $this->getProductOptions($productTranslation->getOptions()),
                 ],
             ];
         }
@@ -242,6 +242,7 @@ class ProductMappingService
         $categories = $product->getCategories();
         /** @var ProductSortingCollection $productSortingCollection */
         $productSortingCollection = $product->getExtension('elioSearchProductSorting');
+
         foreach ($categories as $category) {
             $parentBreadCrumb = '';
             $firstSkipped = false;
