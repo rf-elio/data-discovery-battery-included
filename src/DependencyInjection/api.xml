@@ -19,6 +19,7 @@
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
             <argument type="service" id="elio.search.core.logging.debug"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="elio_search_filter.repository"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SuggestApiDecorator" decorates="Elio\ElioSearch\Api\Search\SuggestApi">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>

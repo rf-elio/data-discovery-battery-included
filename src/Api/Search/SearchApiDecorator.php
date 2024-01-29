@@ -33,6 +33,7 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
@@ -41,7 +42,12 @@ use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Request\SearchRequest;
 use Elio\ElioSearch\Api\Search\SearchApi;
 use Elio\ElioSearch\Api\Transform\Transformer;
+use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
 use Psr\Log\LoggerInterface;
+use Shopware\Core\Framework\Context;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsFilter;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Throwable;
@@ -61,7 +67,8 @@ class SearchApiDecorator extends SearchApi
         private readonly Transformer $transformer,
         private readonly LocaleService $localeService,
         LoggerInterface $logger,
-        private readonly SystemConfigService $systemConfigService
+        private readonly SystemConfigService $systemConfigService,
+        private readonly EntityRepository $filterRepository
     ) {
         parent::__construct($logger);
     }
@@ -69,9 +76,7 @@ class SearchApiDecorator extends SearchApi
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $filters = $this->prepareFilters($searchRequest, $context);
-        if (!empty($searchRequest->getSort())) {
-            $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
-        }
+        $filters = $this->addSortingFilter($filters, $searchRequest, $context->getContext());
 
         $locale = $this->localeService->getLocaleByContext($context);
         $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
@@ -105,10 +110,8 @@ class SearchApiDecorator extends SearchApi
         $categoryPath = $searchRequest->getCategoryPath();
         $categoryPath = implode(' > ', $categoryPath);
         $filters['f[_i18n.'.$locale.'.categories]'] = $categoryPath;
-
-        if (!empty($searchRequest->getSort())) {
-            $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
-        }
+        
+        $filters = $this->addSortingFilter($filters, $searchRequest, $context->getContext());
 
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
 
@@ -126,6 +129,33 @@ class SearchApiDecorator extends SearchApi
 
         $limit = $this->systemConfigService->getInt('core.listing.productsPerPage', $context->getSalesChannelId());
         $filters['per_page'] = $limit <= 0 ? 24 : $limit;
+        return $filters;
+    }
+
+    protected function addSortingFilter(array $filters, SearchRequest $searchRequest, Context $context): array
+    {
+        if (!empty($searchRequest->getSort())) {
+            $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
+            return $filters;
+        }
+        
+        $criteria = new Criteria();
+        $criteria->addFilter(new EqualsFilter('type', FilterEntity::FILTER_TYPE_SORTING));
+        $criteria->addFilter(new EqualsFilter('displayedByDefault', true));
+        
+        /** @var FilterEntity $defaultFilter */
+        if ($defaultFilter = $this->filterRepository->search($criteria, $context)->first()) {
+            if ($searchRequest instanceof NavigationRequestProduct) {
+                $categoryPath = $request->getCategoryPath();
+                $categoryPath = implode(' > ', $categoryPath);
+                $defaultFilter->setTechnicalName(
+                    str_replace(SortTransformer::CATEGORY_PATH_REPLACE, $categoryPath, $defaultFilter->getTechnicalName())
+                );
+            }
+            
+            $filters['sort'] = $defaultFilter->getTechnicalName();
+        }
+        
         return $filters;
     }
 }
