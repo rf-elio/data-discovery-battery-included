@@ -42,8 +42,8 @@ use Elio\ElioSearch\Api\Search\Response\TrackingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\ModelInterface;
-use Swagger\Client\Model\Result;
+use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**
  * Class TrackingTransformer

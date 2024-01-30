@@ -42,8 +42,8 @@ use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\ModelInterface;
-use Swagger\Client\Model\Result;
+use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**
  * Adds shopware's sorting translations

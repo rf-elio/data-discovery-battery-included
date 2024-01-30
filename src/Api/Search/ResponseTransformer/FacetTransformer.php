@@ -56,8 +56,8 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\AggregationResult\Metric
 use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\ModelInterface;
-use Swagger\Client\Model\Result;
+use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**
  * Class FacetTransformer

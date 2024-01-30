@@ -40,8 +40,8 @@ use Shopware\Core\Content\Category\Tree\TreeItem;
 use Shopware\Core\Framework\Struct\Collection;
 use Shopware\Core\Framework\Struct\StructCollection;
 use Shopware\Core\Framework\Uuid\Uuid;
-use Swagger\Client\Model\Facet;
-use Swagger\Client\Model\FacetElement;
+use Elio\ElioBatteryIncludedApiClient\Model\Facet;
+use Elio\ElioBatteryIncludedApiClient\Model\FacetElement;
 
 /**
  * Class FacetTreeHelper

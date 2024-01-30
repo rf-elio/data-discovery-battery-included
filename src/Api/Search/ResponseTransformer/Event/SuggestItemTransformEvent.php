@@ -6,7 +6,7 @@ use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Core\Suggest\SuggestItem;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\ModelInterface;
+use Elio\ElioSearch\Swagger\ModelInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**

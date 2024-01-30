@@ -49,8 +49,8 @@ use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\ModelInterface;
-use Swagger\Client\Model\Result;
+use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**
  * Adds sortings to the result

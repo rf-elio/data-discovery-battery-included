@@ -39,7 +39,7 @@ use Elio\ElioSearch\Api\Search\Request\SuggestRequest;
 use Elio\ElioSearch\Api\Search\SuggestApi;
 use Elio\ElioSearch\Api\Transform\Transformer;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\SuggestionResultCollection;
+use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Throwable;
 
 /**

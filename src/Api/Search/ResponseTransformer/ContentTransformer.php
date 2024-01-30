@@ -16,8 +16,8 @@ use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\Sync\Defaults\ContentSyncDefaults;
 use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\ModelInterface;
-use Swagger\Client\Model\Result;
+use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**
  * Adds the content responses (content channel) to the search result

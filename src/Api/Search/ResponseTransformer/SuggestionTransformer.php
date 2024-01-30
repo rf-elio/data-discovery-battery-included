@@ -50,9 +50,9 @@ use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Model\ModelInterface;
-use Swagger\Client\Model\SuggestionResult;
-use Swagger\Client\Model\SuggestionResultCollection;
+use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult;
+use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Throwable;
 

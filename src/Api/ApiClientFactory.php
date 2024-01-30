@@ -44,8 +44,8 @@ use GuzzleHttp\Middleware;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Swagger\Client\Api\SearchApi;
-use Swagger\Client\Configuration;
+use Elio\ElioBatteryIncludedApiClient\Api\SearchApi;
+use Elio\ElioBatteryIncludedApiClient\Configuration;
 
 class ApiClientFactory
 {
