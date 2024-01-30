@@ -268,7 +268,7 @@ class SearchApi
                         $queryParams[$key][] = ClientObjectSerializer::toQueryValue($item, null);
                     }
                 } else {
-                    $queryParams[$key] = ClientObjectSerializer::toQueryValue($filter, null);
+                    $queryParams[$key][] = ClientObjectSerializer::toQueryValue($filter, null);
                 }
 
             }

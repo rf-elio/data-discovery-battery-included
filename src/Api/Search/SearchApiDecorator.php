@@ -110,7 +110,7 @@ class SearchApiDecorator extends SearchApi
         $categoryPath = $searchRequest->getCategoryPath();
         $categoryPath = implode(' > ', $categoryPath);
         $filters['f[_i18n.'.$locale.'.categories]'] = $categoryPath;
-        
+
         $filters = $this->addSortingFilter($filters, $searchRequest, $context->getContext());
 
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
@@ -138,24 +138,24 @@ class SearchApiDecorator extends SearchApi
             $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
             return $filters;
         }
-        
+
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('type', FilterEntity::FILTER_TYPE_SORTING));
         $criteria->addFilter(new EqualsFilter('displayedByDefault', true));
-        
+
         /** @var FilterEntity $defaultFilter */
         if ($defaultFilter = $this->filterRepository->search($criteria, $context)->first()) {
             if ($searchRequest instanceof NavigationRequestProduct) {
-                $categoryPath = $request->getCategoryPath();
+                $categoryPath = $searchRequest->getCategoryPath();
                 $categoryPath = implode(' > ', $categoryPath);
                 $defaultFilter->setTechnicalName(
                     str_replace(SortTransformer::CATEGORY_PATH_REPLACE, $categoryPath, $defaultFilter->getTechnicalName())
                 );
             }
-            
+
             $filters['sort'] = $defaultFilter->getTechnicalName();
         }
-        
+
         return $filters;
     }
 }
