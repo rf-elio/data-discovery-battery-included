@@ -1,7 +1,7 @@
 {
   "name": "elio/battery-included-search-extension",
   "description": "",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "type": "shopware-platform-plugin",
   "license": "proprietary",
   "authors": [
@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">= 8.1",
-    "elio/search": "1.0.26",
+    "elio/search": "1.0.27",
     "shopware/core": "^6.5",
     "ext-curl": "*"
   },

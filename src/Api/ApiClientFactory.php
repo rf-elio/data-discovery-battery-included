@@ -36,6 +36,7 @@ use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfigu
 use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
 use Elio\ElioSearch\Core\Logging\GuzzleLogWrapper;
 use Elio\ElioSearch\Core\Logging\LoggingService;
+use Elio\ElioSearch\Swagger\ClientConfiguration;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\HandlerStack;
@@ -45,7 +46,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioBatteryIncludedApiClient\Api\SearchApi;
-use Elio\ElioBatteryIncludedApiClient\Configuration;
 
 class ApiClientFactory
 {
@@ -112,9 +112,9 @@ class ApiClientFactory
      *
      * @param string $salesChannelId
      * @param SalesChannelContext|null $salesChannelContext
-     * @return Configuration
+     * @return ClientConfiguration
      */
-    protected function createConfiguration(string $salesChannelId, SalesChannelContext $salesChannelContext = null): Configuration
+    protected function createConfiguration(string $salesChannelId, SalesChannelContext $salesChannelContext = null): ClientConfiguration
     {
         if ($salesChannelContext === null) {
             $configuration = $this->configService->get($salesChannelId);
@@ -124,7 +124,7 @@ class ApiClientFactory
 
         /** @var BatteryIncludedConfiguration $batteryIncludedConfig */
         $batteryIncludedConfig = $configuration->getExtension(BatteryIncludedConfiguration::NAME);
-        $apiConfiguration = new Configuration();
+        $apiConfiguration = new ClientConfiguration();
         $apiConfiguration->setHost($batteryIncludedConfig->getUrl());
         $apiConfiguration->setApiKey(
             BatteryIncludedConfiguration::BROWSER_API_KEY,

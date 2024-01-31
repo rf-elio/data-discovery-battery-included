@@ -111,7 +111,7 @@ class FacetTransformer implements ResponseTransformerInterface
         $facetCollection = new FacetCollection('elio-search-default');
         $aggregationResultCollection->add($facetCollection);
 
-        foreach (array_reverse($model->getFacetCounts()) as $facet) {
+        foreach ($model->getFacetCounts() as $facet) {
             $fieldName = $facet->field_name;
             if (!in_array($fieldName, $allowedFilterNames, true)) {
                 continue;
@@ -294,19 +294,7 @@ class FacetTransformer implements ResponseTransformerInterface
             ));
             $options->add($option);
         }
-        foreach ($facet->counts as $element) {
-            $elementLabel = $element->value;
-            $option = new PropertyGroupOptionEntity();
-            $option->setId(Uuid::randomHex());
-            $option->setUniqueIdentifier(Uuid::randomHex());
-            $option->setName($elementLabel);
-            $option->setTranslated(['name' => $elementLabel]);
-            $option->addExtension(DefaultFacetExtension::KEY, new DefaultFacetExtension(
-                $facet->field_name, $elementLabel,
-                $element->count
-            ));
-            $options->add($option);
-        }
+
         return $group;
     }
 
