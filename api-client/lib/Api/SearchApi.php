@@ -104,7 +104,7 @@ class SearchApi
      * @throws InvalidArgumentException
      * TODO: Add request into parameters
      */
-    public function filter($q = null, string $locale, $filters = null)
+    public function filter($q, string $locale, $filters = null)
     {
         list($response) = $this->filterWithHttpInfo($q, $locale, $filters);
         return $response;
@@ -123,7 +123,7 @@ class SearchApi
      * @throws InvalidArgumentException
      * @throws ClientApiException on non-2xx response
      */
-    public function filterWithHttpInfo($q = null, $locale = null, $filters = null)
+    public function filterWithHttpInfo($q, $locale = null, $filters = null)
     {
         $returnType = '\Elio\ElioBatteryIncludedApiClient\Model\Result';
         $request = $this->filterRequest($q, $locale, $filters);
@@ -189,7 +189,7 @@ class SearchApi
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function filterAsync($q = null, $locale = null, $filters = null)
+    public function filterAsync($q, $locale = null, $filters = null)
     {
         return $this->filterAsyncWithHttpInfo($q, $locale, $filters)
             ->then(
@@ -210,7 +210,7 @@ class SearchApi
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function filterAsyncWithHttpInfo($q = null, $locale = null, $filters = null)
+    public function filterAsyncWithHttpInfo($q, $locale = null, $filters = null)
     {
         $returnType = '';
         $request = $this->filterRequest($q, $locale, $filters);
@@ -247,7 +247,7 @@ class SearchApi
      * @return Request
      * @throws InvalidArgumentException
      */
-    protected function filterRequest($q = null, $locale = null, $filters = null)
+    protected function filterRequest($q, $locale = null, $filters = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/browse', $this->config->getCollection());
         $formParams = [];
@@ -361,7 +361,7 @@ class SearchApi
      * @throws InvalidArgumentException
      *  TODO: Add request into parameters
      */
-    public function suggest($q = null, $x_bi_api_key = null)
+    public function suggest($q, $x_bi_api_key = null)
     {
         list($response) = $this->suggestWithHttpInfo($q, $x_bi_api_key);
         return $response;
@@ -379,7 +379,7 @@ class SearchApi
      * @throws InvalidArgumentException
      * @throws ApiException on non-2xx response
      */
-    public function suggestWithHttpInfo($q = null, $x_bi_api_key = null)
+    public function suggestWithHttpInfo($q, $x_bi_api_key = null)
     {
         $returnType = '\Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult[]';
         $request = $this->suggestRequest($q, $x_bi_api_key);
@@ -444,7 +444,7 @@ class SearchApi
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function suggestAsync($q = null, $x_bi_api_key = null)
+    public function suggestAsync($q, $x_bi_api_key = null)
     {
         return $this->suggestAsyncWithHttpInfo($q, $x_bi_api_key)
             ->then(
@@ -465,7 +465,7 @@ class SearchApi
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function suggestAsyncWithHttpInfo($q = null, $x_bi_api_key = null)
+    public function suggestAsyncWithHttpInfo($q, $x_bi_api_key = null)
     {
         $returnType = '';
         $request = $this->suggestRequest($q, $x_bi_api_key);
@@ -502,7 +502,7 @@ class SearchApi
      * @return Request
      * @throws InvalidArgumentException
      */
-    protected function suggestRequest($q = null, $x_bi_api_key = null)
+    protected function suggestRequest($q, $x_bi_api_key = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/suggest', $this->config->getCollection());
         $formParams = [];

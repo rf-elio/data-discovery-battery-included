@@ -47,4 +47,9 @@ class LocaleFilterUtil
     {
         return !str_contains($fieldName, '_i18n') || str_contains($fieldName, '_i18n.'.$locale);
     }
+
+    public static function normalizeToLocalePlaceholder(string $fieldName, string $locale): string
+    {
+        return str_replace('_i18n.'.$locale, '_i18n.{locale}', $fieldName);
+    }
 }

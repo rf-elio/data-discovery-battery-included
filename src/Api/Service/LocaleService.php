@@ -59,4 +59,23 @@ class LocaleService
         $language = $this->languageRepository->search($criteria, $context->getContext())->first();
         return LocaleUtil::getLocaleByLanguage($language);
     }
+
+    /**
+     * Replaces the '{locale}' placeholder in each filter with the provided locale.
+     *
+     * @param array $filters An array of filters containing the '{locale}' placeholder.
+     * @param string $locale The locale to be added to the filters.
+     * @return array An array of filters with the '{locale}' placeholder replaced by the provided locale.
+     */
+    public function addLocaleToFilters(array $filters, string $locale): array
+    {
+        $localizedFilters = [];
+        foreach ($filters as $key => $value) {
+            $key = str_replace('{locale}', $locale, $key);
+            $value = str_replace('{locale}', $locale, $value);
+            $localizedFilters[$key] = $value;
+        }
+
+        return $localizedFilters;
+    }
 }

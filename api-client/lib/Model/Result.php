@@ -60,7 +60,7 @@ class Result implements ModelInterface, ArrayAccess
     protected static $swaggerTypes = [
                 'facet_counts' => 'object',
                 'found' => 'int',
-                'hits' => '\Swagger\Client\Model\SearchRecord[]',
+                'hits' => '\Elio\ElioBatteryIncludedApiClient\Model\SearchRecord[]',
                 'out_of' => 'int',
                 'page' => 'int',
                 'request_params' => 'object',

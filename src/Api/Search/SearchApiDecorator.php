@@ -34,6 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
@@ -75,12 +76,13 @@ class SearchApiDecorator extends SearchApi
 
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
-        $filters = $this->prepareFilters($searchRequest, $context);
-        $filters = $this->addSortingFilter($filters, $searchRequest, $context->getContext());
-
-        $locale = $this->localeService->getLocaleByContext($context);
-        $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
         $apiClient = $this->apiFactory->createSearchApi($context);
+        $locale = $this->localeService->getLocaleByContext($context);
+        $filters = $this->prepareFilters($searchRequest, $context);
+        $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
+        $filters = $this->localeService->addLocaleToFilters($filters, $locale);
+
+        $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
@@ -106,15 +108,15 @@ class SearchApiDecorator extends SearchApi
         $apiClient = $this->apiFactory->createSearchApi($context);
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
-
+        $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
+        // category path as filter
         $categoryPath = $searchRequest->getCategoryPath();
         $categoryPath = implode(' > ', $categoryPath);
-        $filters['f[_i18n.'.$locale.'.categories]'] = $categoryPath;
-
-        $filters = $this->addSortingFilter($filters, $searchRequest, $context->getContext());
+        $filters['f[_i18n.{locale}.categories]'] = $categoryPath;
+        // locale
+        $filters = $this->localeService->addLocaleToFilters($filters, $locale);
 
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
-
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
@@ -132,7 +134,7 @@ class SearchApiDecorator extends SearchApi
         return $filters;
     }
 
-    protected function addSortingFilter(array $filters, SearchRequest $searchRequest, Context $context): array
+    protected function addSortingFilter(array $filters, SearchRequest $searchRequest, string $locale, Context $context): array
     {
         if (!empty($searchRequest->getSort())) {
             $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
@@ -144,7 +146,7 @@ class SearchApiDecorator extends SearchApi
         $criteria->addFilter(new EqualsFilter('displayedByDefault', true));
 
         /** @var FilterEntity $defaultFilter */
-        if ($defaultFilter = $this->filterRepository->search($criteria, $context)->first()) {
+        foreach ($this->filterRepository->search($criteria, $context) as $defaultFilter) {
             if ($searchRequest instanceof NavigationRequestProduct) {
                 $categoryPath = $searchRequest->getCategoryPath();
                 $categoryPath = implode(' > ', $categoryPath);
@@ -153,7 +155,9 @@ class SearchApiDecorator extends SearchApi
                 );
             }
 
-            $filters['sort'] = $defaultFilter->getTechnicalName();
+            if (LocaleFilterUtil::fieldByLocalAllowed($defaultFilter->getTechnicalName(), $locale)) {
+                $filters['sort'] = $defaultFilter->getTechnicalName();
+            }
         }
 
         return $filters;
