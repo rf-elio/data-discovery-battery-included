@@ -58,6 +58,9 @@
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ContentTransformer">
             <tag name="elio-search.api.transformer.response"/>
         </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PromotionTransformer">
+            <tag name="elio-search.api.transformer.response"/>
+        </service>
 <!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TrackingTransformer">-->
 <!--            <tag name="elio-search.api.transformer.response" priority="-1000"/>-->
 <!--        </service>-->
