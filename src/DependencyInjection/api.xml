@@ -59,6 +59,7 @@
             <tag name="elio-search.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PromotionTransformer">
+            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService" />
             <tag name="elio-search.api.transformer.response"/>
         </service>
 <!--        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TrackingTransformer">-->

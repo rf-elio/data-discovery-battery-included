@@ -35,12 +35,14 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioBatteryIncludedApiClient\Model\Extension;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Response\AdvisorCampaignResponseCollection;
 use Elio\ElioSearch\Api\Search\Response\CampaignFeedbackResponse;
 use Elio\ElioSearch\Api\Search\Response\CampaignFeedbackResponseCollection;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Swagger\ModelInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -57,6 +59,10 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 class PromotionTransformer implements ResponseTransformerInterface
 {
     public const TYPE_PROMOTION = 'promotions';
+
+    public function __construct(private readonly ElioSearchConfigServiceInterface $configService)
+    {
+    }
 
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {
@@ -87,6 +93,10 @@ class PromotionTransformer implements ResponseTransformerInterface
             return;
         }
 
+        /** @var BatteryIncludedConfiguration $BIConfig */
+        $BIConfig = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
+        $promotionTemplate = $BIConfig->getPromotionTemplate();
+
         $campaignFeedbackResponseCollection = new CampaignFeedbackResponseCollection();
         $responseCollection->set(CampaignFeedbackResponseCollection::KEY, $campaignFeedbackResponseCollection);
 
@@ -99,16 +109,19 @@ class PromotionTransformer implements ResponseTransformerInterface
             }
 
             $campaignFeedbackResponseCollection->addCampaignFeedbackResponse(new CampaignFeedbackResponse(
-                'above search result',
-                $this->generatePromotionHtml($data['url'], $data['image']->desktop, $data['name']),
+                'above product listing',
+                $this->generatePromotionHtml($promotionTemplate, $data['url'], $data['image']->desktop, $data['name']),
                 true
             ));
         }
     }
 
-    private function generatePromotionHtml(string$url, string $imageUrl, string $alt = ''): string
+    private function generatePromotionHtml(string $promotionTemplate, string$url, string $imageUrl, string $alt = ''): string
     {
-        // TODO: Add config with class?
-        return sprintf('<a href="%s" target="_blank"><img src="%s" alt="%s"></a>', $url, $imageUrl, $alt);
+        return str_replace(
+            ['%url%', '%imageUrl%', '%alt%'],
+            [$url, $imageUrl, $alt],
+            $promotionTemplate
+        );
     }
 }

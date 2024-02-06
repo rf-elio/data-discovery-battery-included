@@ -40,4 +40,16 @@
             <label lang="de-DE">Api-Zeitüberschreitung</label>
         </input-field>
     </card>
+    <card>
+        <title>Promotions Configuration</title>
+        <title lang="de-DE">Promotions Konfiguration</title>
+
+        <input-field type="textarea">
+            <name>promotionTemplate</name>
+            <label>Template of displayed promotion</label>
+            <label lang="de-DE">Vorlage für angezeigte Werbung</label>
+            <helpText>Variables that will be replaced in promotion template: %url%, %imageUrl%, %alt%</helpText>
+            <helpText lang="de-DE">Variablen, die in der Werbevorlage ersetzt werden: %url%, %imageUrl%, %alt%</helpText>
+        </input-field>
+    </card>
 </config>

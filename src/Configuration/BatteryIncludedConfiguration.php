@@ -53,7 +53,8 @@ class BatteryIncludedConfiguration extends Struct
         private readonly string $url,
         private readonly string $browserToken,
         private readonly string $serverToken,
-        private readonly int $apiTimeOut
+        private readonly int $apiTimeOut,
+        private readonly string $promotionTemplate
     ){
     }
 
@@ -105,5 +106,10 @@ class BatteryIncludedConfiguration extends Struct
     public function getApiTimeOut(): int
     {
         return $this->apiTimeOut;
+    }
+
+    public function getPromotionTemplate(): string
+    {
+        return $this->promotionTemplate;
     }
 }
