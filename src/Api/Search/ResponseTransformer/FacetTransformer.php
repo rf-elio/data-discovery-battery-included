@@ -42,6 +42,7 @@ use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
+use Elio\ElioSearch\Core\FilterRestrictions\FilterSyncService;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\DefaultFacetExtension;
 use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\FacetCollection;
 use Shopware\Core\Content\Category\CategoryEntity;
@@ -71,6 +72,7 @@ class FacetTransformer implements ResponseTransformerInterface
 {
     public function __construct(
         private readonly FilterInterface $filterService,
+        private readonly FilterSyncService $filterSyncService,
         private readonly LocaleService $localeService
     ) {
     }
@@ -104,6 +106,7 @@ class FacetTransformer implements ResponseTransformerInterface
             $filterNames[] = $facet->field_name;
         }
 
+        $this->filterSyncService->createNotExistedFilters($filterNames, $context->getContext());
         $allowedFilterNames = $this->filterService->filter($filterNames, FilterEntity::FILTER_TYPE_FILTER, $request, $context);
         $aggregationResultCollection = $listing->getAggregations() ?? new AggregationResultCollection();
         $listing->setAggregations($aggregationResultCollection);

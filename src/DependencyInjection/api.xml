@@ -29,6 +29,7 @@
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\FacetTransformer">
             <argument type="service" id="Elio\ElioSearch\Core\FilterRestrictions\FilterService"/>
+            <argument type="service" id="Elio\ElioSearch\Core\FilterRestrictions\FilterSyncService"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
             <tag name="elio-search.api.transformer.response"/>
         </service>
