@@ -126,7 +126,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $suggestGroups = [];
 
         foreach ($model->getSuggestionResults() as $suggestionResult) {
-            if (!$suggestionResult->getHits()) {
+            if (!$suggestionResult->getHits() || $suggestionResult->getKind() === PromotionTransformer::TYPE_PROMOTION) {
                 continue;
             }
 

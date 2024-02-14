@@ -35,10 +35,10 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioBatteryIncludedApiClient\Model\Extension;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
+use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioSearch\Api\Request\ApiRequest;
 use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Response\AdvisorCampaignResponseCollection;
 use Elio\ElioSearch\Api\Search\Response\CampaignFeedbackResponse;
 use Elio\ElioSearch\Api\Search\Response\CampaignFeedbackResponseCollection;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
@@ -66,7 +66,7 @@ class PromotionTransformer implements ResponseTransformerInterface
 
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {
-        return $model instanceof Result;
+        return $model instanceof Result || $model instanceof SuggestionResultCollection;
     }
 
     public function transform(
@@ -74,54 +74,97 @@ class PromotionTransformer implements ResponseTransformerInterface
         ResponseCollection $responseCollection,
         SalesChannelContext $context,
         ApiRequest $request
-    ): void
-    {
-        if (!$model instanceof Result) {
-            throw new InvalidTypeException($model, Result::class);
-        }
-
-        $promotions = [];
-        $extensions = $model->getExtensions() ?? [];
-        /** @var Extension $extension */
-        foreach ($extensions as $extension) {
-            if ($extension->getType() === self::TYPE_PROMOTION) {
-                $promotions[] = $extension;
-            }
+    ): void {
+        if ($model instanceof Result) {
+            $promotions = $this->getPromotionsFromResult($model);
+        } elseif ($model instanceof SuggestionResultCollection) {
+            $promotions = $this->getPromotionsFromSuggestionResultCollection($model);
+        } else {
+            throw new InvalidTypeException($model, Result::class . ' or ' . SuggestionResultCollection::class);
         }
 
         if (empty($promotions)) {
             return;
         }
 
-        /** @var BatteryIncludedConfiguration $BIConfig */
-        $BIConfig = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
-        $promotionTemplate = $BIConfig->getPromotionTemplate();
+        /** @var BatteryIncludedConfiguration $bIConfig */
+        $bIConfig = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
+        $promotionTemplate = $bIConfig->getPromotionTemplate();
 
-        $campaignFeedbackResponseCollection = new CampaignFeedbackResponseCollection();
+        $campaignFeedbackResponseCollection = $responseCollection->get(CampaignFeedbackResponseCollection::KEY) ?? new CampaignFeedbackResponseCollection();
         $responseCollection->set(CampaignFeedbackResponseCollection::KEY, $campaignFeedbackResponseCollection);
 
-        $advisorCampaignResponseCollection = new AdvisorCampaignResponseCollection();
-        $responseCollection->set(AdvisorCampaignResponseCollection::KEY, $advisorCampaignResponseCollection);
-
         foreach ($promotions as $promotion) {
-            if (empty($data = $promotion->getData())) {
-                continue;
-            }
-
             $campaignFeedbackResponseCollection->addCampaignFeedbackResponse(new CampaignFeedbackResponse(
                 'above product listing',
-                $this->generatePromotionHtml($promotionTemplate, $data['url'], $data['image']->desktop, $data['name']),
+                $this->generatePromotionHtml(
+                    $promotionTemplate,
+                    $promotion['url'] ?? '',
+                    $promotion['image']->desktop ?? '',
+                    $promotion['image']->mobile ?? '',
+                    $promotion['name'] ?? ''
+                ),
                 true
             ));
         }
     }
 
-    private function generatePromotionHtml(string $promotionTemplate, string$url, string $imageUrl, string $alt = ''): string
+    /**
+     * Extracts the promotions from the result model. This is used for navigation or search result.
+     *
+     * @param ModelInterface $model
+     * @return array
+     */
+    private function getPromotionsFromResult(ModelInterface $model): array
     {
+        $promotions = [];
+        $extensions = $model->getExtensions() ?? [];
+        /** @var Extension $extension */
+        foreach ($extensions as $extension) {
+            if ($extension->getType() === self::TYPE_PROMOTION) {
+
+                if (!empty($data = $extension->getData())) {
+                    $promotions[] = $data;
+                }
+            }
+        }
+        return $promotions;
+    }
+
+    /**
+     * Get promotions from the suggestion result collection. This is used for suggest.
+     *
+     * @param SuggestionResultCollection $model The suggestion result collection.
+     * @return array The array of promotions.
+     */
+    private function getPromotionsFromSuggestionResultCollection(SuggestionResultCollection $model): array
+    {
+        $promotions = [];
+        foreach ($model->getSuggestionResults() as $suggestionResult) {
+            if (!$suggestionResult->getHits() || $suggestionResult->getKind() !== PromotionTransformer::TYPE_PROMOTION) {
+                continue;
+            }
+
+            foreach ($suggestionResult->getHits() as $hit) {
+                $promotions[] = get_object_vars($hit);
+            }
+        }
+
+        return $promotions;
+    }
+
+    private function generatePromotionHtml(
+        string $promotionTemplate,
+        string $url,
+        string $imageDesktopUrl,
+        string $imageMobileUrl,
+        string $name
+    ): string {
         return str_replace(
-            ['%url%', '%imageUrl%', '%alt%'],
-            [$url, $imageUrl, $alt],
+            ['%url%', '%imageDesktopUrl%', '%imageMobileUrl%', '%name%'],
+            [$url, $imageDesktopUrl, $imageMobileUrl, $name],
             $promotionTemplate
         );
     }
+
 }
