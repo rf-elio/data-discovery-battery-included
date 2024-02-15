@@ -46,8 +46,16 @@
 
         <input-field type="textarea">
             <name>promotionTemplate</name>
-            <label>Template of displayed promotion</label>
-            <label lang="de-DE">Vorlage für angezeigte Werbung</label>
+            <label>Template of displayed promotion for search and listing</label>
+            <label lang="de-DE">Vorlage der angezeigten Werbung für Suche und Auflistung</label>
+            <helpText>Variables that will be replaced in promotion template: %url%, %imageUrl%, %alt%</helpText>
+            <helpText lang="de-DE">Variablen, die in der Werbevorlage ersetzt werden: %url%, %imageUrl%, %alt%</helpText>
+        </input-field>
+
+        <input-field type="textarea">
+            <name>suggestPromotionTemplate</name>
+            <label>Template of displayed promotion for suggest</label>
+            <label lang="de-DE">Vorlage für angezeigte Werbung für suggest</label>
             <helpText>Variables that will be replaced in promotion template: %url%, %imageUrl%, %alt%</helpText>
             <helpText lang="de-DE">Variablen, die in der Werbevorlage ersetzt werden: %url%, %imageUrl%, %alt%</helpText>
         </input-field>

@@ -54,7 +54,8 @@ class BatteryIncludedConfiguration extends Struct
         private readonly string $browserToken,
         private readonly string $serverToken,
         private readonly int $apiTimeOut,
-        private readonly string $promotionTemplate
+        private readonly string $promotionTemplate,
+        private readonly string $suggestPromotionTemplate
     ){
     }
 
@@ -111,5 +112,10 @@ class BatteryIncludedConfiguration extends Struct
     public function getPromotionTemplate(): string
     {
         return $this->promotionTemplate;
+    }
+
+    public function getSuggestPromotionTemplate(): string
+    {
+        return $this->suggestPromotionTemplate;
     }
 }

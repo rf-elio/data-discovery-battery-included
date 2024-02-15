@@ -89,7 +89,7 @@ class PromotionTransformer implements ResponseTransformerInterface
 
         /** @var BatteryIncludedConfiguration $bIConfig */
         $bIConfig = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
-        $promotionTemplate = $bIConfig->getPromotionTemplate();
+        $promotionTemplate = $model instanceof Result ? $bIConfig->getPromotionTemplate() : $bIConfig->getSuggestPromotionTemplate();
 
         $campaignFeedbackResponseCollection = $responseCollection->get(CampaignFeedbackResponseCollection::KEY) ?? new CampaignFeedbackResponseCollection();
         $responseCollection->set(CampaignFeedbackResponseCollection::KEY, $campaignFeedbackResponseCollection);
@@ -166,5 +166,4 @@ class PromotionTransformer implements ResponseTransformerInterface
             $promotionTemplate
         );
     }
-
 }

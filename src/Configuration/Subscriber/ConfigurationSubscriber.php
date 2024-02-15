@@ -75,7 +75,8 @@ class ConfigurationSubscriber implements EventSubscriberInterface
             $pluginConfig['browserApiKey'] ?? '',
             $pluginConfig['serverApiKey'] ?? '',
             $pluginConfig['apiTimeout'] ?? 60,
-            $pluginConfig['promotionTemplate'] ?? ''
+            $pluginConfig['promotionTemplate'] ?? '',
+            $pluginConfig['suggestPromotionTemplate'] ?? ''
         ));
         $event->setConfiguration($configuration);
     }
