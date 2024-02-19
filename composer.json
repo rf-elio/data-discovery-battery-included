@@ -11,7 +11,7 @@
   ],
   "require": {
     "php": ">= 8.1",
-    "elio/search": "2.0.30",
+    "elio/search": "2.0.31",
     "shopware/core": "^6.5",
     "ext-curl": "*"
   },
