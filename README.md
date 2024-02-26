@@ -1,26 +1,16 @@
-# Elio Battery Included Search Integration
+# BatteryIncluded by elio
 
 ## Installation
+### Parepare composer package
+To install this plugin you need to move the code into a composer registry. The following options are available:
+- Use the shopware store package registry (recommended).
+- Move "elio/battery-included-search-extension" and "elio/data-discovery-core" into your static plugins folder (custom/static-plugins).
+- Use your own package registry.
+
 ### Composer Installation
-Add the composer repository
-```
-composer config repositories.1168 composer https://git.elio-systems.io/api/v4/group/1168/-/packages/composer/
-composer config repositories.201 composer https://git.elio-systems.io/api/v4/group/201/-/packages/composer/
-composer config repositories.147 composer https://git.elio-systems.io/api/v4/group/147/-/packages/composer/
-
-```
-
 Require package **elio/battery-included-search-extension**
 ```
-composer req elio/battery-included-search-extension 1.0.3
-```
-
-To install ElioFoundation in Shopware add the following code into the config/bundles.php file:
-```php
-return [
-    // ...
-    Elio\Foundation\ElioFoundation::class => ['all' => true]
-];
+composer req elio/battery-included-search-extension 2.1.1
 ```
 
 Install plugin
@@ -31,3 +21,5 @@ bin/console plugin:install ElioSearch --activate
 bin/console plugin:install ElioBatteryIncludedSearchExtension --activate
 ```
 ## Configuration
+Link: https://confluence.external-share.com/content/27202295-6f5e-4cb5-adc2-1d6fbd18e2cb
+Password: uuUcLNhRF7OGGfR
