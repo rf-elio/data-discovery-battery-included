@@ -42,6 +42,7 @@ use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
 use Elio\ElioSearch\Core\Sorting\ProductSortingCollection;
 use Elio\ElioSearch\Core\Sorting\ProductSortingEntity;
 use Elio\ElioSearch\Core\Sync\SyncContext;
+use Elio\ElioSearch\Core\Sync\Util\ProductUtil;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
@@ -89,7 +90,7 @@ class ProductMappingService
     protected function prepareBaseFields(
         ProductDataType $product
     ): array {
-        [$price, $redPrice] = $this->getProductPrice($product) ?? [null, null];
+        [$price, $redPrice] = ProductUtil::getProductPrice($product) ?? [null, null];
 
         return [
             'masterProductNumber' => $product->getVariant()?->getParentProduct()?->getIdentifier() ?? $product->getIdentifier(),
@@ -151,9 +152,9 @@ class ProductMappingService
                 'searchKeywords' => $productTranslation->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? [],
                 'categories' => $this->getCategoryPath($productTranslation),
                 'categorySort' => $this->getCategorySort($productTranslation),
-                'attributes' => $this->getProductAttribute($this->getFilterableProductProperties($productTranslation)),
-                'attributesNotFilterable' => $this->getProductAttribute($this->getNonFilterableProductProperties($productTranslation)),
-                'tags' => $this->getProductTags($productTranslation),
+                'attributes' => ProductUtil::getProductAttribute(ProductUtil::getFilterableProductProperties($productTranslation)),
+                'attributesNotFilterable' => ProductUtil::getProductAttribute(ProductUtil::getNonFilterableProductProperties($productTranslation)),
+                'tags' => ProductUtil::getProductTags($productTranslation),
                 'url' => $seoRoute?->getUrl() ?? '',
                 'variant' => [
                     'options' => $this->getProductOptions($productTranslation->getOptions()),
@@ -313,100 +314,7 @@ class ProductMappingService
 
         return $attributes;
     }
-
-    /**
-     * Appends the product attributes
-     *
-     * @param array<PropertyGroupOptionEntity> $properties
-     * @return array
-     */
-    protected function getProductAttribute(array $properties): array
-    {
-        $attributes = [];
-        foreach ($properties as $property) {
-            $group = $property->getGroup();
-            if ($group !== null) {
-                $name = $group->getTranslation('name') ?? $group->getName();
-                $value = $property->getTranslation('name') ?? $property->getName();
-                $attributes[$name] = ValueUtil::cleanValue($value);
-            }
-        }
-
-        return $attributes;
-    }
-
-    /**
-     * @param ProductEntity $product
-     * @return array<PropertyGroupOptionEntity>
-     */
-    protected function getFilterableProductProperties(ProductEntity $product): array
-    {
-        if ($product->getProperties() === null) {
-            return [];
-        }
-        return $product->getProperties()->filter(
-            static fn(PropertyGroupOptionEntity $option) => $option->getGroup() !== null && $option->getGroup()->getFilterable()
-        )->getElements();
-    }
-
-    /**
-     * @param ProductEntity $product
-     * @return array<PropertyGroupOptionEntity>
-     */
-    protected function getNonFilterableProductProperties(ProductEntity $product): array
-    {
-        if ($product->getProperties() === null) {
-            return [];
-        }
-        return $product->getProperties()->filter(
-            static fn(PropertyGroupOptionEntity $option) => $option->getGroup() !== null && !$option->getGroup()->getFilterable()
-        )->getElements();
-    }
-
-    /**
-     * Creates the product tags string
-     *
-     * @param ProductEntity $product
-     * @return array
-     */
-    protected function getProductTags(ProductEntity $product): array
-    {
-        if (!$product->getTags()) {
-            return [];
-        }
-
-        $tags = [];
-        foreach ($product->getTags() as $tag) {
-            $tags[] = $tag->getTranslation('name') ?? $tag->getName();
-        }
-
-        return $tags;
-    }
-
-    /**
-     * Fetches the main product price
-     *
-     * @param ProductEntity $product
-     * @return array|null
-     */
-    protected function getProductPrice(ProductEntity $product): ?array
-    {
-        if ($product->getPrice() === null || !$price = $product->getPrice()->first()) {
-            return null;
-        }
-
-        $redPrice = null;
-        if (
-            $price->getListPrice() &&
-            $price->getListPrice()->getGross() &&
-            $price->getListPrice()->getGross() > $price->getGross()
-        ) {
-            $redPrice = $price->getListPrice()->getGross();
-        }
-
-        return [$price->getGross(), $redPrice];
-    }
-
+    
     /**
      * Fetches the product price string with all currencies
      *
@@ -417,7 +325,7 @@ class ProductMappingService
      */
     protected function getProductPrices(ProductEntity $product, SalesChannelContext $context): string
     {
-        [$price] = $this->getProductPrice($product) ?? [null];
+        [$price] = ProductUtil::getProductPrice($product) ?? [null];
         if (!$price) {
             return '';
         }
