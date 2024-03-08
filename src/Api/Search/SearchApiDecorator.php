@@ -109,10 +109,15 @@ class SearchApiDecorator extends SearchApi
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
-        // category path as filter
-        $categoryPath = $searchRequest->getCategoryPath();
-        $categoryPath = implode(' > ', $categoryPath);
-        $filters['f[_i18n.{locale}.categories]'] = $categoryPath;
+        if (!empty($searchRequest->getStreamId())) {
+            // stream ID as filter
+            $filters['f[_product.streamIds]'] = $searchRequest->getStreamId();
+        } else {
+            // category path as filter
+            $categoryPath = $searchRequest->getCategoryPath();
+            $categoryPath = implode(' > ', $categoryPath);
+            $filters['f[_i18n.{locale}.categories]'] = $categoryPath;
+        }
         // locale
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
 
