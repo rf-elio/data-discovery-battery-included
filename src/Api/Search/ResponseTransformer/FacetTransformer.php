@@ -74,8 +74,7 @@ class FacetTransformer implements ResponseTransformerInterface
         private readonly FilterInterface $filterService,
         private readonly FilterSyncService $filterSyncService,
         private readonly LocaleService $localeService
-    ) {
-    }
+    ) {}
 
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {
@@ -205,7 +204,7 @@ class FacetTransformer implements ResponseTransformerInterface
         $rootTree = [];
         $treeItems = [];
         foreach ($facet->counts as $element) {
-            $labels = array_map('trim', explode('>', $element->value));
+            $labels = array_map('trim', explode('>', (string) $element->value));
             $level = count($labels) - 1;
             $elementLabel = !empty($labels) ? trim(end($labels)) : $element->value;
 

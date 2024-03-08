@@ -167,7 +167,7 @@ class FacetTreeHelper
      */
     public static function flattenTree(array $treeItems, ?StructCollection $flattTree = null) : Collection
     {
-        $flattTree = $flattTree ?? new StructCollection();
+        $flattTree ??= new StructCollection();
         foreach ($treeItems as $treeItem) {
             $flattTree->add($treeItem);
             self::flattenTree($treeItem->getChildren(), $flattTree);

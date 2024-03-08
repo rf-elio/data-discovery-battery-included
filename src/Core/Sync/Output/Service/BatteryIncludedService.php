@@ -57,8 +57,7 @@ class BatteryIncludedService
         private readonly ElioSearchConfigServiceInterface $configService,
         private readonly ProductMappingService $productMappingService,
         private readonly ContentMappingService $contentMappingService
-    ) {
-    }
+    ) {}
 
     /**
      * Prepare collection fields for battery included sync

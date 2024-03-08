@@ -61,8 +61,7 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
         private readonly Client $client,
         private readonly BatteryIncludedService $batteryIncludedService,
         private readonly LoggerInterface $logger
-    ) {
-    }
+    ) {}
 
     /**
      * Checks if writer is supported
@@ -190,7 +189,7 @@ class BIOutput implements OutputInterface, DeltaAwareInterface
                 $errors[] = [
                     'code' => $item['code'] ?? 500,
                     'id' => isset($item['document'])
-                        ? json_decode($item['document'], true, 512, JSON_THROW_ON_ERROR)
+                        ? json_decode((string) $item['document'], true, 512, JSON_THROW_ON_ERROR)
                         : null,
                     'error' => $item['error'] ?? ''
                 ];

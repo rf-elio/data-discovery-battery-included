@@ -141,7 +141,7 @@ class ContentTransformer implements ResponseTransformerInterface
             }
 
             // top content
-            if (strpos($type, self::TOP_CONTENT_PREFIX) === 0) {
+            if (str_starts_with($type, self::TOP_CONTENT_PREFIX)) {
                 if(!isset($topContentGroups[$type])) {
                     $topContentGroups[$type] = new ContentGroup($type, $type);
                 }

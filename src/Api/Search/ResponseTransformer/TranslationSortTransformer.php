@@ -57,22 +57,15 @@ use Elio\ElioBatteryIncludedApiClient\Model\Result;
  */
 class TranslationSortTransformer implements ResponseTransformerInterface
 {
-    private EntityRepository $sortingRepository;
-    private ResponseTransformerInterface $decorated;
-
     /**
      * SortTransformer constructor.
      * @param EntityRepository $sortingRepository
-     * @param ResponseTransformerInterface $responseTransformer
+     * @param ResponseTransformerInterface $decorated
      */
     public function __construct(
-        EntityRepository $sortingRepository,
-        ResponseTransformerInterface $responseTransformer
-    )
-    {
-        $this->sortingRepository = $sortingRepository;
-        $this->decorated = $responseTransformer;
-    }
+        private readonly EntityRepository $sortingRepository,
+        private readonly ResponseTransformerInterface $decorated
+    ) {}
 
     /**
      * @inheritDoc

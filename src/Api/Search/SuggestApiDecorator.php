@@ -62,8 +62,7 @@ class SuggestApiDecorator extends SuggestApi
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
         private readonly LocaleService $localeService
-    ) {
-    }
+    ) {}
 
     /**
      * @param SuggestRequest $suggestRequest

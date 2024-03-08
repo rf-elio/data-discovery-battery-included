@@ -48,9 +48,9 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class ConfigurationSubscriber implements EventSubscriberInterface
 {
-    public function __construct(private readonly SystemConfigService $configService)
-    {
-    }
+    public function __construct(
+        private readonly SystemConfigService $configService
+    ) {}
 
     public static function getSubscribedEvents(): array
     {

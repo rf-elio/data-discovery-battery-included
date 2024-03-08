@@ -72,9 +72,7 @@ class SortTransformer implements ResponseTransformerInterface
         private readonly FilterInterface $filterService,
         private readonly LocaleService $localeService,
         private readonly LoggerInterface $logger
-    )
-    {
-    }
+    ) {}
 
     /**
      * @inheritDoc
@@ -129,7 +127,7 @@ class SortTransformer implements ResponseTransformerInterface
                 continue;
             }
 
-            $sortingLabelChunks = explode(':', $filter->getTechnicalName());
+            $sortingLabelChunks = explode(':', (string) $filter->getTechnicalName());
             if (count($sortingLabelChunks) !== 2) {
                 $this->logger->warning(sprintf('Wrong configuration for sorting label %s', $filter->getTechnicalName()));
                 continue;

@@ -35,8 +35,6 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\BIOutput;
 use Elio\ElioSearch\Core\Sync\DataTypes\ContentDataType;
 use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
-use Elio\ElioSearch\Core\Sync\Export\Converter\ContentConverter;
-use Elio\ElioSearch\Core\Sync\Export\Converter\ProductConverter;
 use Elio\ElioSearch\Core\Sync\Input\DeltaInput;
 use Elio\ElioSearch\Core\Sync\Output\SeoRouteOutput;
 use Elio\ElioSearch\Core\Sync\ProfileInterface;
