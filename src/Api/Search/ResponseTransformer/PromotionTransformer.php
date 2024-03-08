@@ -60,9 +60,9 @@ class PromotionTransformer implements ResponseTransformerInterface
 {
     public const TYPE_PROMOTION = 'promotions';
 
-    public function __construct(private readonly ElioSearchConfigServiceInterface $configService)
-    {
-    }
+    public function __construct(
+        private readonly ElioSearchConfigServiceInterface $configService
+    ) {}
 
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {

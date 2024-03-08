@@ -19,27 +19,15 @@ use Symfony\Contracts\EventDispatcher\Event;
  */
 class SuggestItemTransformEvent extends Event
 {
-    private SuggestItem $suggestItem;
-    private ModelInterface $model;
-    private ResponseCollection $responseCollection;
-    private ApiRequest $request;
-    private SalesChannelContext $context;
     private bool $removeSuggestItemFromResult = false;
 
     public function __construct(
-        SuggestItem $suggestItem,
-        ModelInterface $model,
-        ResponseCollection $responseCollection,
-        ApiRequest $request,
-        SalesChannelContext $context
-    )
-    {
-        $this->suggestItem = $suggestItem;
-        $this->model = $model;
-        $this->responseCollection = $responseCollection;
-        $this->request = $request;
-        $this->context = $context;
-    }
+        private readonly SuggestItem $suggestItem,
+        private readonly ModelInterface $model,
+        private readonly ResponseCollection $responseCollection,
+        private readonly ApiRequest $request,
+        private readonly SalesChannelContext $context
+    ) {}
 
     /**
      * @return SuggestItem

@@ -54,7 +54,6 @@ use Elio\ElioSearch\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Throwable;
 
 /**
  * Converts suggest result to internal structure
@@ -68,10 +67,6 @@ use Throwable;
  */
 class SuggestionTransformer implements ResponseTransformerInterface
 {
-    private ElioSearchConfigServiceInterface $configService;
-    private EventDispatcherInterface $eventDispatcher;
-    private EntityRepository $languageRepository;
-
     /**
      * SuggestionTransformer constructor.
      * @param ElioSearchConfigServiceInterface $configService
@@ -79,14 +74,10 @@ class SuggestionTransformer implements ResponseTransformerInterface
      * @param EntityRepository $languageRepository
      */
     public function __construct(
-        ElioSearchConfigServiceInterface $configService,
-        EventDispatcherInterface $eventDispatcher,
-        EntityRepository $languageRepository
-    ) {
-        $this->configService = $configService;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->languageRepository = $languageRepository;
-    }
+        private readonly ElioSearchConfigServiceInterface $configService,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly EntityRepository $languageRepository
+    ) {}
 
     /**
      * @inheritDoc
@@ -166,12 +157,12 @@ class SuggestionTransformer implements ResponseTransformerInterface
         if ($type === SuggestionResult::RESULT_TYPE_DOCUMENT) {
             $namePropertyPath = 'highlight._i18n.'.$locale.'.name';
             if ($propertyAccess->isReadable($hit, $namePropertyPath)) {
-                $suggestItem->setName(strip_tags($propertyAccess->getValue($hit, $namePropertyPath)));
+                $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $namePropertyPath)));
             }
 
             $urlPropertyPath = 'highlight._i18n.'.$locale.'.url';
             if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
-                $suggestItem->setUrl(strip_tags($propertyAccess->getValue($hit, $urlPropertyPath)));
+                $suggestItem->setUrl(strip_tags((string) $propertyAccess->getValue($hit, $urlPropertyPath)));
             }
 
             $productPropertyPath = 'highlight._product';
@@ -237,10 +228,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
         uasort($groups, static function (SuggestGroup $a, SuggestGroup $b) {
             $posA = $a->getPosition();
             $posB = $b->getPosition();
-            if ($posA === $posB) {
-                return 0;
-            }
-            return ($posA < $posB) ? -1 : 1;
+            return $posA <=> $posB;
         });
         return $groups;
     }

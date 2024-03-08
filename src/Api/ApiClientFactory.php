@@ -52,8 +52,7 @@ class ApiClientFactory
     public function __construct(
         private readonly ElioSearchConfigServiceInterface $configService,
         private readonly LoggerInterface $logger
-    ) {
-    }
+    ) {}
 
     /**
      * Creates a search api client

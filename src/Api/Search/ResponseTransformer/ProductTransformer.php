@@ -40,12 +40,10 @@ use Elio\ElioSearch\Api\Response\ResponseCollection;
 use Elio\ElioSearch\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
 use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Core\Content\Product\SalesChannel\MainVariantMappingExtension;
 use Elio\ElioSearch\Core\Exception\InvalidTypeException;
 use Shopware\Core\Content\Product\ProductCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Product\SalesChannel\Listing\ProductListingLoader;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
@@ -65,21 +63,15 @@ use Elio\ElioBatteryIncludedApiClient\Model\SearchRecord;
  */
 class ProductTransformer implements ResponseTransformerInterface
 {
-    private ProductListingLoader $listingLoader;
-    private Connection $connection;
-
     /**
      * ProductHandler constructor.
      *
      * @param ProductListingLoader $listingLoader
      */
     public function __construct(
-        ProductListingLoader $listingLoader,
-        Connection $connection
-    ) {
-        $this->listingLoader = $listingLoader;
-        $this->connection = $connection;
-    }
+        private readonly ProductListingLoader $listingLoader,
+        private readonly Connection $connection
+    ) {}
 
     /**
      * @inheritDoc
@@ -129,11 +121,7 @@ class ProductTransformer implements ResponseTransformerInterface
         $products->sort(static function (ProductEntity $a, ProductEntity $b) use ($productNumberSort) {
             $aPosition = $productNumberSort[$a->getProductNumber()] ?? 0;
             $bPosition = $productNumberSort[$b->getProductNumber()] ?? 0;
-
-            if ($aPosition === $bPosition) {
-                return 0;
-            }
-            return ($aPosition < $bPosition) ? -1 : 1;
+            return $aPosition <=> $bPosition;
         });
 
         $listing = $responseCollection->get(ProductListingResponse::class) ?? new ProductListingResponse();

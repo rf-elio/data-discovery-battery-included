@@ -49,7 +49,9 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
  */
 class LocaleService
 {
-    public function __construct(private readonly EntityRepository $languageRepository) {}
+    public function __construct(
+        private readonly EntityRepository $languageRepository
+    ) {}
 
     public function getLocaleByContext(SalesChannelContext $context): string
     {
@@ -72,7 +74,7 @@ class LocaleService
         $localizedFilters = [];
         foreach ($filters as $key => $value) {
             $key = str_replace('{locale}', $locale, $key);
-            $value = str_replace('{locale}', $locale, $value);
+            $value = str_replace('{locale}', $locale, (string) $value);
             $localizedFilters[$key] = $value;
         }
 

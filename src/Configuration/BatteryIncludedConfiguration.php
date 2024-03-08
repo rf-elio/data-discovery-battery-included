@@ -56,8 +56,7 @@ class BatteryIncludedConfiguration extends Struct
         private readonly int $apiTimeOut,
         private readonly string $promotionTemplate,
         private readonly string $suggestPromotionTemplate
-    ){
-    }
+    ) {}
 
     /**
      * Battery included collection

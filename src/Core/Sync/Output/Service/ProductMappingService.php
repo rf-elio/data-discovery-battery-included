@@ -246,7 +246,7 @@ class ProductMappingService
 
         foreach ($categories as $category) {
             $path = $category->getPath();
-            $ids = explode('|', $path);
+            $ids = explode('|', (string) $path);
             $ids = array_filter($ids);
             $productCategoryIds[] = implode('/', $ids);
         }
