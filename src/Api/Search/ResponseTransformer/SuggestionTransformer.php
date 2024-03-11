@@ -109,7 +109,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $language = $this->languageRepository->search($criteria, $context->getContext())->first();
         $locale = LocaleUtil::getLocaleByLanguage($language);
 
-        /** @var SuggestionResponse|null $suggestionResponse */
+        /** @var SuggestionResponse $suggestionResponse */
         $suggestionResponse = $responseCollection->get(SuggestionResponse::class) ?? new SuggestionResponse();
         $responseCollection->set(SuggestionResponse::class, $suggestionResponse);
         $config = $this->configService->getByContext($context);
@@ -132,6 +132,10 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 }
 
                 $type = $suggestItem->getType();
+                if (!$type) {
+                    continue;
+                }
+
                 $group = $suggestGroups[$type] ?? new SuggestGroup($type, $groupLabels[$type] ?? $type);
                 $suggestGroups[$type] = $group;
                 $group->addItem($suggestItem);
@@ -190,7 +194,9 @@ class SuggestionTransformer implements ResponseTransformerInterface
             return $suggestItem;
         }
 
-        $suggestItem->setName($hit->value);
+        if (property_exists($hit, 'value') && is_string($hit->value)) {
+            $suggestItem->setName($hit->value);
+        }
         $suggestItem->setType($type);
         return $suggestItem;
     }
@@ -219,8 +225,14 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $group->setVisible(false);
             } else {
                 $group->setVisible(true);
+                if (is_string($acceptedTypePosition)) {
+                    try {
+                        $acceptedTypePosition = intval($acceptedTypePosition);
+                    } catch (\Exception $e) {
+                        $acceptedTypePosition = 0;
+                    }
+                }
                 $group->setPosition($acceptedTypePosition);
-
             }
         }
 

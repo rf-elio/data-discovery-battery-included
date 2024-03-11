@@ -32,7 +32,6 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
-
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioSearch\Api\Request\ApiRequest;
@@ -166,16 +165,17 @@ class FacetTransformer implements ResponseTransformerInterface
     {
         $options = new PropertyGroupOptionCollection();
 
-        foreach ($facet->counts as $element) {
-            $elementLabel = $element->value;
+        $facetCounts = $facet->counts ?? [];
+        foreach ($facetCounts as $element) {
+            $elementLabel = $element->value ?? null;
             $option = new PropertyGroupOptionEntity();
             $option->setId(Uuid::randomHex());
             $option->setUniqueIdentifier(Uuid::randomHex());
             $option->setName($elementLabel);
             $option->setTranslated(['name' => $elementLabel]);
             $option->addExtension(DefaultFacetExtension::KEY, new DefaultFacetExtension(
-                $facet->field_name, $element->value,
-                $element->count,
+                $facet->field_name ?? '', $element->value ?? '',
+                $element->count ?? 0,
                 false // @todo: $element->getSelected() === 'TRUE'
             ));
             $options->add($option);
@@ -185,8 +185,8 @@ class FacetTransformer implements ResponseTransformerInterface
         $group->setId(Uuid::randomHex());
         $group->setUniqueIdentifier(Uuid::randomHex());
         $group->setOptions($options);
-        $group->setName($facet->field_name);
-        $group->setTranslated(['name' => $facet->field_name]);
+        $group->setName($facet->field_name ?? null);
+        $group->setTranslated(['name' => $facet->field_name ?? null]);
         $group->setDisplayType('text');
         $group->addExtension(DefaultFacetExtension::KEY, new ArrayStruct([
             'selectedCount' => 0 // @todo: count($facet->getSelectedElements())
@@ -203,10 +203,11 @@ class FacetTransformer implements ResponseTransformerInterface
     {
         $rootTree = [];
         $treeItems = [];
-        foreach ($facet->counts as $element) {
+        $facetCounts = $facet->counts ?? [];
+        foreach ($facetCounts as $element) {
             $labels = array_map('trim', explode('>', (string) $element->value));
             $level = count($labels) - 1;
-            $elementLabel = !empty($labels) ? trim(end($labels)) : $element->value;
+            $elementLabel = trim(end($labels));
 
             $category = new CategoryEntity();
             $category->setId(Uuid::randomHex());
@@ -229,7 +230,8 @@ class FacetTransformer implements ResponseTransformerInterface
         $tree = new Tree(null, $rootTree);
 
         $counts = [];
-        foreach ($facet->counts as $element){
+        $facetCounts = $facet->counts ?? [];
+        foreach ($facetCounts as $element){
             $counts[$element->value] = $element->count;
         }
 
@@ -257,11 +259,12 @@ class FacetTransformer implements ResponseTransformerInterface
     {
         $itemCategory = $treeItem->getCategory();
 
-        if($itemCategory->getName() !== null)
+        if($itemCategory->getName() !== null) {
             $treeItem->addExtension(DefaultFacetExtension::KEY, new DefaultFacetExtension(
-                $facet->field_name, $itemCategory->getName(),
+                $facet->field_name ?? '', $itemCategory->getName(),
                 $counts[$itemCategory->getName()] ?? 0
             ));
+        }
 
         foreach ($treeItem->getChildren() as $childItem) {
             $this->recursiveAddTreeItemExtension($facet, $childItem, $counts);
@@ -279,11 +282,12 @@ class FacetTransformer implements ResponseTransformerInterface
         $group->setId(Uuid::randomHex());
         $group->setUniqueIdentifier(Uuid::randomHex());
         $group->setOptions($options);
-        $group->setName($facet->field_name);
-        $group->setTranslated(['name' => $facet->field_name]);
+        $group->setName($facet->field_name ?? null);
+        $group->setTranslated(['name' => $facet->field_name ?? null]);
         $group->setDisplayType('text');
 
-        foreach ($facet->counts as $element) {
+        $facetCounts = $facet->counts ?? [];
+        foreach ($facetCounts as $element) {
             $elementLabel = $element->value;
             $option = new PropertyGroupOptionEntity();
             $option->setId(Uuid::randomHex());
@@ -291,7 +295,7 @@ class FacetTransformer implements ResponseTransformerInterface
             $option->setName($elementLabel);
             $option->setTranslated(['name' => $elementLabel]);
             $option->addExtension(DefaultFacetExtension::KEY, new DefaultFacetExtension(
-                $facet->field_name, $elementLabel,
+                $facet->field_name ?? '', $elementLabel,
                 $element->count
             ));
             $options->add($option);
