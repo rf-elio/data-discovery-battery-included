@@ -11,4 +11,11 @@ help:
 # ------------------------------------------------------------------------------------------------------------
 
 prepare-for-store: ## Preparing package for store
-	rm LICENSE && rm CHANGELOG.md
+	rm -rf ElioBatteryIncludedSearchExtension
+	mkdir ElioBatteryIncludedSearchExtension && mkdir ElioBatteryIncludedSearchExtension/src
+	cp -r src ElioBatteryIncludedSearchExtension
+	cp -r api-client ElioBatteryIncludedSearchExtension
+	cp composer.json ElioBatteryIncludedSearchExtension
+	cp README.md ElioBatteryIncludedSearchExtension
+	zip ElioBatteryIncludedSearchExtension.zip ElioBatteryIncludedSearchExtension -r
+	rm -rf ElioBatteryIncludedSearchExtension
