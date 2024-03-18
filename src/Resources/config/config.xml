@@ -10,35 +10,31 @@
             <name>apiUrl</name>
             <required>true</required>
             <label>BatteryIncluded api url</label>
-            <label lang="de-DE">BatteryIncluded api url</label>
             <defaultValue>https://api.batteryincluded.io</defaultValue>
         </input-field>
 
         <input-field>
             <name>collection</name>
             <required>true</required>
-            <label>BatteryIncluded collection</label>
-            <label lang="de-DE">BatterieInbegriffene Sammlung</label>
+            <label>BatteryIncluded Collection</label>
         </input-field>
 
         <input-field>
             <name>browserApiKey</name>
             <required>true</required>
-            <label>Browser Api Key</label>
-            <label lang="de-DE">Browser Api Schlüssel</label>
+            <label>Public Api Key</label>
         </input-field>
 
         <input-field>
             <name>serverApiKey</name>
             <required>true</required>
             <label>Server Api Key</label>
-            <label lang="de-DE">Server Api Schlüssel</label>
         </input-field>
 
         <input-field type="int">
             <name>apiTimeout</name>
             <label>Api timeout</label>
-            <label lang="de-DE">Api-Zeitüberschreitung</label>
+            <defaultValue>500</defaultValue>
         </input-field>
     </card>
     <card>
