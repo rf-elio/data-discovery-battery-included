@@ -32,10 +32,10 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
-use Elio\ElioSearch\Core\Defaults;
-use Elio\ElioSearch\Core\Sync\DataTypes\ContentDataType;
-use Elio\ElioSearch\Core\Sync\SyncContext;
-use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
+use Elio\ElioDataDiscovery\Core\Defaults;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
+use Elio\ElioDataDiscovery\Core\Sync\SyncContext;
+use Elio\ElioDataDiscovery\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Seo\SeoUrl\SeoUrlEntity;
 
 /**

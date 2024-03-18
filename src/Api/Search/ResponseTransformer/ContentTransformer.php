@@ -5,18 +5,18 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use Elio\ElioSearch\Api\Request\ApiRequest;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Request\ContentSearchRequest;
-use Elio\ElioSearch\Api\Search\Response\ContentListingResponse;
-use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Core\Content\Content\SalesChannel\ContentGroup;
-use Elio\ElioSearch\Core\Content\Content\SalesChannel\ContentItem;
-use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Core\Sync\Defaults\ContentSyncDefaults;
-use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
+use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
+use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
+use Elio\ElioDataDiscovery\Api\Search\Response\ContentListingResponse;
+use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioDataDiscovery\Core\Content\Content\SalesChannel\ContentGroup;
+use Elio\ElioDataDiscovery\Core\Content\Content\SalesChannel\ContentItem;
+use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
+use Elio\ElioDataDiscovery\Core\Sync\Defaults\ContentSyncDefaults;
+use Elio\ElioDataDiscovery\Core\Sync\Defaults\SyncDefaults;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**

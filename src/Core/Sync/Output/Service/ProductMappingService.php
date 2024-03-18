@@ -34,16 +34,16 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\CategoryPathUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
-use Elio\ElioSearch\Core\Defaults;
-use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
-use Elio\ElioSearch\Core\Sync\Defaults\SyncDefaults;
-use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
-use Elio\ElioSearch\Core\Sorting\ProductSortingCollection;
-use Elio\ElioSearch\Core\Sorting\ProductSortingEntity;
-use Elio\ElioSearch\Core\Sync\SyncContext;
-use Elio\ElioSearch\Core\Sync\Util\ProductUtil;
-use Elio\ElioSearch\Core\Sync\Util\MappingUtil;
-use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
+use Elio\ElioDataDiscovery\Core\Defaults;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
+use Elio\ElioDataDiscovery\Core\Sync\Defaults\SyncDefaults;
+use Elio\ElioDataDiscovery\Core\Sync\Output\SeoRoute;
+use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingCollection;
+use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingEntity;
+use Elio\ElioDataDiscovery\Core\Sync\SyncContext;
+use Elio\ElioDataDiscovery\Core\Sync\Util\ProductUtil;
+use Elio\ElioDataDiscovery\Core\Sync\Util\MappingUtil;
+use Elio\ElioDataDiscovery\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Category\CategoryCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
@@ -205,7 +205,7 @@ class ProductMappingService
         $sort = [];
         $categories = $product->getCategories() ?? new CategoryCollection();
         /** @var ProductSortingCollection $productSortingCollection */
-        $productSortingCollection = $product->getExtension('elioSearchProductSorting');
+        $productSortingCollection = $product->getExtension('elioDataDiscoveryProductSorting');
 
         foreach ($categories as $category) {
             $parentBreadCrumb = '';

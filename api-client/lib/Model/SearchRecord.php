@@ -33,8 +33,8 @@
 namespace Elio\ElioBatteryIncludedApiClient\Model;
 
 use \ArrayAccess;
-use Elio\ElioSearch\Swagger\ClientObjectSerializer;
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Swagger\ClientObjectSerializer;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 
 class SearchRecord implements ModelInterface, ArrayAccess
 {

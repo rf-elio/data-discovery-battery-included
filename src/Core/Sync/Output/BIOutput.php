@@ -33,11 +33,11 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output;
 
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\BatteryIncludedService;
-use Elio\ElioSearch\Core\Sync\ChangeSet\EntityStatusEntity;
-use Elio\ElioSearch\Core\Sync\Output\DeltaAwareInterface;
-use Elio\ElioSearch\Core\Sync\Output\Exception\OutputException;
-use Elio\ElioSearch\Core\Sync\Output\OutputInterface;
-use Elio\ElioSearch\Core\Sync\SyncContext;
+use Elio\ElioDataDiscovery\Core\Sync\ChangeSet\EntityStatusEntity;
+use Elio\ElioDataDiscovery\Core\Sync\Output\DeltaAwareInterface;
+use Elio\ElioDataDiscovery\Core\Sync\Output\Exception\OutputException;
+use Elio\ElioDataDiscovery\Core\Sync\Output\OutputInterface;
+use Elio\ElioDataDiscovery\Core\Sync\SyncContext;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use JsonException;

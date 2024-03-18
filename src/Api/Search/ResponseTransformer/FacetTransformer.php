@@ -34,16 +34,16 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
-use Elio\ElioSearch\Api\Request\ApiRequest;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
-use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
-use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
-use Elio\ElioSearch\Core\FilterRestrictions\FilterSyncService;
-use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\DefaultFacetExtension;
-use Elio\ElioSearch\Core\Framework\DataAbstractionLayer\Search\AggregationResult\FacetCollection;
+use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
+use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Search\Response\ProductListingResponse;
+use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
+use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
+use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterInterface;
+use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterSyncService;
+use Elio\ElioDataDiscovery\Core\Framework\DataAbstractionLayer\Search\AggregationResult\DefaultFacetExtension;
+use Elio\ElioDataDiscovery\Core\Framework\DataAbstractionLayer\Search\AggregationResult\FacetCollection;
 use Shopware\Core\Content\Category\CategoryEntity;
 use Shopware\Core\Content\Category\Tree\Tree;
 use Shopware\Core\Content\Category\Tree\TreeItem;
@@ -56,7 +56,7 @@ use Shopware\Core\Framework\DataAbstractionLayer\Search\AggregationResult\Metric
 use Shopware\Core\Framework\Struct\ArrayStruct;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**
@@ -109,7 +109,7 @@ class FacetTransformer implements ResponseTransformerInterface
         $aggregationResultCollection = $listing->getAggregations() ?? new AggregationResultCollection();
         $listing->setAggregations($aggregationResultCollection);
 
-        $facetCollection = new FacetCollection('elio-search-default');
+        $facetCollection = new FacetCollection('elio-data-discovery-default');
         $aggregationResultCollection->add($facetCollection);
 
         foreach ($model->getFacetCounts() as $facet) {
@@ -144,7 +144,7 @@ class FacetTransformer implements ResponseTransformerInterface
                         new EntityResult($name, $defaultCollection),
                         $style
                     );
-                    $defaultCollection->addExtension('elioSearchTree', $tree);
+                    $defaultCollection->addExtension('elioDataDiscoveryTree', $tree);
                     break;
             }
         }

@@ -33,16 +33,16 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
 
-use Elio\ElioSearch\Api\Request\ApiRequest;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
-use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
+use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Search\Response\ProductListingResponse;
+use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingCollection;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**

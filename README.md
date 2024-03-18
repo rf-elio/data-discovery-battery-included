@@ -17,7 +17,7 @@ Install plugin
 ```shell
 bin/console cache:clear
 bin/console plugin:refresh
-bin/console plugin:install ElioSearch --activate
+bin/console plugin:install ElioDataDiscovery --activate
 bin/console plugin:install ElioBatteryIncludedSearchExtension --activate
 ```
 ## Configuration

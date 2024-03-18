@@ -33,10 +33,10 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api;
 
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
-use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
-use Elio\ElioSearch\Core\Logging\GuzzleLogWrapper;
-use Elio\ElioSearch\Core\Logging\LoggingService;
-use Elio\ElioSearch\Swagger\ClientConfiguration;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
+use Elio\ElioDataDiscovery\Core\Logging\GuzzleLogWrapper;
+use Elio\ElioDataDiscovery\Core\Logging\LoggingService;
+use Elio\ElioDataDiscovery\Swagger\ClientConfiguration;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\HandlerStack;
@@ -50,7 +50,7 @@ use Elio\ElioBatteryIncludedApiClient\Api\SearchApi;
 class ApiClientFactory
 {
     public function __construct(
-        private readonly ElioSearchConfigServiceInterface $configService,
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService,
         private readonly LoggerInterface $logger
     ) {}
 

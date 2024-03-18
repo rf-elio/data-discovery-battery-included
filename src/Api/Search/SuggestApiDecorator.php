@@ -34,10 +34,10 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Request\SuggestRequest;
-use Elio\ElioSearch\Api\Search\SuggestApi;
-use Elio\ElioSearch\Api\Transform\Transformer;
+use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Search\Request\SuggestRequest;
+use Elio\ElioDataDiscovery\Api\Search\SuggestApi;
+use Elio\ElioDataDiscovery\Api\Transform\Transformer;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Throwable;
