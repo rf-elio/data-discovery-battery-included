@@ -123,7 +123,7 @@ class PromotionTransformer implements ResponseTransformerInterface
             $extensions = $model->getExtensions();
         }
         /** @var Extension $extension */
-        foreach ($extensions as $extension) {
+        foreach ($extensions ?? [] as $extension) {
             if ($extension->getType() === self::TYPE_PROMOTION) {
 
                 if (!empty($data = $extension->getData())) {

@@ -4,13 +4,14 @@
 
     <card>
         <title>BatteryIncluded configuration</title>
-        <title lang="de-DE">BatterieInklusive Konfiguration</title>
+        <title lang="de-DE">BatteryIncluded Konfiguration</title>
 
         <input-field>
             <name>apiUrl</name>
             <required>true</required>
             <label>BatteryIncluded api url</label>
             <label lang="de-DE">BatteryIncluded api url</label>
+            <defaultValue>https://api.batteryincluded.io</defaultValue>
         </input-field>
 
         <input-field>
