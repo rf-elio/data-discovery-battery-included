@@ -225,14 +225,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $group->setVisible(false);
             } else {
                 $group->setVisible(true);
-                if (is_string($acceptedTypePosition)) {
-                    try {
-                        $acceptedTypePosition = intval($acceptedTypePosition);
-                    } catch (\Exception $e) {
-                        $acceptedTypePosition = 0;
-                    }
-                }
-                $group->setPosition($acceptedTypePosition);
+                $group->setPosition((int)$acceptedTypePosition);
             }
         }
 
