@@ -74,7 +74,9 @@ class LocaleService
         $localizedFilters = [];
         foreach ($filters as $key => $value) {
             $key = str_replace('{locale}', $locale, $key);
-            $value = str_replace('{locale}', $locale, (string) $value);
+            if (is_string($value)) {
+                $value = str_replace('{locale}', $locale, $value);
+            }
             $localizedFilters[$key] = $value;
         }
 

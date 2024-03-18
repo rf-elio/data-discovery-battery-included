@@ -10,7 +10,7 @@
         <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\BIOutput">
             <argument type="service" id="shopware.app_system.guzzle"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service\BatteryIncludedService"/>
-            <argument type="service" id="elio.search.core.logging.debug"/>
+            <argument type="service" id="elio.data-discovery.core.logging.debug"/>
             <tag name="elio-data-discovery.sync.api.output" />
         </service>
 
