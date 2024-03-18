@@ -27,10 +27,10 @@
 
 namespace Elio\ElioBatteryIncludedApiClient\Api;
 
-use Elio\ElioSearch\Swagger\ClientApiException;
-use Elio\ElioSearch\Swagger\ClientConfiguration;
-use Elio\ElioSearch\Swagger\ClientHeaderSelector;
-use Elio\ElioSearch\Swagger\ClientObjectSerializer;
+use Elio\ElioDataDiscovery\Swagger\ClientApiException;
+use Elio\ElioDataDiscovery\Swagger\ClientConfiguration;
+use Elio\ElioDataDiscovery\Swagger\ClientHeaderSelector;
+use Elio\ElioDataDiscovery\Swagger\ClientObjectSerializer;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;

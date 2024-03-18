@@ -32,7 +32,7 @@
 
 namespace Elio\ElioBatteryIncludedApiClient\Model;
 
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 
 class SuggestionResultCollection implements ModelInterface
 {

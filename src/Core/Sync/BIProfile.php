@@ -33,11 +33,11 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync;
 
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\BIOutput;
-use Elio\ElioSearch\Core\Sync\DataTypes\ContentDataType;
-use Elio\ElioSearch\Core\Sync\DataTypes\ProductDataType;
-use Elio\ElioSearch\Core\Sync\Input\DeltaInput;
-use Elio\ElioSearch\Core\Sync\Output\SeoRouteOutput;
-use Elio\ElioSearch\Core\Sync\ProfileInterface;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
+use Elio\ElioDataDiscovery\Core\Sync\Input\DeltaInput;
+use Elio\ElioDataDiscovery\Core\Sync\Output\SeoRouteOutput;
+use Elio\ElioDataDiscovery\Core\Sync\ProfileInterface;
 
 /**
  * Class ProductProfile
