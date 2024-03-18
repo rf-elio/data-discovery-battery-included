@@ -10,7 +10,7 @@ To install this plugin you need to move the code into a composer registry. The f
 ### Composer Installation
 Require package **elio/battery-included-search-extension**
 ```
-composer req elio/battery-included-search-extension 2.1.1
+composer req elio/battery-included-search-extension 2.2.1
 ```
 
 Install plugin
@@ -20,6 +20,7 @@ bin/console plugin:refresh
 bin/console plugin:install ElioDataDiscovery --activate
 bin/console plugin:install ElioBatteryIncludedSearchExtension --activate
 ```
-## Configuration
-Link: https://confluence.external-share.com/content/27202295-6f5e-4cb5-adc2-1d6fbd18e2cb
-Password: uuUcLNhRF7OGGfR
+
+# Configuration
+The plugin can be configured in the shopware administration. The documentation can be accessed with the following link:
+https://confluence.external-share.com/content/27202295-6f5e-4cb5-adc2-1d6fbd18e2cb

@@ -1,7 +1,8 @@
 # CHANGELOG.md
-## 1.0.21 - 2024-01-19
-### Features (2 changes)
-- EPD-8: Multi select for filters added
+
+## 2.2.0 - 2024-03-18
+### Fix (1 change)
+- Naming adjusted to match the new data discovery core plugin name
 
 ## Template
 ### Security (x changes)
