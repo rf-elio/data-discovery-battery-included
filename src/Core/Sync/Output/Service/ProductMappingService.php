@@ -44,9 +44,11 @@ use Elio\ElioSearch\Core\Sync\SyncContext;
 use Elio\ElioSearch\Core\Sync\Util\ProductUtil;
 use Elio\ElioSearch\Core\Sync\Util\MappingUtil;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
+use Shopware\Core\Content\Category\CategoryCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
+use Shopware\Core\System\Currency\CurrencyCollection;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
@@ -89,7 +91,7 @@ class ProductMappingService
         [$price, $redPrice] = ProductUtil::getProductPrice($product) ?? [null, null];
 
         return [
-            'masterProductNumber' => $product->getVariant()?->getParentProduct()?->getIdentifier() ?? $product->getIdentifier(),
+            'masterProductNumber' => $product->getVariant()->getParentProduct()?->getIdentifier() ?? $product->getIdentifier(),
             'productNumber' => [$product->getProductNumber()],
             'manufacturerNumber' => $product->getManufacturerNumber(),
             'price' => (float)ValueUtil::formatPrice($price),
@@ -172,7 +174,7 @@ class ProductMappingService
     protected function getCategoryPath(ProductEntity $product): array
     {
         $path = [];
-        $categories = $product->getCategories();
+        $categories = $product->getCategories() ?? new CategoryCollection();
         foreach ($categories as $category) {
             $parentBreadCrumb = '';
             $firstSkipped = false;
@@ -201,7 +203,7 @@ class ProductMappingService
     protected function getCategorySort(ProductDataType $product): array
     {
         $sort = [];
-        $categories = $product->getCategories();
+        $categories = $product->getCategories() ?? new CategoryCollection();
         /** @var ProductSortingCollection $productSortingCollection */
         $productSortingCollection = $product->getExtension('elioSearchProductSorting');
 
@@ -216,7 +218,6 @@ class ProductMappingService
                     continue;
                 }
 
-                /** @var ProductSortingEntity $productSorting */
                 if (!$productSorting = $productSortingCollection->filterByProperty('categoryId', $categoryId)->first()) {
                     continue;
                 }
@@ -257,7 +258,7 @@ class ProductMappingService
     /**
      * Appends the product attributes
      *
-     * @param array<PropertyGroupOptionEntity> $properties
+     * @param PropertyGroupOptionCollection|null $groupOptionCollection
      * @return array
      */
     protected function getProductOptions(?PropertyGroupOptionCollection $groupOptionCollection): array
@@ -268,7 +269,13 @@ class ProductMappingService
 
         $attributes = [];
         foreach ($groupOptionCollection as $groupOption) {
+            if (!$groupOption instanceof PropertyGroupOptionEntity) {
+                continue;
+            }
             $group = $groupOption->getGroup();
+            if (!$group) {
+                continue;
+            }
             $name = $group->getTranslation('name') ?? $group->getName();
             $attributes[$name] = ValueUtil::cleanValue($groupOption->getTranslation('name') ?? $group->getName());
         }
@@ -292,7 +299,8 @@ class ProductMappingService
         }
 
         $prices = [];
-        foreach ($context->getSalesChannel()->getCurrencies() as $currency) {
+        $currencies = $context->getSalesChannel()->getCurrencies() ?? new CurrencyCollection();
+        foreach ($currencies as $currency) {
             $currencyPrice = $price;
             if ($currency->getId() !== $context->getCurrency()->getId()) {
                 $currencyPrice *= $currency->getFactor();

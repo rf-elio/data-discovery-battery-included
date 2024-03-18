@@ -46,6 +46,7 @@ use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingCollection;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -101,6 +102,7 @@ class SortTransformer implements ResponseTransformerInterface
         $listing->setAvailableSortings($sortingCollection);
 
         $locale = $this->localeService->getLocaleByContext($context);
+        /** @var EntitySearchResult<FilterEntity> $filters */
         $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_SORTING, $context);
         $filterNames = [];
         /** @var FilterEntity $filter */
@@ -117,6 +119,7 @@ class SortTransformer implements ResponseTransformerInterface
         }
 
         $priority = 0;
+        /** @var FilterEntity $filter */
         foreach ($filters as $filter) {
             if (!in_array($filter->getTechnicalName(), $allowedFilterNames, true)) {
                 continue;
@@ -161,7 +164,7 @@ class SortTransformer implements ResponseTransformerInterface
             $sorting->setUniqueIdentifier($key);
             $sortingCollection->add($sorting);
 
-            if ($request->getSort() !== null && implode('.', $request->getSort()) === $key) {
+            if (method_exists($request, 'getSort') && ($request->getSort() !== null) && (implode('.', $request->getSort()) === $key)) {
                 $listing->setCurrentSorting($sorting);
             }
 

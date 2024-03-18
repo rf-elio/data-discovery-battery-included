@@ -142,7 +142,7 @@ class ProductTransformer implements ResponseTransformerInterface
      *
      * @param array<int, string> $mainNumbers
      *
-     * @return array<string, array<string, string>>
+     * @return array<mixed,array<string,mixed>>
      * @throws Exception
      */
     protected function extractMainAndVariantProducts(array $mainNumbers): array

@@ -1,12 +1,16 @@
 {
   "name": "elio/data-discovery-battery-included",
-  "description": "",
+  "description": "BatteryIncluded Data Discovery integration",
   "version": "2.1.4",
   "type": "shopware-platform-plugin",
   "license": "proprietary",
   "authors": [
     {
       "name": "dl/elio GmbH"
+    },
+    {
+      "name": "Andrei Baev",
+      "email": "anb@elio-systems.com"
     }
   ],
   "require": {

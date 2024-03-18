@@ -156,13 +156,14 @@ class SearchRecord implements ModelInterface, ArrayAccess
     
     public function __construct()
     {
+        $data = [];
         $this->container['document'] = isset($data['document']) ? $data['document'] : null;
         $this->container['highlight'] = isset($data['highlight']) ? $data['highlight'] : null;
     }
 
     public function getDocument()
     {
-                return $this->container['document'];
+        return $this->container['document'];
     }
 
     public function setDocument($document)

@@ -118,7 +118,10 @@ class PromotionTransformer implements ResponseTransformerInterface
     private function getPromotionsFromResult(ModelInterface $model): array
     {
         $promotions = [];
-        $extensions = $model->getExtensions() ?? [];
+        $extensions = [];
+        if (method_exists($model, 'getExtensions')) {
+            $extensions = $model->getExtensions();
+        }
         /** @var Extension $extension */
         foreach ($extensions as $extension) {
             if ($extension->getType() === self::TYPE_PROMOTION) {
