@@ -35,21 +35,22 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
-use Elio\ElioSearch\Api\Request\ApiRequest;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Request\NavigationRequestProduct;
-use Elio\ElioSearch\Api\Search\Response\ProductListingResponse;
-use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Core\FilterRestrictions\FilterEntity;
-use Elio\ElioSearch\Core\FilterRestrictions\FilterInterface;
+use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
+use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Search\Request\NavigationRequestProduct;
+use Elio\ElioDataDiscovery\Api\Search\Response\ProductListingResponse;
+use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
+use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
+use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingCollection;
 use Shopware\Core\Content\Product\SalesChannel\Sorting\ProductSortingEntity;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\EntitySearchResult;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Sorting\FieldSorting;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
 
 /**
@@ -101,6 +102,7 @@ class SortTransformer implements ResponseTransformerInterface
         $listing->setAvailableSortings($sortingCollection);
 
         $locale = $this->localeService->getLocaleByContext($context);
+        /** @var EntitySearchResult<FilterEntity> $filters */
         $filters = $this->filterService->getFilterByType(FilterEntity::FILTER_TYPE_SORTING, $context);
         $filterNames = [];
         /** @var FilterEntity $filter */
@@ -117,6 +119,7 @@ class SortTransformer implements ResponseTransformerInterface
         }
 
         $priority = 0;
+        /** @var FilterEntity $filter */
         foreach ($filters as $filter) {
             if (!in_array($filter->getTechnicalName(), $allowedFilterNames, true)) {
                 continue;
@@ -161,7 +164,7 @@ class SortTransformer implements ResponseTransformerInterface
             $sorting->setUniqueIdentifier($key);
             $sortingCollection->add($sorting);
 
-            if ($request->getSort() !== null && implode('.', $request->getSort()) === $key) {
+            if (method_exists($request, 'getSort') && ($request->getSort() !== null) && (implode('.', $request->getSort()) === $key)) {
                 $listing->setCurrentSorting($sorting);
             }
 

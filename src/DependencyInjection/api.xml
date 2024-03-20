@@ -10,58 +10,58 @@
         </service>
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory">
-            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService"/>
-            <argument type="service" id="elio.search.core.logging.debug"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
+            <argument type="service" id="elio.data-discovery.core.logging.debug"/>
         </service>
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SearchApiDecorator" decorates="Elio\ElioSearch\Api\Search\SearchApi">
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SearchApiDecorator" decorates="Elio\ElioDataDiscovery\Api\Search\SearchApi">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
-            <argument type="service" id="Elio\ElioSearch\Api\Transform\Transformer"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Api\Transform\Transformer"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
-            <argument type="service" id="elio.search.core.logging.debug"/>
+            <argument type="service" id="elio.data-discovery.core.logging.debug"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
-            <argument type="service" id="elio_search_filter.repository"/>
+            <argument type="service" id="elio_data_discovery_filter.repository"/>
         </service>
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SuggestApiDecorator" decorates="Elio\ElioSearch\Api\Search\SuggestApi">
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SuggestApiDecorator" decorates="Elio\ElioDataDiscovery\Api\Search\SuggestApi">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
-            <argument type="service" id="Elio\ElioSearch\Api\Transform\Transformer"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Api\Transform\Transformer"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
         </service>
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\FacetTransformer">
-            <argument type="service" id="Elio\ElioSearch\Core\FilterRestrictions\FilterService"/>
-            <argument type="service" id="Elio\ElioSearch\Core\FilterRestrictions\FilterSyncService"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterService"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterSyncService"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
-            <tag name="elio-search.api.transformer.response"/>
+            <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PagingTransformer">
-            <tag name="elio-search.api.transformer.response"/>
+            <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\TotalHitsTransformer">
-            <tag name="elio-search.api.transformer.response"/>
+            <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer">
-            <argument type="service" id="Elio\ElioSearch\Core\FilterRestrictions\FilterService" />
+            <argument type="service" id="Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterService" />
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService" />
             <argument type="service" id="logger" />
-            <tag name="elio-search.api.transformer.response"/>
+            <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ProductTransformer">
             <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Listing\ProductListingLoader" />
             <argument type="service" id="Doctrine\DBAL\Connection"/>
-            <tag name="elio-search.api.transformer.response"/>
+            <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionTransformer">
-            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService" />
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService" />
             <argument type="service" id="event_dispatcher"/>
             <argument type="service" id="language.repository"/>
-            <tag name="elio-search.api.transformer.response" priority="50"/>
+            <tag name="elio-data-discovery.api.transformer.response" priority="50"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ContentTransformer">
-            <tag name="elio-search.api.transformer.response"/>
+            <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PromotionTransformer">
-            <argument type="service" id="Elio\ElioSearch\Configuration\ElioSearchConfigService" />
-            <tag name="elio-search.api.transformer.response"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService" />
+            <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
     </services>
 </container>

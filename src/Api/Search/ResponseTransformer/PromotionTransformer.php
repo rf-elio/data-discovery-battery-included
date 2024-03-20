@@ -37,14 +37,14 @@ use Elio\ElioBatteryIncludedApiClient\Model\Extension;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
-use Elio\ElioSearch\Api\Request\ApiRequest;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Api\Search\Response\CampaignFeedbackResponse;
-use Elio\ElioSearch\Api\Search\Response\CampaignFeedbackResponseCollection;
-use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
-use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
+use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Search\Response\CampaignFeedbackResponse;
+use Elio\ElioDataDiscovery\Api\Search\Response\CampaignFeedbackResponseCollection;
+use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
+use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
@@ -61,7 +61,7 @@ class PromotionTransformer implements ResponseTransformerInterface
     public const TYPE_PROMOTION = 'promotions';
 
     public function __construct(
-        private readonly ElioSearchConfigServiceInterface $configService
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService
     ) {}
 
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
@@ -118,9 +118,12 @@ class PromotionTransformer implements ResponseTransformerInterface
     private function getPromotionsFromResult(ModelInterface $model): array
     {
         $promotions = [];
-        $extensions = $model->getExtensions() ?? [];
+        $extensions = [];
+        if (method_exists($model, 'getExtensions')) {
+            $extensions = $model->getExtensions();
+        }
         /** @var Extension $extension */
-        foreach ($extensions as $extension) {
+        foreach ($extensions ?? [] as $extension) {
             if ($extension->getType() === self::TYPE_PROMOTION) {
 
                 if (!empty($data = $extension->getData())) {

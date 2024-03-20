@@ -34,7 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Configuration\Subscriber;
 
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioBatteryIncludedSearchExtension\ElioBatteryIncludedSearchExtension;
-use Elio\ElioSearch\Configuration\Event\ConfigurationLoadedEvent;
+use Elio\ElioDataDiscovery\Configuration\Event\ConfigurationLoadedEvent;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 

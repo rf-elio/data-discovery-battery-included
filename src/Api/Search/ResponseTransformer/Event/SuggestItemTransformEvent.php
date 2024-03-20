@@ -2,11 +2,11 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Event;
 
-use Elio\ElioSearch\Api\Request\ApiRequest;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Core\Suggest\SuggestItem;
+use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
+use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Symfony\Contracts\EventDispatcher\Event;
 
 /**

@@ -35,22 +35,22 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Event\SuggestItemTransformEvent;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
-use Elio\ElioSearch\Api\Search\Components\SuggestTypes;
-use Elio\ElioSearch\Api\Search\Response\SuggestionResponse;
-use Elio\ElioSearch\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioSearch\Api\Request\ApiRequest;
-use Elio\ElioSearch\Api\Response\ResponseCollection;
-use Elio\ElioSearch\Configuration\Configuration;
-use Elio\ElioSearch\Configuration\ElioSearchConfigServiceInterface;
-use Elio\ElioSearch\Core\Exception\InvalidTypeException;
-use Elio\ElioSearch\Core\Suggest\SuggestGroup;
-use Elio\ElioSearch\Core\Suggest\SuggestItem;
+use Elio\ElioDataDiscovery\Api\Search\Components\SuggestTypes;
+use Elio\ElioDataDiscovery\Api\Search\Response\SuggestionResponse;
+use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
+use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Configuration\Configuration;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
+use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
+use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroup;
+use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Elio\ElioSearch\Swagger\ModelInterface;
+use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -69,12 +69,12 @@ class SuggestionTransformer implements ResponseTransformerInterface
 {
     /**
      * SuggestionTransformer constructor.
-     * @param ElioSearchConfigServiceInterface $configService
+     * @param ElioDataDiscoveryConfigServiceInterface $configService
      * @param EventDispatcherInterface $eventDispatcher
      * @param EntityRepository $languageRepository
      */
     public function __construct(
-        private readonly ElioSearchConfigServiceInterface $configService,
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService,
         private readonly EventDispatcherInterface $eventDispatcher,
         private readonly EntityRepository $languageRepository
     ) {}
@@ -109,7 +109,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $language = $this->languageRepository->search($criteria, $context->getContext())->first();
         $locale = LocaleUtil::getLocaleByLanguage($language);
 
-        /** @var SuggestionResponse|null $suggestionResponse */
+        /** @var SuggestionResponse $suggestionResponse */
         $suggestionResponse = $responseCollection->get(SuggestionResponse::class) ?? new SuggestionResponse();
         $responseCollection->set(SuggestionResponse::class, $suggestionResponse);
         $config = $this->configService->getByContext($context);
@@ -132,6 +132,10 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 }
 
                 $type = $suggestItem->getType();
+                if (!$type) {
+                    continue;
+                }
+
                 $group = $suggestGroups[$type] ?? new SuggestGroup($type, $groupLabels[$type] ?? $type);
                 $suggestGroups[$type] = $group;
                 $group->addItem($suggestItem);
@@ -190,7 +194,9 @@ class SuggestionTransformer implements ResponseTransformerInterface
             return $suggestItem;
         }
 
-        $suggestItem->setName($hit->value);
+        if (property_exists($hit, 'value') && is_string($hit->value)) {
+            $suggestItem->setName($hit->value);
+        }
         $suggestItem->setType($type);
         return $suggestItem;
     }
@@ -219,8 +225,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $group->setVisible(false);
             } else {
                 $group->setVisible(true);
-                $group->setPosition($acceptedTypePosition);
-
+                $group->setPosition((int)$acceptedTypePosition);
             }
         }
 

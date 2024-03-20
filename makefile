@@ -1,0 +1,21 @@
+#
+# Makefile
+#
+
+.PHONY: help
+.DEFAULT_GOAL := help
+
+help:
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+# ------------------------------------------------------------------------------------------------------------
+
+prepare-for-store: ## Preparing package for store
+	rm -rf ElioBatteryIncludedSearchExtension
+	mkdir ElioBatteryIncludedSearchExtension && mkdir ElioBatteryIncludedSearchExtension/src
+	cp -r src ElioBatteryIncludedSearchExtension
+	cp -r api-client ElioBatteryIncludedSearchExtension
+	cp composer.json ElioBatteryIncludedSearchExtension
+	cp README.md ElioBatteryIncludedSearchExtension
+	zip ElioBatteryIncludedSearchExtension.zip ElioBatteryIncludedSearchExtension -r
+	rm -rf ElioBatteryIncludedSearchExtension
