@@ -34,9 +34,12 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
 use Elio\ElioSearch\Core\Defaults;
 use Elio\ElioSearch\Core\Sync\DataTypes\ContentDataType;
+use Elio\ElioSearch\Core\Sync\Output\SeoRoute;
 use Elio\ElioSearch\Core\Sync\SyncContext;
+use Elio\ElioSearch\Core\Sync\Util\MappingUtil;
 use Elio\ElioSearch\Core\Sync\Util\ValueUtil;
 use Shopware\Core\Content\Seo\SeoUrl\SeoUrlEntity;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
  * Class ContentMappingService
@@ -61,9 +64,9 @@ class ContentMappingService
     {
         $convertedData = [];
         $convertedData['id'] = $content->getIdentifier();
-        // TODO: Move to const
         $convertedData['_content'] = $this->prepareBaseFields($content);
-        $convertedData['_content_i18n'] = $this->prepareTranslatedFields($content->getDataTypeTranslations());
+        $convertedData['_content_i18n'] = $this->prepareTranslatedFields($content->getDataTypeTranslations(), $syncContext);
+        $convertedData['type'] = get_class($content);
 
         // TODO: Add mapping
         return $convertedData;
@@ -90,37 +93,27 @@ class ContentMappingService
      * @param array $collection
      * @return array
      */
-    protected function prepareTranslatedFields(array $collection): array
+    protected function prepareTranslatedFields(array $collection, SyncContext $syncContext): array
     {
         $translatedFields = [];
         foreach ($collection as $languageId => $content) {
+            /** @var SeoRoute|null $seoRoute */
+            $seoRoute = $content->getExtension(SeoRoute::class);
+
             $translatedFields[$languageId] = [
                 'name' => $content->getName(),
                 'title' => $content->getTitle(),
                 'seotext' => $content->getSeoText(),
-                'url' => $this->getUrl($languageId, $content),
+                'url' => $seoRoute?->getUrl() ?? '',
                 'keywords' => $content->getKeywords(),
                 'description' => $content->getDescription(),
                 'contentstructure' => ValueUtil::cleanValue(implode('/', array_map('rawurlencode', array_slice($content->getBreadcrumb() ?? [], 1)))),
                 'tags' => $this->getTags($content),
+                'mappedFields' => MappingUtil::addMappedProperties($content, $syncContext->getSyncProfile()->getMapping(), PropertyAccess::createPropertyAccessor()),
             ];
         }
 
         return $translatedFields;
-    }
-
-    /**
-     * Get content url
-     *
-     * @param string $languageId
-     * @param ContentDataType $content
-     * @return string|null
-     */
-    protected function getUrl(string $languageId, ContentDataType $content): ?string
-    {
-        return $content->getSeoUrls()?->filter(fn(SeoUrlEntity $seoUrl) => $seoUrl->getLanguageId() === $languageId)
-            ->first()
-            ->getUrl();
     }
 
     /**

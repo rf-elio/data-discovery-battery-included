@@ -74,6 +74,7 @@ class ProductMappingService
         $convertedData['_history'] = $this->prepareHistoryFields($product);
         $convertedData['_product'] = $this->prepareBaseFields($product);
         $convertedData['_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
+        $convertedData['type'] = get_class($product);
         return $convertedData;
     }
 
