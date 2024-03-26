@@ -32,11 +32,12 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioDataDiscovery\Core\Defaults;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
+use Elio\ElioDataDiscovery\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioDataDiscovery\Core\Sync\SyncContext;
 use Elio\ElioDataDiscovery\Core\Sync\Util\ValueUtil;
-use Shopware\Core\Content\Seo\SeoUrl\SeoUrlEntity;
 use Elio\ElioDataDiscovery\Core\Sync\Output\SeoRoute;
 use Elio\ElioDataDiscovery\Core\Sync\Util\MappingUtil;
 use Symfony\Component\PropertyAccess\PropertyAccess;
@@ -68,7 +69,6 @@ class ContentMappingService
         $convertedData['_content_i18n'] = $this->prepareTranslatedFields($content->getDataTypeTranslations(), $syncContext);
         $convertedData['type'] = get_class($content);
 
-        // TODO: Add mapping
         return $convertedData;
     }
 
@@ -83,7 +83,7 @@ class ContentMappingService
         return [
             'type' => $content->getType(),
             'imageurl' => $content->getMedia()?->getUrl(),
-            'publicationdate' => $content->getCreatedAt()?->format('Y-m-d'),
+            'publicationdate' => $content->getCreatedAt()?->format(SyncDefaults::DATE_TIME_FORMAT),
         ];
     }
 
@@ -91,18 +91,21 @@ class ContentMappingService
      * Prepare translation fields
      *
      * @param array $collection
+     * @param SyncContext $syncContext
      * @return array
      */
     protected function prepareTranslatedFields(array $collection, SyncContext $syncContext): array
     {
         $translatedFields = [];
         foreach ($collection as $languageId => $content) {
+            $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
+
             /** @var SeoRoute|null $seoRoute */
             $seoRoute = $content->getExtension(SeoRoute::class);
 
-            $translatedFields[$languageId] = [
+            $translatedFields[$locale] = [
                 'name' => $content->getName(),
-                'title' => $content->getTitle(),
+                'metaTitle' => $content->getMetaTitle(),
                 'seotext' => $content->getSeoText(),
                 'url' => $seoRoute?->getUrl() ?? '',
                 'keywords' => $content->getKeywords(),

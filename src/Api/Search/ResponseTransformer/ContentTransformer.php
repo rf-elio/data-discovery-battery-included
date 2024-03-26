@@ -5,8 +5,11 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
+use Elio\ElioDataDiscovery\Api\Response\Response;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Response\StructWrapper;
 use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Response\ContentListingResponse;
 use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
@@ -15,6 +18,9 @@ use Elio\ElioDataDiscovery\Core\Content\Content\SalesChannel\ContentItem;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\ContentSyncDefaults;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\SyncDefaults;
+use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
+use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
@@ -31,13 +37,11 @@ use Elio\ElioBatteryIncludedApiClient\Model\Result;
  */
 class ContentTransformer implements ResponseTransformerInterface
 {
-    protected const MASTER_VALUE_MASTER_PRODUCT_NUMBER = 'MasterProductNumber';
-    protected const MASTER_VALUE_CATEGORY_PATH = 'CategoryPath';
-    protected const MASTER_VALUE_NAME = 'Name';
-    protected const MASTER_VALUE_DESCRIPTION = 'Description';
-    protected const MASTER_VALUE_URL = 'ProductURL';
-    protected const MASTER_VALUE_IMAGE_URL = 'ImageURL';
     protected const TOP_CONTENT_PREFIX = 'top-';
+
+    public function __construct(
+        private readonly EntityRepository $languageRepository
+    ) {}
 
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {
@@ -57,6 +61,13 @@ class ContentTransformer implements ResponseTransformerInterface
         if(!$model instanceof Result) {
             throw new InvalidTypeException($model, Result::class);
         }
+
+        $criteria = new Criteria([$context->getLanguageId()]);
+        $criteria->addAssociation('locale');
+        /** @var LanguageEntity $language */
+        $language = $this->languageRepository->search($criteria, $context->getContext())->first();
+        $locale = LocaleUtil::getLocaleByLanguage($language);
+
         $listing = $responseCollection->get(ContentListingResponse::class) ?? new ContentListingResponse();
         $responseCollection->set(ContentListingResponse::class, $listing);
 
@@ -65,45 +76,23 @@ class ContentTransformer implements ResponseTransformerInterface
                 continue;
             }
 
-            // TODO: Implement content
-            $masterValues = $hit->getMasterValues();
             $content = new ContentItem(
-                $hit->getId(),
-                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_TYPE) ?? '',
-                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_CONTENT_STRUCTURE) ?? '',
-                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_TITLE) ?? '',
-                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_DESCRIPTION) ?? '',
-                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_URL) ?? '',
-                $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_IMAGE_URL) ?? '',
-                $this->restoreDateTime(
-                    $this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_PUBLICATION_DATE) ?? ''
-                ),
-                (int)($this->getFirstValue($masterValues, ContentSyncDefaults::FIELD_PRIORITY) ?? ContentSyncDefaults::DEFAULT_PRIORITY),
-                $hit->getPosition()
+                $hit->getDocument()['id'],
+                $hit->getDocument()['_content']->type ?? '',
+                $hit->getDocument()['_content_i18n']->$locale->contentstructure ?? '',
+                $hit->getDocument()['_content_i18n']->$locale->name ?? '',
+                $hit->getDocument()['_content_i18n']->$locale->description ?? '',
+                $hit->getDocument()['_content_i18n']->$locale->url ?? '',
+                $hit->getDocument()['_content']->imageurl ?? '',
+                $this->restoreDateTime($hit->getDocument()['_content']->publicationdate ?? ''),
+                $hit->getDocument()['_content_i18n']->$locale->mappedFields->priority ?? ContentSyncDefaults::DEFAULT_PRIORITY,
+                $hit->getDocument()['_content_i18n']->$locale->mappedFields->position ?? 0,
             );
+            $content->addExtension(Response::DATA_SOURCE, new StructWrapper($hit));
             $listing->addContentItem($content);
         }
 
         $this->createContentGroups($listing);
-    }
-
-    /**
-     * @param array $masterValues
-     * @param string $key
-     * @return mixed|null
-     */
-    protected function getFirstValue(array $masterValues, string $key): mixed
-    {
-        if(!isset($masterValues[$key])) {
-            return null;
-        }
-
-        if(!is_array($masterValues[$key])) {
-            return $masterValues[$key];
-        }
-
-        $values = $masterValues[$key];
-        return array_shift($values);
     }
 
     /**
