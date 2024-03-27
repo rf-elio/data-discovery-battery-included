@@ -5,15 +5,14 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 use DateTimeImmutable;
 use DateTimeInterface;
-use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\Response;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Response\StructWrapper;
 use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Response\ContentListingResponse;
-use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
-use Elio\ElioDataDiscovery\Core\Content\Content\SalesChannel\ContentGroup;
+use Elio\ElioDataDiscovery\Api\Transform\AbstractContentTransformer;
 use Elio\ElioDataDiscovery\Core\Content\Content\SalesChannel\ContentItem;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\ContentSyncDefaults;
@@ -35,12 +34,11 @@ use Elio\ElioBatteryIncludedApiClient\Model\Result;
  * @author    Ralf Frommherz <rf@elio-systems.com>
  * @copyright Copyright (c) 2021, elio GmbH (https://www.elio-systems.com)
  */
-class ContentTransformer implements ResponseTransformerInterface
+class ContentTransformer extends AbstractContentTransformer
 {
-    protected const TOP_CONTENT_PREFIX = 'top-';
-
     public function __construct(
-        private readonly EntityRepository $languageRepository
+        private readonly EntityRepository $languageRepository,
+        private readonly LocaleService $localeService
     ) {}
 
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
@@ -62,11 +60,7 @@ class ContentTransformer implements ResponseTransformerInterface
             throw new InvalidTypeException($model, Result::class);
         }
 
-        $criteria = new Criteria([$context->getLanguageId()]);
-        $criteria->addAssociation('locale');
-        /** @var LanguageEntity $language */
-        $language = $this->languageRepository->search($criteria, $context->getContext())->first();
-        $locale = LocaleUtil::getLocaleByLanguage($language);
+        $locale = $this->localeService->getLocaleByContext($context);
 
         $listing = $responseCollection->get(ContentListingResponse::class) ?? new ContentListingResponse();
         $responseCollection->set(ContentListingResponse::class, $listing);
@@ -110,40 +104,5 @@ class ContentTransformer implements ResponseTransformerInterface
         $value = trim($value, '"');
         $dateTime = DateTimeImmutable::createFromFormat(SyncDefaults::DATE_TIME_FORMAT, $value);
         return $dateTime ?: null;
-    }
-
-    /**
-     * Groups the content items by the given type
-     *
-     * @param ContentListingResponse $listing
-     */
-    protected function createContentGroups(ContentListingResponse $listing): void
-    {
-        $regularContentGroups = [];
-        $topContentGroups = [];
-
-        foreach ($listing->getContentItems() as $contentItem) {
-            $type = $contentItem->getType();
-
-            if (empty($type)) {
-                continue;
-            }
-
-            // top content
-            if (str_starts_with($type, self::TOP_CONTENT_PREFIX)) {
-                if(!isset($topContentGroups[$type])) {
-                    $topContentGroups[$type] = new ContentGroup($type, $type);
-                }
-                $topContentGroups[$type]->addContentItem($contentItem);
-            } else {
-                if(!isset($regularContentGroups[$type])) {
-                    $regularContentGroups[$type] = new ContentGroup($type, $type);
-                }
-                $regularContentGroups[$type]->addContentItem($contentItem);
-            }
-        }
-
-        $listing->setContentGroups($regularContentGroups);
-        $listing->setTopContentGroups($topContentGroups);
     }
 }

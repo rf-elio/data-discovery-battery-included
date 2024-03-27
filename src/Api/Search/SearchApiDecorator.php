@@ -44,6 +44,8 @@ use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\SearchApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -91,7 +93,7 @@ class SearchApiDecorator extends SearchApi
     {
         $locale = $this->localeService->getLocaleByContext($context);
         $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery(), $locale);
+        $result = $apiClient->filter($searchRequest->getQuery(), $locale, ['f[type]' => ContentDataType::class]);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
@@ -128,6 +130,8 @@ class SearchApiDecorator extends SearchApi
     protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $filters = [];
+        $filters['f[type]'] = ProductDataType::class;
+
         foreach ($searchRequest->getFilter() as $key => $values) {
             $filters['f['.$key.']'] = array_shift($values['values']);
         }
