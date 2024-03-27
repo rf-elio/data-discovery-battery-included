@@ -78,13 +78,13 @@ class ContentTransformer implements ResponseTransformerInterface
 
             $content = new ContentItem(
                 $hit->getDocument()['id'],
-                $hit->getDocument()['_content']->type ?? '',
-                $hit->getDocument()['_content_i18n']->$locale->contentstructure ?? '',
+                $hit->getDocument()['_content']->contentType ?? '',
+                $hit->getDocument()['_content_i18n']->$locale->contentStructure ?? '',
                 $hit->getDocument()['_content_i18n']->$locale->name ?? '',
                 $hit->getDocument()['_content_i18n']->$locale->description ?? '',
                 $hit->getDocument()['_content_i18n']->$locale->url ?? '',
-                $hit->getDocument()['_content']->imageurl ?? '',
-                $this->restoreDateTime($hit->getDocument()['_content']->publicationdate ?? ''),
+                $hit->getDocument()['_content']->imageUrl ?? '',
+                $this->restoreDateTime($hit->getDocument()['_content']->publicationDate ?? ''),
                 $hit->getDocument()['_content_i18n']->$locale->mappedFields->priority ?? ContentSyncDefaults::DEFAULT_PRIORITY,
                 $hit->getDocument()['_content_i18n']->$locale->mappedFields->position ?? 0,
             );

@@ -81,9 +81,9 @@ class ContentMappingService
     protected function prepareBaseFields(ContentDataType $content): array
     {
         return [
-            'type' => $content->getType(),
-            'imageurl' => $content->getMedia()?->getUrl(),
-            'publicationdate' => $content->getCreatedAt()?->format(SyncDefaults::DATE_TIME_FORMAT),
+            'contentType' => $content->getType(),
+            'imageUrl' => $content->getMedia()?->getUrl(),
+            'publicationDate' => $content->getCreatedAt()?->format(SyncDefaults::DATE_TIME_FORMAT),
         ];
     }
 
@@ -106,11 +106,11 @@ class ContentMappingService
             $translatedFields[$locale] = [
                 'name' => $content->getName(),
                 'metaTitle' => $content->getMetaTitle(),
-                'seotext' => $content->getSeoText(),
+                'seoText' => $content->getSeoText(),
                 'url' => $seoRoute?->getUrl() ?? '',
                 'keywords' => $content->getKeywords(),
                 'description' => $content->getDescription(),
-                'contentstructure' => ValueUtil::cleanValue(implode('/', array_map('rawurlencode', array_slice($content->getBreadcrumb() ?? [], 1)))),
+                'contentStructure' => ValueUtil::cleanValue(implode('/', array_map('rawurlencode', array_slice($content->getBreadcrumb() ?? [], 1)))),
                 'tags' => $this->getTags($content),
                 'mappedFields' => MappingUtil::addMappedProperties($content, $syncContext->getSyncProfile()->getMapping(), PropertyAccess::createPropertyAccessor()),
             ];
