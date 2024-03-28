@@ -54,9 +54,12 @@
             <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService" />
             <argument type="service" id="event_dispatcher"/>
             <argument type="service" id="language.repository"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
             <tag name="elio-data-discovery.api.transformer.response" priority="50"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ContentTransformer">
+            <argument type="service" id="language.repository"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
             <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\PromotionTransformer">

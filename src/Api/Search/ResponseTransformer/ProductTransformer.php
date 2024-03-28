@@ -41,6 +41,7 @@ use Elio\ElioDataDiscovery\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Response\ProductListingResponse;
 use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
 use Shopware\Core\Content\Product\ProductCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Product\SalesChannel\Listing\ProductListingLoader;
@@ -101,7 +102,13 @@ class ProductTransformer implements ResponseTransformerInterface
         }
 
         $mainNumbers = array_map(
-            static fn (SearchRecord $record) => $record->getDocument()['_product']->productNumber[0],
+            static function (SearchRecord $record) {
+                if ($record->getDocument()['type'] === ProductDataType::class) {
+                    return $record->getDocument()['_product']->productNumber[0];
+                }
+
+                return null;
+            },
             $model->getHits()
         );
         $productsData = $this->extractMainAndVariantProducts($mainNumbers);

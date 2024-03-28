@@ -34,7 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Event\SuggestItemTransformEvent;
-use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Search\Components\SuggestTypes;
 use Elio\ElioDataDiscovery\Api\Search\Response\SuggestionResponse;
 use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
@@ -47,8 +47,6 @@ use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroup;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult;
@@ -76,7 +74,8 @@ class SuggestionTransformer implements ResponseTransformerInterface
     public function __construct(
         private readonly ElioDataDiscoveryConfigServiceInterface $configService,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly EntityRepository $languageRepository
+        private readonly EntityRepository $languageRepository,
+        private readonly LocaleService $localeService
     ) {}
 
     /**
@@ -103,11 +102,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
             throw new InvalidTypeException($model, SuggestionResultCollection::class);
         }
 
-        $criteria = new Criteria([$context->getLanguageId()]);
-        $criteria->addAssociation('locale');
-        /** @var LanguageEntity $language */
-        $language = $this->languageRepository->search($criteria, $context->getContext())->first();
-        $locale = LocaleUtil::getLocaleByLanguage($language);
+        $locale = $this->localeService->getLocaleByContext($context);
 
         /** @var SuggestionResponse $suggestionResponse */
         $suggestionResponse = $responseCollection->get(SuggestionResponse::class) ?? new SuggestionResponse();
