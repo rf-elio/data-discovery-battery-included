@@ -136,7 +136,7 @@ class FacetTransformer implements ResponseTransformerInterface
                     );
                     break;
                 case 'TREE':
-                    $tree = $this->transformCategoryTree($facet, $context);
+                    $tree = $this->transformCategoryTree($facet);
                     $group = $this->transformTree($facet);
                     $defaultCollection = new PropertyGroupCollection();
                     $defaultCollection->add($group);
@@ -196,10 +196,9 @@ class FacetTransformer implements ResponseTransformerInterface
 
     /**
      * @param object $facet
-     * @param SalesChannelContext $salesChannelContext
      * @return Tree
      */
-    protected function transformCategoryTree(object $facet, SalesChannelContext $salesChannelContext): Tree
+    protected function transformCategoryTree(object $facet): Tree
     {
         $rootTree = [];
         $treeItems = [];
@@ -309,7 +308,7 @@ class FacetTransformer implements ResponseTransformerInterface
         /** @var FilterEntity $filter */
         foreach ($filters as $filter) {
             if ($filter->getTechnicalName() === $fieldName) {
-                return $filter->getTranslation('propertyName');
+                return $filter->getTranslation('label');
             }
         }
 

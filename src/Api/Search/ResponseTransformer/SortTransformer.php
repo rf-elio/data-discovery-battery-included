@@ -145,7 +145,7 @@ class SortTransformer implements ResponseTransformerInterface
                 $key = str_replace(self::CATEGORY_PATH_REPLACE, $categoryPath, $key);
             }
             
-            $label = $filter->getTranslation('propertyName');
+            $label = $filter->getTranslation('label');
 
             $sorting = new ProductSortingEntity();
             $sorting->setId(Uuid::randomHex());
