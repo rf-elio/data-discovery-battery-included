@@ -206,7 +206,7 @@ class ProductMappingService
         $sort = [];
         $categories = $product->getCategories() ?? new CategoryCollection();
         /** @var ProductSortingCollection $productSortingCollection */
-        $productSortingCollection = $product->getExtension('elioDataDiscoveryProductSorting');
+        $productSortingCollection = $product->getExtension('elioDataDiscoveryProductSortingTree');
 
         foreach ($categories as $category) {
             $parentBreadCrumb = '';
