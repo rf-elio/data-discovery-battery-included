@@ -17,9 +17,6 @@ use Elio\ElioDataDiscovery\Core\Content\Content\SalesChannel\ContentItem;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\ContentSyncDefaults;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\SyncDefaults;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
@@ -37,7 +34,6 @@ use Elio\ElioBatteryIncludedApiClient\Model\Result;
 class ContentTransformer extends AbstractContentTransformer
 {
     public function __construct(
-        private readonly EntityRepository $languageRepository,
         private readonly LocaleService $localeService
     ) {}
 

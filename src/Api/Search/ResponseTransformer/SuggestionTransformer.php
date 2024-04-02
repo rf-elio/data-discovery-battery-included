@@ -69,12 +69,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
      * SuggestionTransformer constructor.
      * @param ElioDataDiscoveryConfigServiceInterface $configService
      * @param EventDispatcherInterface $eventDispatcher
-     * @param EntityRepository $languageRepository
+     * @param LocaleService $localeService
      */
     public function __construct(
         private readonly ElioDataDiscoveryConfigServiceInterface $configService,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly EntityRepository $languageRepository,
         private readonly LocaleService $localeService
     ) {}
 
@@ -183,7 +182,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
 
             $contentPropertyPath = 'highlight._content';
             if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
-                $suggestItem->setType(SuggestTypes::CONTENT->value);
+                $contentNamePropertyPath = 'highlight._content_i18n.'.$locale.'.name';
+                $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
+
+                $contentTypePath = $contentPropertyPath.'.contentType';
+                $suggestItem->setType(strip_tags($propertyAccess->getValue($hit, $contentTypePath)));
             }
 
             return $suggestItem;
