@@ -93,7 +93,11 @@ class SearchApiDecorator extends SearchApi
     {
         $locale = $this->localeService->getLocaleByContext($context);
         $apiClient = $this->apiFactory->createSearchApi($context);
-        $result = $apiClient->filter($searchRequest->getQuery(), $locale, ['f[type]' => ContentDataType::class]);
+        $result = $apiClient->filter(
+            $searchRequest->getQuery(),
+            $locale,
+            ['f[type]' => substr(strrchr(ContentDataType::class, '\\'), 1)]
+        );
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
@@ -118,7 +122,7 @@ class SearchApiDecorator extends SearchApi
             // category path as filter
             $categoryPath = $searchRequest->getCategoryPath();
             $categoryPath = implode(' > ', $categoryPath);
-            $filters['f[_i18n.{locale}.categories]'] = $categoryPath;
+            $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
         }
         // locale
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
@@ -130,7 +134,7 @@ class SearchApiDecorator extends SearchApi
     protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $filters = [];
-        $filters['f[type]'] = ProductDataType::class;
+        $filters['f[type]'] = substr(strrchr(ProductDataType::class, '\\'), 1);
 
         foreach ($searchRequest->getFilter() as $key => $values) {
             $filters['f['.$key.']'] = array_shift($values['values']);

@@ -72,9 +72,9 @@ class ContentTransformer extends AbstractContentTransformer
                 $hit->getDocument()['_content_i18n']->$locale->contentStructure ?? '',
                 $hit->getDocument()['_content_i18n']->$locale->name ?? '',
                 $hit->getDocument()['_content_i18n']->$locale->description ?? '',
-                $hit->getDocument()['_content_i18n']->$locale->url ?? '',
-                $hit->getDocument()['_content']->imageUrl ?? '',
-                $this->restoreDateTime($hit->getDocument()['_content']->publicationDate ?? ''),
+                $hit->getDocument()['_common_i18n']->$locale->url ?? '',
+                $hit->getDocument()['_common']->imageUrl ?? '',
+                $this->restoreDateTime($hit->getDocument()['_common']->releaseDate ?? ''),
                 $hit->getDocument()['_content_i18n']->$locale->mappedFields->priority ?? ContentSyncDefaults::DEFAULT_PRIORITY,
                 $hit->getDocument()['_content_i18n']->$locale->mappedFields->position ?? 0,
             );

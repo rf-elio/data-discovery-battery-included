@@ -75,8 +75,11 @@ class ProductMappingService
         $convertedData['id'] = $product->getIdentifier();
         $convertedData['_history'] = $this->prepareHistoryFields($product);
         $convertedData['_product'] = $this->prepareBaseFields($product);
-        $convertedData['_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
-        $convertedData['type'] = get_class($product);
+        $convertedData['_common'] = $this->prepareCommonFields($product);
+        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
+        $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $syncContext);
+        $convertedData['type'] = substr(strrchr(get_class($product), '\\'), 1);
+
         return $convertedData;
     }
 
@@ -102,19 +105,49 @@ class ProductMappingService
             'stock' => $product->getStock(),
             'closeout' => $product->getIsCloseout() ? 1 : 0,
             'shippingFree' => $product->getShippingFree(),
+            'id' => $product->getId(),
+            'streamIds' => $product->getStreamIds() ?? [],
+        ];
+    }
+
+    /**
+     * @param ProductDataType $product
+     * @return array
+     */
+    protected function prepareCommonFields(ProductDataType $product): array
+    {
+        return [
             'releaseDate' => $product->getReleaseDate()
                 ? $product->getReleaseDate()->format(SyncDefaults::DATE_TIME_FORMAT)
                 : '',
             'imageUrl' => $product->getCover()?->getMedia()?->getUrl(),
             'thumbnailUrl' => $product->getThumbnailUrl(),
-            'variant' => [
+            'grouping' => [
                 'groupingKey' => $product->getVariant()->getGroupingKey(),
                 'position' => $product->getVariant()->getPosition(),
                 'displayByDefault' => $product->getVariant()->isDisplayByDefault()
             ],
-            'id' => $product->getId(),
-            'streamIds' => $product->getStreamIds() ?? [],
         ];
+    }
+
+    /**
+     * @param array $collection
+     * @param SyncContext $syncContext
+     * @return array
+     */
+    protected function prepareTranslatedCommonFields(array $collection, SyncContext $syncContext): array
+    {
+        $translatedFields = [];
+        foreach ($collection as $languageId => $productTranslation) {
+            $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
+
+            /** @var SeoRoute|null $seoRoute */
+            $seoRoute = $productTranslation->getExtension(SeoRoute::class);
+
+            $translatedFields[$locale] = ['url' => $seoRoute?->getUrl() ?? ''];
+        }
+
+        return $translatedFields;
     }
 
     /**
@@ -140,9 +173,6 @@ class ProductMappingService
             $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
             $translated = $productTranslation->getTranslated();
 
-            /** @var SeoRoute|null $seoRoute */
-            $seoRoute = $productTranslation->getExtension(SeoRoute::class);
-
             $translatedFields[$locale] = [
                 'name' => $productTranslation->getName() ?? $translated['name'] ?? '',
                 'description' => ValueUtil::cleanValue($productTranslation->getDescription() ?? $translated['description'] ?? ''),
@@ -155,7 +185,6 @@ class ProductMappingService
                 'attributes' => ProductUtil::getProductAttribute(ProductUtil::getFilterableProductProperties($productTranslation)),
                 'attributesNotFilterable' => ProductUtil::getProductAttribute(ProductUtil::getNonFilterableProductProperties($productTranslation)),
                 'tags' => ProductUtil::getProductTags($productTranslation),
-                'url' => $seoRoute?->getUrl() ?? '',
                 'variant' => [
                     'options' => $this->getProductOptions($productTranslation->getOptions()),
                 ],
