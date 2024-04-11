@@ -75,11 +75,10 @@ class ProductMappingService
         $convertedData['id'] = $product->getIdentifier();
         $convertedData['_history'] = $this->prepareHistoryFields($product);
         $convertedData['_product'] = $this->prepareBaseFields($product);
-        $convertedData['_common'] = $this->prepareCommonFields($product);
         $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
+        $convertedData['_common'] = $this->prepareCommonFields($product);
         $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $syncContext);
         $convertedData['type'] = substr(strrchr(get_class($product), '\\'), 1);
-
         return $convertedData;
     }
 
@@ -137,14 +136,15 @@ class ProductMappingService
      */
     protected function prepareTranslatedCommonFields(array $collection, SyncContext $syncContext): array
     {
+        $contexts = $syncContext->getSalesChannelContexts();
         $translatedFields = [];
         foreach ($collection as $languageId => $productTranslation) {
-            $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
-
+            $locale = LocaleUtil::getLocaleByLanguage($contexts->getLanguage($languageId));
             /** @var SeoRoute|null $seoRoute */
             $seoRoute = $productTranslation->getExtension(SeoRoute::class);
-
-            $translatedFields[$locale] = ['url' => $seoRoute?->getUrl() ?? ''];
+            $translatedFields[$locale] = [
+                'url' => $seoRoute?->getUrl() ?? ''
+            ];
         }
 
         return $translatedFields;

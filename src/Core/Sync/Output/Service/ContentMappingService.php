@@ -66,11 +66,14 @@ class ContentMappingService
         $convertedData = [];
         $convertedData['id'] = $content->getIdentifier();
         $convertedData['_content'] = $this->prepareBaseFields($content);
+        $convertedData['_content_i18n'] = $this->prepareTranslatedFields(
+            $content->getDataTypeTranslations(), $syncContext
+        );
         $convertedData['_common'] = $this->prepareCommonFields($content);
-        $convertedData['_content_i18n'] = $this->prepareTranslatedFields($content->getDataTypeTranslations(), $syncContext);
-        $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($content->getDataTypeTranslations(), $syncContext);
+        $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields(
+            $content->getDataTypeTranslations(), $syncContext
+        );
         $convertedData['type'] = substr(strrchr(get_class($content), '\\'), 1);
-
         return $convertedData;
     }
 
@@ -115,10 +118,8 @@ class ContentMappingService
 
         foreach ($collection as $languageId => $contentTranslation) {
             $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
-
             /** @var SeoRoute|null $seoRoute */
             $seoRoute = $contentTranslation->getExtension(SeoRoute::class);
-
             $translatedFields[$locale] = ['url' => $seoRoute?->getUrl() ?? ''];
         }
 
