@@ -68,6 +68,7 @@ class ProductTransformer implements ResponseTransformerInterface
      * ProductHandler constructor.
      *
      * @param ProductListingLoader $listingLoader
+     * @param Connection $connection
      */
     public function __construct(
         private readonly ProductListingLoader $listingLoader,
@@ -103,7 +104,7 @@ class ProductTransformer implements ResponseTransformerInterface
 
         $mainNumbers = array_map(
             static function (SearchRecord $record) {
-                if ($record->getDocument()['type'] === ProductDataType::class) {
+                if ($record->getDocument()['type'] === substr(strrchr(ProductDataType::class, '\\'), 1)) {
                     return $record->getDocument()['_product']->productNumber[0];
                 }
 
