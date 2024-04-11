@@ -17,9 +17,6 @@ use Elio\ElioDataDiscovery\Core\Content\Content\SalesChannel\ContentItem;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\ContentSyncDefaults;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\SyncDefaults;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
-use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
-use Shopware\Core\System\Language\LanguageEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
@@ -37,7 +34,6 @@ use Elio\ElioBatteryIncludedApiClient\Model\Result;
 class ContentTransformer extends AbstractContentTransformer
 {
     public function __construct(
-        private readonly EntityRepository $languageRepository,
         private readonly LocaleService $localeService
     ) {}
 
@@ -76,9 +72,9 @@ class ContentTransformer extends AbstractContentTransformer
                 $hit->getDocument()['_content_i18n']->$locale->contentStructure ?? [],
                 $hit->getDocument()['_content_i18n']->$locale->name ?? '',
                 $hit->getDocument()['_content_i18n']->$locale->description ?? '',
-                $hit->getDocument()['_content_i18n']->$locale->url ?? '',
-                $hit->getDocument()['_content']->imageUrl ?? '',
-                $this->restoreDateTime($hit->getDocument()['_content']->publicationDate ?? ''),
+                $hit->getDocument()['_common_i18n']->$locale->url ?? '',
+                $hit->getDocument()['_common']->imageUrl ?? '',
+                $this->restoreDateTime($hit->getDocument()['_common']->releaseDate ?? ''),
                 $hit->getDocument()['_content_i18n']->$locale->mappedFields->priority ?? ContentSyncDefaults::DEFAULT_PRIORITY,
                 $hit->getDocument()['_content_i18n']->$locale->mappedFields->position ?? 0,
             );

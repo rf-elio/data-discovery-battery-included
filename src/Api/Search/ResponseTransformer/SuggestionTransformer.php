@@ -46,7 +46,6 @@ use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroup;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult;
@@ -69,12 +68,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
      * SuggestionTransformer constructor.
      * @param ElioDataDiscoveryConfigServiceInterface $configService
      * @param EventDispatcherInterface $eventDispatcher
-     * @param EntityRepository $languageRepository
+     * @param LocaleService $localeService
      */
     public function __construct(
         private readonly ElioDataDiscoveryConfigServiceInterface $configService,
         private readonly EventDispatcherInterface $eventDispatcher,
-        private readonly EntityRepository $languageRepository,
         private readonly LocaleService $localeService
     ) {}
 
@@ -154,14 +152,15 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $suggestItem->setType('other');
 
         if ($type === SuggestionResult::RESULT_TYPE_DOCUMENT) {
-            $namePropertyPath = 'highlight._i18n.'.$locale.'.name';
+            if (
+                $propertyAccess->isReadable($hit, 'highlight._product') ||
+                $propertyAccess->isReadable($hit, 'highlight._product_i18n')
+            ) {
+                $suggestItem->setType(SuggestTypes::PRODUCT->value);
+            }
+            $namePropertyPath = 'highlight._product_i18n.'.$locale.'.name';
             if ($propertyAccess->isReadable($hit, $namePropertyPath)) {
                 $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $namePropertyPath)));
-            }
-
-            $urlPropertyPath = 'highlight._i18n.'.$locale.'.url';
-            if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
-                $suggestItem->setUrl(strip_tags((string) $propertyAccess->getValue($hit, $urlPropertyPath)));
             }
 
             $productPropertyPath = 'highlight._product';
@@ -172,18 +171,38 @@ class SuggestionTransformer implements ResponseTransformerInterface
                     $attributes['MasterProductNumber'] = $propertyAccess->getValue($hit, $productMasterProductNumberPropertyPath);
                 }
 
-                $productThumbnailPropertyPath = 'highlight._product.thumbnailUrl';
-                if ($propertyAccess->isReadable($hit, $productThumbnailPropertyPath)) {
-                    $suggestItem->setImgUrl($propertyAccess->getValue($hit, $productThumbnailPropertyPath));
-                }
-
-                $suggestItem->setType(SuggestTypes::PRODUCT->value);
                 $suggestItem->setAttributes($attributes);
+            }
+
+            $commonPropertyPath = 'highlight._common';
+            if ($propertyAccess->isReadable($hit, $commonPropertyPath)) {
+                $commonImageUrlPropertyPath = $commonPropertyPath.'.imageUrl';
+                if ($propertyAccess->isReadable($hit, $commonImageUrlPropertyPath)
+                    && $propertyAccess->getValue($hit, $commonImageUrlPropertyPath) !== null) {
+                    $suggestItem->setImgUrl($propertyAccess->getValue($hit, $commonImageUrlPropertyPath));
+                }
+                $commonThumbnailUrlPropertyPath = $commonPropertyPath.'.thumbnailUrl';
+                if ($propertyAccess->isReadable($hit, $commonThumbnailUrlPropertyPath)
+                    && $propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath) !== null) {
+                    $suggestItem->setImgUrl($propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath));
+                }
+            }
+
+            $commonTranslationPropertyPath = 'highlight._common_i18n';
+            if ($propertyAccess->isReadable($hit, $commonTranslationPropertyPath)) {
+                $urlPropertyPath = $commonTranslationPropertyPath.'.'.$locale.'.url';
+                if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
+                    $suggestItem->setUrl(strip_tags((string) $propertyAccess->getValue($hit, $urlPropertyPath)));
+                }
             }
 
             $contentPropertyPath = 'highlight._content';
             if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
-                $suggestItem->setType(SuggestTypes::CONTENT->value);
+                $contentNamePropertyPath = 'highlight._content_i18n.'.$locale.'.name';
+                $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
+
+                $contentTypePath = $contentPropertyPath.'.contentType';
+                $suggestItem->setType(strip_tags($propertyAccess->getValue($hit, $contentTypePath)));
             }
 
             return $suggestItem;
