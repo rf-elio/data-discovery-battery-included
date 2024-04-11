@@ -69,7 +69,7 @@ class ContentTransformer extends AbstractContentTransformer
             $content = new ContentItem(
                 $hit->getDocument()['id'],
                 $hit->getDocument()['_content']->contentType ?? '',
-                $hit->getDocument()['_content_i18n']->$locale->contentStructure ?? '',
+                $hit->getDocument()['_content_i18n']->$locale->contentStructure ?? [],
                 $hit->getDocument()['_content_i18n']->$locale->name ?? '',
                 $hit->getDocument()['_content_i18n']->$locale->description ?? '',
                 $hit->getDocument()['_common_i18n']->$locale->url ?? '',
