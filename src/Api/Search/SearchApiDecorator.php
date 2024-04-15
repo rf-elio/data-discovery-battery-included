@@ -46,6 +46,7 @@ use Elio\ElioDataDiscovery\Api\Transform\Transformer;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
+use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -96,7 +97,7 @@ class SearchApiDecorator extends SearchApi
         $result = $apiClient->filter(
             $searchRequest->getQuery(),
             $locale,
-            ['f[type]' => substr(strrchr(ContentDataType::class, '\\'), 1)]
+            ['f[type]' => StripClassPathUtil::stripClassPath(ContentDataType::class)]
         );
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
@@ -134,7 +135,7 @@ class SearchApiDecorator extends SearchApi
     protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $filters = [];
-        $filters['f[type]'] = substr(strrchr(ProductDataType::class, '\\'), 1);
+        $filters['f[type]'] = StripClassPathUtil::stripClassPath(ProductDataType::class);
 
         foreach ($searchRequest->getFilter() as $key => $values) {
             $filters['f['.$key.']'] = array_shift($values['values']);

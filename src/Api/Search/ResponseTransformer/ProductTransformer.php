@@ -38,6 +38,7 @@ use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\AbstractProductTransformer;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
+use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
@@ -75,7 +76,7 @@ class ProductTransformer extends AbstractProductTransformer
 
         $mainNumbers = array_map(
             static function (SearchRecord $record) {
-                if ($record->getDocument()['type'] === substr(strrchr(ProductDataType::class, '\\'), 1)) {
+                if ($record->getDocument()['type'] === StripClassPathUtil::stripClassPath(ProductDataType::class)) {
                     return $record->getDocument()['_product']->productNumber[0];
                 }
 

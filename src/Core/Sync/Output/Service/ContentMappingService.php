@@ -40,6 +40,7 @@ use Elio\ElioDataDiscovery\Core\Sync\SyncContext;
 use Elio\ElioDataDiscovery\Core\Sync\Util\ValueUtil;
 use Elio\ElioDataDiscovery\Core\Sync\Output\SeoRoute;
 use Elio\ElioDataDiscovery\Core\Sync\Util\MappingUtil;
+use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -73,7 +74,7 @@ class ContentMappingService
         $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields(
             $content->getDataTypeTranslations(), $syncContext
         );
-        $convertedData['type'] = substr(strrchr(get_class($content), '\\'), 1);
+        $convertedData['type'] = StripClassPathUtil::stripClassPath(get_class($content));
         return $convertedData;
     }
 
