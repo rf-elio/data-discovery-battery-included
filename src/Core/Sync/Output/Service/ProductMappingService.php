@@ -39,11 +39,11 @@ use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioDataDiscovery\Core\Sync\Output\SeoRoute;
 use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingCollection;
-use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingEntity;
 use Elio\ElioDataDiscovery\Core\Sync\SyncContext;
 use Elio\ElioDataDiscovery\Core\Sync\Util\ProductUtil;
 use Elio\ElioDataDiscovery\Core\Sync\Util\MappingUtil;
 use Elio\ElioDataDiscovery\Core\Sync\Util\ValueUtil;
+use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Shopware\Core\Content\Category\CategoryCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
@@ -78,7 +78,8 @@ class ProductMappingService
         $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
         $convertedData['_common'] = $this->prepareCommonFields($product);
         $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $syncContext);
-        $convertedData['type'] = substr(strrchr(get_class($product), '\\'), 1);
+        $convertedData['type'] = StripClassPathUtil::stripClassPath(get_class($product));
+
         return $convertedData;
     }
 
