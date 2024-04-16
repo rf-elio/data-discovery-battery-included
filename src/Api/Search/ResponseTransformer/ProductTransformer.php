@@ -35,11 +35,12 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 use Doctrine\DBAL\Exception;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\AbstractProductTransformer;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
-use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
 use Elio\ElioBatteryIncludedApiClient\Model\SearchRecord;
@@ -56,6 +57,14 @@ use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
  */
 class ProductTransformer extends AbstractProductTransformer
 {
+    /**
+     * @inheritDoc
+     */
+    public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
+    {
+        return $model instanceof Result && $request instanceof ProductSearchRequest;
+    }
+
     /**
      * @param ModelInterface $model
      * @param ResponseCollection $responseCollection
@@ -79,11 +88,11 @@ class ProductTransformer extends AbstractProductTransformer
                 if ($record->getDocument()['type'] === StripClassPathUtil::stripClassPath(ProductDataType::class)) {
                     return $record->getDocument()['_product']->productNumber[0];
                 }
-
                 return null;
             },
             $model->getHits()
         );
+
         $productsData = $this->extractMainAndVariantProducts($mainNumbers);
         // TODO: Resolve main variant
 
