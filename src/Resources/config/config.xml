@@ -36,6 +36,10 @@
             <label>Api timeout</label>
             <defaultValue>500</defaultValue>
         </input-field>
+
+        <component name="test-api-connection">
+            <name>testApiConnection</name>
+        </component>
     </card>
     <card>
         <title>Promotions Configuration</title>
