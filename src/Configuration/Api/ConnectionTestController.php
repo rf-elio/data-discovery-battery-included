@@ -40,6 +40,7 @@ use Psr\Http\Message\ResponseInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
+use Shopware\Core\System\SalesChannel\SalesChannelEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -68,52 +69,41 @@ class ConnectionTestController extends AbstractController
     #[Route(path: '/api/_action/elio-battery-included/api-connection-test', name: 'api.custom.elio_battery_included.api-connection-test', methods: ['GET'])]
     public function categoryExclusion(Context $context): Response
     {
-        try {
-            foreach ($this->getSalesChannelIds($context) as $id) {
-                /** @var BatteryIncludedConfiguration $batteryIncludedConfig */
-                $batteryIncludedConfig = $this->configService->get($id)->getExtension(BatteryIncludedConfiguration::NAME);
+        $salesChannels = $this->salesChannelRepository->search(new Criteria(), $context);
+        /** @var SalesChannelEntity $salesChannel */
+        foreach ($salesChannels as $salesChannel) {
+            $salesChannelsId = $salesChannel->getId();
 
-                if (!$batteryIncludedConfig instanceof BatteryIncludedConfiguration) {
-                    throw new Exception('Configuration not found');
-                }
+            /** @var BatteryIncludedConfiguration $batteryIncludedConfig */
+            $batteryIncludedConfig = $this->configService->get($salesChannel->getId())->getExtension(BatteryIncludedConfiguration::NAME);
+            if (!$batteryIncludedConfig instanceof BatteryIncludedConfiguration) {
+                throw new Exception('Configuration not found');
+            }
 
-                $url = sprintf(
-                    '%s/api/v1/collections/%s/documents/browse?q=test',
-                    $batteryIncludedConfig->getUrl(),
-                    $batteryIncludedConfig->getCollection()
-                );
+            $url = sprintf(
+                '%s/api/v1/collections/%s/documents/browse?q=test',
+                $batteryIncludedConfig->getUrl(),
+                $batteryIncludedConfig->getCollection()
+            );
 
+            try {
                 foreach ([$batteryIncludedConfig->getBrowserToken(), $batteryIncludedConfig->getServerToken()] as $token) {
                     $response = $this->client->request('GET', $url, [
                         'headers' => [
                             'X-BI-API-KEY' => $token,
                             'Content-Type' => 'application/json'
-                        ]
+                        ],
+                        'timeout' => ($batteryIncludedConfig->getApiTimeOut() / 1000)
                     ]);
-
-                    $this->handleResponse($response);
+                    if ($response->getStatusCode() !== 200) {
+                        throw new OutputException(sprintf('Invalid status code %s', $response->getStatusCode()));
+                    }
                 }
+            } catch (\Exception $e) {
+                $invalid = $salesChannels->filterByProperty('id', $salesChannelsId)->first();
+                return new JsonResponse(['success' => false, 'name' => $invalid->getName()], 400);
             }
-
-            return new JsonResponse(['message' => 'Connection successfully established'], 200);
-        } catch (\Exception $e) {
-            return new JsonResponse(['message' => "Connection could not be established. Error: {$e->getMessage()}"], 400);
         }
-    }
-
-    /**
-     * @param Context $context
-     * @return array
-     */
-    private function getSalesChannelIds(Context $context): array
-    {
-        return $this->salesChannelRepository->searchIds(new Criteria(), $context)->getIds() ?? [];
-    }
-
-    private function handleResponse(ResponseInterface $response)
-    {
-        if ($response->getStatusCode() !== 200) {
-            throw new OutputException(sprintf('Invalid status code %s', $response->getStatusCode()));
-        }
+        return new JsonResponse(['message' => 'Connection successfully established'], 200);
     }
 }

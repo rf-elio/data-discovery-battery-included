@@ -38,14 +38,14 @@ Component.register('test-api-connection', {
                         } else {
                             this.createNotificationError({
                                 title: this.$tc('configuration.testConnection.fail'),
-                                message: this.$tc('configuration.testConnection.helpText')
+                                message: this.$tc('configuration.testConnection.helpText', 0, {name: response.data.name})
                             });
                         }
                     })
-                    .catch(() => {
+                    .catch((error) => {
                         this.createNotificationError({
                             title: this.$tc('configuration.testConnection.fail'),
-                            message: this.$tc('configuration.testConnection.helpText')
+                            message: this.$tc('configuration.testConnection.helpText', 0, {name: error.response.data.name})
                         });
                     })
                     .finally(() => {
