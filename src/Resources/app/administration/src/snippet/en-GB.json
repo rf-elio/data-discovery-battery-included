@@ -1,0 +1,12 @@
+{
+    "configuration": {
+        "testConnection": {
+            "success": "Connection successfully established.",
+            "fail": "Connection could not be established.",
+            "helpText": "Please save your configuration and ensure it's valid before continuing, especially for the \"{name}\" SalesChanel."
+        },
+        "testApiConnection": {
+            "testConnection": "Test Connection"
+        }
+    }
+}
