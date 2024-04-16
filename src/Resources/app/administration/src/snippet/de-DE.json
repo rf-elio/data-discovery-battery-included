@@ -3,7 +3,7 @@
         "testConnection": {
             "success": "Verbindung erfolgreich hergestellt.",
             "fail": "Die Verbindung konnte nicht hergestellt werden.",
-            "helpText": "Bitte speichern Sie Ihre Konfiguration und stellen Sie sicher, dass sie gültig ist, insbesondere für das SalesChanel \"{name}\". Vielen Dank!"
+            "helpText": "Bitte speichern Sie Ihre Konfiguration und stellen Sie sicher, dass sie gültig ist, insbesondere für das SalesChanel \"{name}\"."
         },
         "testApiConnection": {
             "testConnection": "Testverbindung"
