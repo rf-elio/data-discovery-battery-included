@@ -67,7 +67,7 @@ class ConfigurationSubscriber implements EventSubscriberInterface
      */
     public function onConfigurationLoaded(ConfigurationLoadedEvent $event): void
     {
-        $pluginConfig = $this->configService->get(ElioBatteryIncludedSearchExtension::PLUGIN_CONFIG_PREFIX) ?? [];
+        $pluginConfig = $this->configService->get(ElioBatteryIncludedSearchExtension::PLUGIN_CONFIG_PREFIX, $event->getSalesChannelId()) ?? [];
         $configuration = $event->getConfiguration();
         $configuration->addExtension(BatteryIncludedConfiguration::NAME, new BatteryIncludedConfiguration(
             $pluginConfig['collection'] ?? '',
