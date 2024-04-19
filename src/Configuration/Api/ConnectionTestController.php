@@ -32,11 +32,8 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Configuration\Api;
 
-use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
-use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
-use Elio\ElioDataDiscovery\Core\Sync\Output\Exception\OutputException;
-use Exception;
-use Psr\Http\Message\ResponseInterface;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Test\ConnectionTest;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Test\TestResult;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -45,7 +42,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
-use GuzzleHttp\Client;
 
 /**
  * Class ConnectionTestController
@@ -59,51 +55,34 @@ use GuzzleHttp\Client;
 class ConnectionTestController extends AbstractController
 {
     public function __construct(
-        private readonly Client                                  $client,
-        private readonly ElioDataDiscoveryConfigServiceInterface $configService,
-        private readonly EntityRepository                        $salesChannelRepository
-    )
-    {
+        private readonly ConnectionTest $connectionTest,
+        private readonly EntityRepository $salesChannelRepository
+    ) {
     }
 
     #[Route(path: '/api/_action/elio-battery-included/api-connection-test', name: 'api.custom.elio_battery_included.api-connection-test', methods: ['GET'])]
-    public function categoryExclusion(Context $context): Response
+    public function testCredentials(Context $context): Response
     {
         $salesChannels = $this->salesChannelRepository->search(new Criteria(), $context);
+        $testResults = [
+            '*' => $this->connectionTest->test(null)
+        ];
+
         /** @var SalesChannelEntity $salesChannel */
         foreach ($salesChannels as $salesChannel) {
-            $salesChannelsId = $salesChannel->getId();
-
-            /** @var BatteryIncludedConfiguration $batteryIncludedConfig */
-            $batteryIncludedConfig = $this->configService->get($salesChannel->getId())->getExtension(BatteryIncludedConfiguration::NAME);
-            if (!$batteryIncludedConfig instanceof BatteryIncludedConfiguration) {
-                throw new Exception('Configuration not found');
-            }
-
-            $url = sprintf(
-                '%s/api/v1/collections/%s/documents/browse?q=test',
-                $batteryIncludedConfig->getUrl(),
-                $batteryIncludedConfig->getCollection()
-            );
-
-            try {
-                foreach ([$batteryIncludedConfig->getBrowserToken(), $batteryIncludedConfig->getServerToken()] as $token) {
-                    $response = $this->client->request('GET', $url, [
-                        'headers' => [
-                            'X-BI-API-KEY' => $token,
-                            'Content-Type' => 'application/json'
-                        ],
-                        'timeout' => ($batteryIncludedConfig->getApiTimeOut() / 1000)
-                    ]);
-                    if ($response->getStatusCode() !== 200) {
-                        throw new OutputException(sprintf('Invalid status code %s', $response->getStatusCode()));
-                    }
-                }
-            } catch (\Exception $e) {
-                $invalid = $salesChannels->filterByProperty('id', $salesChannelsId)->first();
-                return new JsonResponse(['success' => false, 'name' => $invalid->getName()], 400);
-            }
+            $testResults[$salesChannel->getName()] = $this->connectionTest->test($salesChannel);
         }
-        return new JsonResponse(['message' => 'Connection successfully established'], 200);
+
+        if (in_array(TestResult::FAIL, $testResults, true)) {
+            return new JsonResponse(
+                ['message' => 'Connection could not be established', 'testResults' => $testResults],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        return new JsonResponse(
+            ['message' => 'Connection successfully established', 'testResults' => $testResults],
+            Response::HTTP_OK
+        );
     }
 }
