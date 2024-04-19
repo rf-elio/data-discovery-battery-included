@@ -9,8 +9,7 @@
             <tag name="kernel.event_subscriber"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Configuration\Api\ConnectionTestController" public="true">
-            <argument type="service" id="shopware.app_system.guzzle"/>
-            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Test\ConnectionTest"/>
             <argument type="service" id="sales_channel.repository" />
             <call method="setContainer">
                 <argument type="service" id="service_container"/>

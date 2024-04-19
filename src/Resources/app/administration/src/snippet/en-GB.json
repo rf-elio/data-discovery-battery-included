@@ -1,12 +1,20 @@
 {
-    "configuration": {
-        "testConnection": {
-            "success": "Connection successfully established.",
-            "fail": "Connection could not be established.",
-            "helpText": "Please save your configuration and ensure it's valid before continuing, especially for the \"{name}\" SalesChanel."
-        },
-        "testApiConnection": {
-            "testConnection": "Test Connection"
+    "elio-battery-included": {
+        "configuration": {
+            "testConnection": {
+                "success": "Connection successfully established.",
+                "fail": "Connection could not be established.",
+                "helpText": "Please save your configuration and ensure it's valid before continuing.",
+                "results": "Results: {results}<br/>",
+                "testResult": {
+                    "success": "OK",
+                    "fail": "Failure",
+                    "configuration_needed": "OK, but configuration needed in BatteryIncluded portal."
+                }
+            },
+            "testApiConnection": {
+                "testConnection": "Test Connection"
+            }
         }
     }
 }

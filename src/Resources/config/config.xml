@@ -35,9 +35,10 @@
             <name>apiTimeout</name>
             <label>Api timeout</label>
             <defaultValue>500</defaultValue>
+            <required>true</required>
         </input-field>
 
-        <component name="test-api-connection">
+        <component name="elio-battery-included-test-api-connection">
             <name>testApiConnection</name>
         </component>
     </card>

@@ -119,7 +119,7 @@ class SearchApiDecorator extends SearchApi
         if (!empty($searchRequest->getStreamId())) {
             // stream ID as filter
             $filters['f[_product.streamIds]'] = $searchRequest->getStreamId();
-        } else {
+        } elseif(!empty($searchRequest->getCategoryPath())) {
             // category path as filter
             $categoryPath = $searchRequest->getCategoryPath();
             $categoryPath = implode(' > ', $categoryPath);
@@ -127,7 +127,6 @@ class SearchApiDecorator extends SearchApi
         }
         // locale
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
-
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
