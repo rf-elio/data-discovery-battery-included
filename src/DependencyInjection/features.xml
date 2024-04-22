@@ -3,10 +3,9 @@
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
-    <imports>
-        <import resource="api.xml"/>
-        <import resource="configuration.xml"/>
-        <import resource="sync-profile.xml"/>
-        <import resource="features.xml"/>
-    </imports>
+    <services>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Core\Features\Subscriber\FeaturesSubscriber">
+            <tag name="kernel.event_subscriber"/>
+        </service>
+    </services>
 </container>
