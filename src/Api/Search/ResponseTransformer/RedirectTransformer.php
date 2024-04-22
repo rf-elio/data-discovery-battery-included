@@ -1,6 +1,6 @@
-<?php declare(strict_types=1);
+<?php
 /**
- * Copyright (c) 2021, elio GmbH.
+ * Copyright (c) 2024, elio GmbH.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,70 +32,62 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
-use Doctrine\DBAL\Exception;
+
+use Elio\ElioBatteryIncludedApiClient\Model\Result;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
-use Elio\ElioDataDiscovery\Api\Search\Request\ProductSearchRequest;
-use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\AbstractProductTransformer;
+use Elio\ElioDataDiscovery\Api\Search\Response\CampaignRedirectionResponse;
+use Elio\ElioDataDiscovery\Api\Search\Response\ProductListingResponse;
+use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
-use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
-use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
-use Elio\ElioBatteryIncludedApiClient\Model\Result;
-use Elio\ElioBatteryIncludedApiClient\Model\SearchRecord;
-use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
+use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 /**
- * Class ProductTransformer
- *
+ * Class RedirectTransformer
  * @package Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
  * @category  Shopware
  * @author    elio GmbH <support@elio-systems.com>
  * @author    Ralf Frommherz <rf@elio-systems.com>
- * @copyright Copyright (c) 2021, elio GmbH (https://www.elio-systems.com)
+ * @copyright Copyright (c) 2024, elio GmbH (https://www.elio-systems.com)
  */
-class ProductTransformer extends AbstractProductTransformer
+class RedirectTransformer implements ResponseTransformerInterface
 {
-    /**
-     * @inheritDoc
-     */
+    public const TYPE_REDIRECT = 'redirects';
+
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {
-        return $model instanceof Result && $request instanceof ProductSearchRequest;
+        return $model instanceof Result;
     }
 
-    /**
-     * @param ModelInterface $model
-     * @param ResponseCollection $responseCollection
-     * @param SalesChannelContext $context
-     * @param ApiRequest $request
-     * @throws InconsistentCriteriaIdsException|Exception
-     */
     public function transform(
-        ModelInterface      $model,
-        ResponseCollection  $responseCollection,
+        ModelInterface $model,
+        ResponseCollection $responseCollection,
         SalesChannelContext $context,
-        ApiRequest          $request
-    ): void
-    {
+        ApiRequest $request
+    ): void {
         if (!$model instanceof Result) {
             throw new InvalidTypeException($model, Result::class);
         }
 
-        $mainNumbers = array_map(
-            static function (SearchRecord $record) {
-                if ($record->getDocument()['type'] === StripClassPathUtil::stripClassPath(ProductDataType::class)) {
-                    return $record->getDocument()['_product']->productNumber[0];
-                }
-                return null;
-            },
-            $model->getHits()
-        );
-        $productsData = $this->extractMainAndVariantProducts($mainNumbers);
-        // TODO: Resolve main variant
-        $productNumbers = array_keys($productsData);
-        $listing = $this->parentTransform($productNumbers, $mainNumbers, $responseCollection, $context);
-        $listing->setHitsPerPage($model->getRequestParams()['per_page']);
+        $extensions = $model->getExtensions();
+        if (empty($extensions)) {
+            return;
+        }
+
+        foreach ($extensions as $extension) {
+            $data = $extension->getData();
+            if (
+                !empty($data['name']) && !empty($data['url'])
+                && $extension->getType() === self::TYPE_REDIRECT
+            ) {
+                $listing = $responseCollection->get(ProductListingResponse::class) ?? new ProductListingResponse();
+                $responseCollection->set(ProductListingResponse::class, $listing);
+                $responseCollection->set(CampaignRedirectionResponse::class, new CampaignRedirectionResponse(
+                    $data['name'],
+                    $data['url']
+                ));
+            }
+        }
     }
 }

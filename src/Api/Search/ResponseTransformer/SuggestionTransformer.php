@@ -119,7 +119,6 @@ class SuggestionTransformer implements ResponseTransformerInterface
 
                 $event = new SuggestItemTransformEvent($suggestItem, $model, $responseCollection, $request, $context);
                 $this->eventDispatcher->dispatch($event);
-
                 if($event->isRemoveSuggestItemFromResult()) {
                     continue;
                 }
@@ -205,12 +204,25 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $suggestItem->setType(strip_tags($propertyAccess->getValue($hit, $contentTypePath)));
             }
 
+            // fallback
+            if (empty($suggestItem->getName()) && property_exists($hit, 'value') && is_string($hit->value)) {
+                $suggestItem->setName($hit->value);
+            }
+
             return $suggestItem;
         }
 
+        // other types
         if (property_exists($hit, 'value') && is_string($hit->value)) {
             $suggestItem->setName($hit->value);
+        } elseif (property_exists($hit, 'name') && is_string($hit->name)) {
+            $suggestItem->setName($hit->name);
         }
+
+        if (property_exists($hit, 'url') && is_string($hit->url)) {
+            $suggestItem->setUrl($hit->url);
+        }
+
         $suggestItem->setType($type);
         return $suggestItem;
     }

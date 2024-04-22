@@ -57,7 +57,6 @@ class ContentTransformer extends AbstractContentTransformer
         }
 
         $locale = $this->localeService->getLocaleByContext($context);
-
         $listing = $responseCollection->get(ContentListingResponse::class) ?? new ContentListingResponse();
         $responseCollection->set(ContentListingResponse::class, $listing);
 
@@ -69,7 +68,7 @@ class ContentTransformer extends AbstractContentTransformer
             $content = new ContentItem(
                 $hit->getDocument()['id'],
                 $hit->getDocument()['_content']->contentType ?? '',
-                $hit->getDocument()['_content_i18n']->$locale->contentStructure ?? [],
+                explode('/', $hit->getDocument()['_content_i18n']->$locale->contentStructure ?? ''),
                 $hit->getDocument()['_content_i18n']->$locale->name ?? '',
                 $hit->getDocument()['_content_i18n']->$locale->description ?? '',
                 $hit->getDocument()['_common_i18n']->$locale->url ?? '',
