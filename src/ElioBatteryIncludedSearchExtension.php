@@ -12,11 +12,6 @@ class ElioBatteryIncludedSearchExtension extends Plugin
 {
     public const PLUGIN_CONFIG_PREFIX = 'ElioBatteryIncludedSearchExtension.config';
 
-    public function executeComposerCommands(): bool
-    {
-        return true;
-    }
-
     /**
      * Adds the additional service definitions
      *
