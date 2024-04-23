@@ -36,6 +36,7 @@ use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\BIOutput;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioDataDiscovery\Core\Sync\Input\DeltaInput;
+use Elio\ElioDataDiscovery\Core\Sync\Output\Message\AsyncOutputHandler;
 use Elio\ElioDataDiscovery\Core\Sync\Output\SeoRouteOutput;
 use Elio\ElioDataDiscovery\Core\Sync\ProfileInterface;
 
@@ -71,6 +72,7 @@ class BIProfile implements ProfileInterface
     {
         $features = self::FEATURES;
         $features['multiLanguageSupport'] = true;
+        $features[AsyncOutputHandler::SUPPORTS_ASYNC_FEATURE] = true;
         return $features;
     }
 
