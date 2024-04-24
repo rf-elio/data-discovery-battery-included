@@ -161,10 +161,8 @@ class SearchApiDecorator extends SearchApi
         /** @var FilterEntity $defaultFilter */
         foreach ($this->filterRepository->search($criteria, $context) as $defaultFilter) {
             if ($searchRequest instanceof NavigationRequestProduct) {
-                $categoryPath = $searchRequest->getCategoryPath();
-                $categoryPath = implode(' > ', $categoryPath);
                 $defaultFilter->setTechnicalName(
-                    str_replace(SortTransformer::CATEGORY_PATH_REPLACE, $categoryPath, $defaultFilter->getTechnicalName())
+                    str_replace(SortTransformer::CATEGORY_REPLACE, $searchRequest->getCategoryId(), $defaultFilter->getTechnicalName())
                 );
             }
 
