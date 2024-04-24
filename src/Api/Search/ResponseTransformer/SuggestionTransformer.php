@@ -152,20 +152,19 @@ class SuggestionTransformer implements ResponseTransformerInterface
 
         if ($type === SuggestionResult::RESULT_TYPE_DOCUMENT) {
             if (
-                $propertyAccess->isReadable($hit, 'highlight._product') ||
-                $propertyAccess->isReadable($hit, 'highlight._product_i18n')
+                $propertyAccess->isReadable($hit, 'highlighted._product') ||
+                $propertyAccess->isReadable($hit, 'highlighted._product_i18n')
             ) {
                 $suggestItem->setType(SuggestTypes::PRODUCT->value);
             }
-            $namePropertyPath = 'highlight._product_i18n.'.$locale.'.name';
+            $namePropertyPath = 'highlighted._product_i18n.'.$locale.'.name';
             if ($propertyAccess->isReadable($hit, $namePropertyPath)) {
                 $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $namePropertyPath)));
             }
-
-            $productPropertyPath = 'highlight._product';
+            $productPropertyPath = 'highlighted._product';
             if ($propertyAccess->isReadable($hit, $productPropertyPath)) {
                 $attributes = [];
-                $productMasterProductNumberPropertyPath = 'highlight._product.masterProductNumber';
+                $productMasterProductNumberPropertyPath = 'highlighted._product.masterProductNumber';
                 if ($propertyAccess->isReadable($hit, $productMasterProductNumberPropertyPath)) {
                     $attributes['MasterProductNumber'] = $propertyAccess->getValue($hit, $productMasterProductNumberPropertyPath);
                 }
@@ -173,7 +172,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $suggestItem->setAttributes($attributes);
             }
 
-            $commonPropertyPath = 'highlight._common';
+            $commonPropertyPath = 'highlighted._common';
             if ($propertyAccess->isReadable($hit, $commonPropertyPath)) {
                 $commonImageUrlPropertyPath = $commonPropertyPath.'.imageUrl';
                 if ($propertyAccess->isReadable($hit, $commonImageUrlPropertyPath)
@@ -187,7 +186,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 }
             }
 
-            $commonTranslationPropertyPath = 'highlight._common_i18n';
+            $commonTranslationPropertyPath = 'highlighted._common_i18n';
             if ($propertyAccess->isReadable($hit, $commonTranslationPropertyPath)) {
                 $urlPropertyPath = $commonTranslationPropertyPath.'.'.$locale.'.url';
                 if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
@@ -195,9 +194,9 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 }
             }
 
-            $contentPropertyPath = 'highlight._content';
+            $contentPropertyPath = 'highlighted._content';
             if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
-                $contentNamePropertyPath = 'highlight._content_i18n.'.$locale.'.name';
+                $contentNamePropertyPath = 'highlighted._content_i18n.'.$locale.'.name';
                 $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
 
                 $contentTypePath = $contentPropertyPath.'.contentType';
