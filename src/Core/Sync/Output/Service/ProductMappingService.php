@@ -239,7 +239,6 @@ class ProductMappingService
         $productSortingCollection = $product->getExtension('elioDataDiscoveryProductSortingTree');
 
         foreach ($categories as $category) {
-            $parentBreadCrumb = '';
             $firstSkipped = false;
 
             foreach ($category->getPlainBreadcrumb() as $categoryId => $breadcrumb) {
@@ -253,8 +252,7 @@ class ProductMappingService
                     continue;
                 }
 
-                $sort[$parentBreadCrumb . $breadcrumb] = $productSorting->getPosition();
-                $parentBreadCrumb .= $breadcrumb . CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
+                $sort[$categoryId] = $productSorting->getPosition();
             }
         }
 

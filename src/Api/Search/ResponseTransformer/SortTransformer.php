@@ -67,7 +67,7 @@ class SortTransformer implements ResponseTransformerInterface
 {
     public const ASCENDING = 'asc';
     public const DESCENDING = 'desc';
-    public const CATEGORY_PATH_REPLACE = '%categoryPath%';
+    public const CATEGORY_REPLACE = '%categoryId%';
 
     public function __construct(
         private readonly FilterInterface $filterService,
@@ -114,8 +114,7 @@ class SortTransformer implements ResponseTransformerInterface
 
         $categoryPath = null;
         if ($request instanceof NavigationRequestProduct) {
-            $categoryPath = $request->getCategoryPath();
-            $categoryPath = implode(' > ', $categoryPath);
+            $categoryPath = $request->getCategoryId();
         }
 
         $priority = 0;
@@ -139,10 +138,10 @@ class SortTransformer implements ResponseTransformerInterface
             $direction = $sortingLabelChunks[1];
             $key = $sortingLabelChunks[0] . '.' . $direction;
 
-            if (!$categoryPath && str_contains($key, self::CATEGORY_PATH_REPLACE)) {
+            if (!$categoryPath && str_contains($key, self::CATEGORY_REPLACE)) {
                 continue;
             } elseif ($categoryPath) {
-                $key = str_replace(self::CATEGORY_PATH_REPLACE, $categoryPath, $key);
+                $key = str_replace(self::CATEGORY_REPLACE, $categoryPath, $key);
             }
             
             $label = $filter->getTranslation('label');
