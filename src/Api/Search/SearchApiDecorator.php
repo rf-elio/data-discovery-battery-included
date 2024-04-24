@@ -34,7 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
@@ -170,7 +170,7 @@ class SearchApiDecorator extends SearchApi
                 );
             }
 
-            if (LocaleFilterUtil::fieldByLocalAllowed($defaultFilter->getTechnicalName(), $locale)) {
+            if (LocaleUtil::fieldByLocalAllowed($defaultFilter->getTechnicalName(), $locale)) {
                 $filters['sort'] = $defaultFilter->getTechnicalName();
             }
         }

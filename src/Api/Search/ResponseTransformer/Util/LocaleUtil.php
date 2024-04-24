@@ -41,7 +41,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
  * @author    Ralf Frommherz <rf@elio-systems.com>
  * @copyright Copyright (c) 2024, elio GmbH (https://www.elio-systems.com)
  */
-class LocaleFilterUtil
+class LocaleUtil
 {
     public static function fieldByLocalAllowed(string $fieldName, string $locale): bool
     {
@@ -51,5 +51,10 @@ class LocaleFilterUtil
     public static function normalizeToLocalePlaceholder(string $fieldName, string $locale): string
     {
         return str_replace('_i18n.'.$locale, '_i18n.{locale}', $fieldName);
+    }
+
+    public static function replaceLocalPlaceholder(string $fieldName, string $locale): string
+    {
+        return str_replace('i18n.%locale%', $locale, $fieldName);
     }
 }

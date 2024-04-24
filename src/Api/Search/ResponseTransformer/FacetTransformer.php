@@ -32,7 +32,7 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
@@ -119,7 +119,7 @@ class FacetTransformer implements ResponseTransformerInterface
             }
 
             // only keep filters that match the current locale
-            if (!LocaleFilterUtil::fieldByLocalAllowed($fieldName, $locale)) {
+            if (!LocaleUtil::fieldByLocalAllowed($fieldName, $locale)) {
                 continue;
             }
 

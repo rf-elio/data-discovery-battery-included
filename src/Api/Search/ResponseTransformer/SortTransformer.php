@@ -33,7 +33,7 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer;
 
 
-use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleFilterUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
@@ -112,9 +112,9 @@ class SortTransformer implements ResponseTransformerInterface
 
         $allowedFilterNames = $this->filterService->filter($filterNames, FilterEntity::FILTER_TYPE_SORTING, $request, $context);
 
-        $categoryPath = null;
+        $categoryId = null;
         if ($request instanceof NavigationRequestProduct) {
-            $categoryPath = $request->getCategoryId();
+            $categoryId = $request->getCategoryId();
         }
 
         $priority = 0;
@@ -125,11 +125,11 @@ class SortTransformer implements ResponseTransformerInterface
             }
 
             // only keep filters that match the current locale
-            if (!LocaleFilterUtil::fieldByLocalAllowed($filter->getTechnicalName(), $locale)) {
+            if (!LocaleUtil::fieldByLocalAllowed($filter->getTechnicalName(), $locale)) {
                 continue;
             }
 
-            $sortingLabelChunks = explode(':', (string) $filter->getTechnicalName());
+            $sortingLabelChunks = explode(':', $filter->getTechnicalName());
             if (count($sortingLabelChunks) !== 2) {
                 $this->logger->warning(sprintf('Wrong configuration for sorting label %s', $filter->getTechnicalName()));
                 continue;
@@ -138,10 +138,10 @@ class SortTransformer implements ResponseTransformerInterface
             $direction = $sortingLabelChunks[1];
             $key = $sortingLabelChunks[0] . '.' . $direction;
 
-            if (!$categoryPath && str_contains($key, self::CATEGORY_REPLACE)) {
+            if (!$categoryId && str_contains($key, self::CATEGORY_REPLACE)) {
                 continue;
-            } elseif ($categoryPath) {
-                $key = str_replace(self::CATEGORY_REPLACE, $categoryPath, $key);
+            } elseif ($categoryId) {
+                $key = str_replace(self::CATEGORY_REPLACE, $categoryId, $key);
             }
             
             $label = $filter->getTranslation('label');
