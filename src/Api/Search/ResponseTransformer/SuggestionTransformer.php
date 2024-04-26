@@ -197,10 +197,14 @@ class SuggestionTransformer implements ResponseTransformerInterface
             $contentPropertyPath = 'highlighted._content';
             if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
                 $contentNamePropertyPath = 'highlighted._content_i18n.'.$locale.'.name';
-                $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
+                if ($propertyAccess->isReadable($hit, $contentNamePropertyPath)) {
+                    $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
+                }
 
                 $contentTypePath = $contentPropertyPath.'.contentType';
-                $suggestItem->setType(strip_tags($propertyAccess->getValue($hit, $contentTypePath)));
+                if ($propertyAccess->isReadable($hit, $contentTypePath)) {
+                    $suggestItem->setType(strip_tags($propertyAccess->getValue($hit, $contentTypePath)));
+                }
             }
 
             // fallback
