@@ -44,6 +44,7 @@ use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterInterface;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterSyncService;
 use Elio\ElioDataDiscovery\Core\Framework\DataAbstractionLayer\Search\AggregationResult\DefaultFacetExtension;
 use Elio\ElioDataDiscovery\Core\Framework\DataAbstractionLayer\Search\AggregationResult\FacetCollection;
+use Elio\ElioDataDiscovery\Core\Framework\DataAbstractionLayer\Search\AggregationResult\SliderResult;
 use Shopware\Core\Content\Category\CategoryEntity;
 use Shopware\Core\Content\Category\Tree\Tree;
 use Shopware\Core\Content\Category\Tree\TreeItem;
@@ -123,7 +124,17 @@ class FacetTransformer implements ResponseTransformerInterface
                 continue;
             }
 
-            $style = 'TREE'; // TODO: Fetch style from custom fields
+            $style = 'TREE';
+            if (
+                property_exists($facet, 'type')
+                && $facet->type === 'range'
+                && property_exists($facet, 'stats')
+                && property_exists($facet->stats, 'min')
+                && property_exists($facet->stats, 'max')
+            ) {
+                $style = 'RANGE';
+            }
+
             $name = $this->getFilterName($fieldName, $filters->getElements());
             switch ($style) {
                 case 'DEFAULT':
@@ -134,6 +145,12 @@ class FacetTransformer implements ResponseTransformerInterface
                         new EntityResult($name, $defaultCollection),
                         $style
                     );
+                    break;
+                case 'RANGE':
+                    $sliderResult = $this->transformSlider($fieldName, $name, $facet);
+                    if ($sliderResult) {
+                        $facetCollection->addAggregation($sliderResult, $style);
+                    }
                     break;
                 case 'TREE':
                     $tree = $this->transformCategoryTree($facet);
@@ -313,5 +330,23 @@ class FacetTransformer implements ResponseTransformerInterface
         }
 
         return $fieldName;
+    }
+
+    protected function transformSlider(string $fieldName, string $name, object $facet): ?SliderResult
+    {
+        $minValue = $facet->stats->min;
+        $maxValue = $facet->stats->min;
+
+        if (!$minValue || !$maxValue) {
+            return null;
+        }
+
+        return new SliderResult(
+            $fieldName,
+            $name,
+            $minValue, $maxValue,
+            null, null,
+            ''
+        );
     }
 }

@@ -141,11 +141,20 @@ class SearchApiDecorator extends SearchApi
         $filters['f[type]'] = StripClassPathUtil::stripClassPath(ProductDataType::class);
 
         foreach ($searchRequest->getFilter() as $key => $values) {
-            $filters['f[' . $key . ']'] = array_shift($values['values']);
+            $value = array_shift($values['values']);
+            if (is_array($value) && isset($value['type']) && $value['type'] === 'range') {
+                if ($value['from']) {
+                    $filters['f[' . $key . '][from]'] = $value['from'];
+                }
+                if ($value['till']) {
+                    $filters['f[' . $key . '][till]'] = $value['till'];
+                }
+            } else {
+               $filters['f[' . $key . ']'] = $value;
+            }
         }
 
         $filters['page'] = $searchRequest->getPage();
-
         $limit = $this->systemConfigService->getInt('core.listing.productsPerPage', $context->getSalesChannelId());
         $filters['per_page'] = $limit <= 0 ? 24 : $limit;
         return $filters;
@@ -173,11 +182,10 @@ class SearchApiDecorator extends SearchApi
         /** @var FilterEntity $defaultFilter */
         foreach ($this->filterRepository->search($criteria, $context) as $defaultFilter) {
             if ($searchRequest instanceof NavigationRequestProduct) {
-                $defaultFilter->setTechnicalName(str_replace(
-                    SortTransformer::CATEGORY_REPLACE,
-                    $searchRequest->getCategoryId(),
-                    $defaultFilter->getTechnicalName()
-                ));
+                $defaultFilter->setTechnicalName(
+                    str_replace(SortTransformer::CATEGORY_REPLACE, $searchRequest->getCategoryId(),
+                        $defaultFilter->getTechnicalName())
+                );
             }
 
             if (LocaleUtil::fieldByLocalAllowed($defaultFilter->getTechnicalName(), $locale)) {
