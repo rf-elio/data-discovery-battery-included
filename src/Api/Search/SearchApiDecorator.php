@@ -148,6 +148,10 @@ class SearchApiDecorator extends SearchApi
                 }
                 if ($value['till']) {
                     $filters['f[' . $key . '][till]'] = $value['till'];
+
+                    if (!$value['from']) {
+                        $filters['f[' . $key . '][from]'] = 1;
+                    }
                 }
             } else {
                $filters['f[' . $key . ']'] = $value;
