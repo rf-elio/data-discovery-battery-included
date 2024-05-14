@@ -335,7 +335,7 @@ class FacetTransformer implements ResponseTransformerInterface
     protected function transformSlider(string $fieldName, string $name, object $facet): ?SliderResult
     {
         $minValue = $facet->stats->min;
-        $maxValue = $facet->stats->min;
+        $maxValue = $facet->stats->max;
 
         if (!$minValue || !$maxValue) {
             return null;
