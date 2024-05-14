@@ -66,6 +66,8 @@ use Throwable;
  */
 class SearchApiDecorator extends SearchApi
 {
+    private const DEFAULT_SORT = 'default';
+
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
@@ -110,8 +112,10 @@ class SearchApiDecorator extends SearchApi
      * @return ResponseCollection
      * @throws Throwable
      */
-    public function navigation(NavigationRequestProduct $searchRequest, SalesChannelContext $context): ResponseCollection
-    {
+    public function navigation(
+        NavigationRequestProduct $searchRequest,
+        SalesChannelContext $context
+    ): ResponseCollection {
         $apiClient = $this->apiFactory->createSearchApi($context);
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
@@ -119,7 +123,7 @@ class SearchApiDecorator extends SearchApi
         if (!empty($searchRequest->getStreamId())) {
             // stream ID as filter
             $filters['f[_product.streamIds]'] = $searchRequest->getStreamId();
-        } elseif(!empty($searchRequest->getCategoryPath())) {
+        } elseif (!empty($searchRequest->getCategoryPath())) {
             // category path as filter
             $categoryPath = $searchRequest->getCategoryPath();
             $categoryPath = implode(' > ', $categoryPath);
@@ -137,21 +141,34 @@ class SearchApiDecorator extends SearchApi
         $filters['f[type]'] = StripClassPathUtil::stripClassPath(ProductDataType::class);
 
         foreach ($searchRequest->getFilter() as $key => $values) {
-            $filters['f['.$key.']'] = array_shift($values['values']);
+            $value = array_shift($values['values']);
+            if (is_array($value) && isset($value['type']) && $value['type'] === 'range') {
+                if ($value['from']) {
+                    $filters['f[' . $key . '][from]'] = $value['from'];
+                }
+                if ($value['till']) {
+                    $filters['f[' . $key . '][till]'] = $value['till'];
+                }
+            } else {
+               $filters['f[' . $key . ']'] = $value;
+            }
         }
 
         $filters['page'] = $searchRequest->getPage();
-
         $limit = $this->systemConfigService->getInt('core.listing.productsPerPage', $context->getSalesChannelId());
         $filters['per_page'] = $limit <= 0 ? 24 : $limit;
         return $filters;
     }
 
-    protected function addSortingFilter(array $filters, SearchRequest $searchRequest, string $locale, Context $context): array
-    {
+    protected function addSortingFilter(
+        array $filters,
+        SearchRequest $searchRequest,
+        string $locale,
+        Context $context
+    ): array {
         if (!empty($searchRequest->getSort())) {
             $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
-            return $filters;
+            return $this->prepareSorting($filters);
         }
 
         if ($searchRequest instanceof NavigationRequestProduct && !empty($searchRequest->getStreamId())) {
@@ -166,7 +183,8 @@ class SearchApiDecorator extends SearchApi
         foreach ($this->filterRepository->search($criteria, $context) as $defaultFilter) {
             if ($searchRequest instanceof NavigationRequestProduct) {
                 $defaultFilter->setTechnicalName(
-                    str_replace(SortTransformer::CATEGORY_REPLACE, $searchRequest->getCategoryId(), $defaultFilter->getTechnicalName())
+                    str_replace(SortTransformer::CATEGORY_REPLACE, $searchRequest->getCategoryId(),
+                        $defaultFilter->getTechnicalName())
                 );
             }
 
@@ -175,6 +193,20 @@ class SearchApiDecorator extends SearchApi
             }
         }
 
+        return $this->prepareSorting($filters);
+    }
+
+    private function prepareSorting(array $filters): array
+    {
+        if (!isset($filters['sort'])) {
+            return $filters;
+        }
+
+        // default sort is not sent to BI, remove the option
+        $defaultSort = self::DEFAULT_SORT . ':';
+        if (str_starts_with($filters['sort'], $defaultSort)) {
+            unset($filters['sort']);
+        }
         return $filters;
     }
 }
