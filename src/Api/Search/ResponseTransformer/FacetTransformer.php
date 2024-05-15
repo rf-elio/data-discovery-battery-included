@@ -337,6 +337,10 @@ class FacetTransformer implements ResponseTransformerInterface
         $minValue = $facet->stats->min;
         $maxValue = $facet->stats->max;
 
+        if ($minValue === 0) {
+            $minValue = 0.01;
+        }
+
         if (!$minValue || !$maxValue) {
             return null;
         }
