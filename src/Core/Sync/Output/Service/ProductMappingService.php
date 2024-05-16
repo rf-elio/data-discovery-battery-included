@@ -107,6 +107,7 @@ class ProductMappingService
             'shippingFree' => $product->getShippingFree(),
             'id' => $product->getId(),
             'streamIds' => $product->getStreamIds() ?? [],
+            'visibility' => $product->getVisibility()
         ];
     }
 

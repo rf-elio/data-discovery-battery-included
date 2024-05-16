@@ -129,6 +129,9 @@ class SearchApiDecorator extends SearchApi
             $categoryPath = implode(' > ', $categoryPath);
             $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
         }
+
+        $filters['f[_product.visibility]'] = ['all'];
+
         // locale
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
