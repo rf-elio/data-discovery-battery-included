@@ -128,8 +128,9 @@ class SuggestionTransformer implements ResponseTransformerInterface
                     continue;
                 }
 
-                $group = $suggestGroups[$type] ?? new SuggestGroup($type, $groupLabels[$type] ?? $type);
-                $suggestGroups[$type] = $group;
+                $label = $groupLabels[$type] ?? $type;
+                $group = $suggestGroups[$label] ?? new SuggestGroup($type, $label);
+                $suggestGroups[$label] = $group;
                 $group->addItem($suggestItem);
             }
         }
