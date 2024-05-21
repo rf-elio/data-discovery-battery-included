@@ -44,6 +44,7 @@ use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\SearchApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\Aggregation\Visibilities;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
@@ -130,7 +131,7 @@ class SearchApiDecorator extends SearchApi
             $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
         }
 
-        $filters['f[_product.visibility]'] = ['all'];
+        $filters['f[_product.visibility]'] = [Visibilities::VISIBILITY_ALL->value];
 
         // locale
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
