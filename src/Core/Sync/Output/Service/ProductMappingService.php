@@ -74,7 +74,7 @@ class ProductMappingService
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
         $convertedData['_history'] = $this->prepareHistoryFields($product);
-        $convertedData['_product'] = $this->prepareBaseFields($product);
+        $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext);
         $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
         $convertedData['_common'] = $this->prepareCommonFields($product);
         $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $syncContext);
@@ -87,19 +87,22 @@ class ProductMappingService
      * Prepare base fields
      *
      * @param ProductDataType $product
+     * @param SyncContext $syncContext
      * @return array
      */
     protected function prepareBaseFields(
-        ProductDataType $product
+        ProductDataType $product,
+        SyncContext $syncContext
     ): array {
         [$price, $redPrice] = ProductUtil::getProductPrice($product) ?? [null, null];
+        $rounding = $syncContext->getSalesChannelContexts()->getFirst()->getContext()->getRounding()->getDecimals();
 
         return [
             'masterProductNumber' => $product->getVariant()->getParentProduct()?->getIdentifier() ?? $product->getIdentifier(),
             'productNumber' => [$product->getProductNumber()],
             'manufacturerNumber' => $product->getManufacturerNumber(),
-            'price' => (float)ValueUtil::formatPrice($price),
-            'redPrice' => (float)ValueUtil::formatPrice($redPrice),
+            'price' => (float)ValueUtil::formatPrice($price, $rounding),
+            'redPrice' => (float)ValueUtil::formatPrice($redPrice, $rounding),
             'categoryIds' => $product->getCategoryIds(),
             'ean' => $product->getEan(),
             'stock' => $product->getStock(),
@@ -107,7 +110,7 @@ class ProductMappingService
             'shippingFree' => $product->getShippingFree(),
             'id' => $product->getId(),
             'streamIds' => $product->getStreamIds() ?? [],
-            'visibility' => $product->getVisibility()
+            'visibility' => $product->getVisibility()->value
         ];
     }
 
