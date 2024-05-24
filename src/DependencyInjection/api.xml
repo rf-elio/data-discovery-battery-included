@@ -72,5 +72,10 @@
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\RedirectTransformer">
             <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestProductTransformer">
+            <argument type="service" id="product.repository"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
+            <tag name="elio-data-discovery.api.transformer.response"/>
+        </service>
     </services>
 </container>
