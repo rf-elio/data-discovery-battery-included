@@ -316,45 +316,6 @@ class ProductMappingService
         return $attributes;
     }
 
-    /**
-     * Fetches the product price string with all currencies
-     *
-     * @param ProductEntity $product
-     * @param SalesChannelContext $context
-     *
-     * @return string
-     */
-    protected function getProductPrices(ProductEntity $product, SalesChannelContext $context): string
-    {
-        [$price] = ProductUtil::getProductPrice($product) ?? [null];
-        if (!$price) {
-            return '';
-        }
-
-        $prices = [];
-        $currencies = $context->getSalesChannel()->getCurrencies() ?? new CurrencyCollection();
-        foreach ($currencies as $currency) {
-            $currencyPrice = $price;
-            if ($currency->getId() !== $context->getCurrency()->getId()) {
-                $currencyPrice *= $currency->getFactor();
-            }
-
-            $prices[] = sprintf(
-                '%s~~%s=%s',
-                $currency->getIsoCode(),
-                $currency->getSymbol(),
-                ValueUtil::formatPrice($currencyPrice)
-            );
-        }
-
-        return !empty($prices) ? sprintf(
-            '%s%s%s',
-            Defaults::VALUE_SEPARATOR,
-            implode(Defaults::VALUE_SEPARATOR, $prices),
-            Defaults::VALUE_SEPARATOR
-        ) : '';
-    }
-
     private function prepareHistoryFields(ProductDataType $product): array
     {
         return [
