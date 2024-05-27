@@ -170,6 +170,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
                     $attributes['MasterProductNumber'] = $propertyAccess->getValue($hit, $productMasterProductNumberPropertyPath);
                 }
 
+                $productProductNumberPropertyPath = 'highlighted._product.productNumber';
+                if ($propertyAccess->isReadable($hit, $productProductNumberPropertyPath)) {
+                    $attributes['ProductNumber'] = $propertyAccess->getValue($hit, $productProductNumberPropertyPath);
+                }
+
                 $suggestItem->setAttributes($attributes);
             }
 

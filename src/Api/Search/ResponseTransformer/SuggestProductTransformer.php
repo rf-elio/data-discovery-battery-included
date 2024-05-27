@@ -5,6 +5,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
+use Elio\ElioDataDiscovery\Api\Search\Components\SuggestTypes;
 use Elio\ElioDataDiscovery\Api\Search\Response\SuggestionResponse;
 use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
@@ -14,15 +15,15 @@ use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\Context;
-use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
+use Shopware\Core\System\SalesChannel\Entity\SalesChannelRepository;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class SuggestProductTransformer implements ResponseTransformerInterface
 {
     public function __construct(
-        private readonly EntityRepository $productRepository,
+        private readonly SalesChannelRepository $productRepository,
         private readonly ElioDataDiscoveryConfigServiceInterface $configService
     ) {}
 
@@ -42,16 +43,16 @@ class SuggestProductTransformer implements ResponseTransformerInterface
         $responseCollection->set(SuggestionResponse::class, $suggestionResponse);
         $config = $this->configService->getByContext($context);
         $groupLabels = $config->getSuggestTypeLabels();
-        if(!$suggestionResponse || !$suggestionResponse->hasGroup($groupLabels['product'])) {
+        if(!$suggestionResponse || !$suggestionResponse->hasGroup($groupLabels[SuggestTypes::PRODUCT->value])) {
             return;
         }
 
-        $productGroup = $suggestionResponse->getGroup($groupLabels['product']);
-        $products = $this->collect($productGroup, $context->getContext());
+        $productGroup = $suggestionResponse->getGroup($groupLabels[SuggestTypes::PRODUCT->value]);
+        $products = $this->collect($productGroup, $context);
         $this->enrich($productGroup, $products);
     }
 
-    protected function collect(SuggestGroup $group, Context $context): array
+    protected function collect(SuggestGroup $group, SalesChannelContext $context): array
     {
         $productNumbers = [];
         foreach ($group->getItems() as $item) {
@@ -89,6 +90,10 @@ class SuggestProductTransformer implements ResponseTransformerInterface
     protected function getProductNumber(SuggestItem $item): ?string
     {
         $attributes = $item->getAttributes();
+        if (!empty($attributes['ProductNumber'])) {
+            return array_shift($attributes['ProductNumber']);
+        }
+
         return $attributes['MasterProductNumber'] ?? null;
     }
 }
