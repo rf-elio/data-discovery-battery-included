@@ -43,11 +43,19 @@ class SuggestProductTransformer implements ResponseTransformerInterface
         $responseCollection->set(SuggestionResponse::class, $suggestionResponse);
         $config = $this->configService->getByContext($context);
         $groupLabels = $config->getSuggestTypeLabels();
-        if(!$suggestionResponse || !$suggestionResponse->hasGroup($groupLabels[SuggestTypes::PRODUCT->value])) {
+
+        $productGroupKey = SuggestTypes::PRODUCT->value;
+        if (isset($groupLabels[SuggestTypes::PRODUCT->value])) {
+            $productGroupKey = $groupLabels[SuggestTypes::PRODUCT->value];
+        }
+        
+        if(
+            !$suggestionResponse ||
+            !$suggestionResponse->hasGroup($productGroupKey)) {
             return;
         }
 
-        $productGroup = $suggestionResponse->getGroup($groupLabels[SuggestTypes::PRODUCT->value]);
+        $productGroup = $suggestionResponse->getGroup($productGroupKey);
         $products = $this->collect($productGroup, $context);
         $this->enrich($productGroup, $products);
     }
