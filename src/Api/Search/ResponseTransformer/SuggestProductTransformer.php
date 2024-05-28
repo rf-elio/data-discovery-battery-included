@@ -14,7 +14,6 @@ use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroup;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Shopware\Core\Content\Product\ProductEntity;
-use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
 use Shopware\Core\System\SalesChannel\Entity\SalesChannelRepository;

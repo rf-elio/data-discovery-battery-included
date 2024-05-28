@@ -40,10 +40,10 @@ use Elio\ElioDataDiscovery\Api\Search\Response\SuggestionResponse;
 use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
-use Elio\ElioDataDiscovery\Configuration\Configuration;
 use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroup;
+use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroupCollection;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -135,8 +135,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
             }
         }
 
-        $suggestGroups = $this->setResultRepresentation($suggestGroups, $config);
-        $suggestionResponse->setGroups($suggestGroups);
+        $suggestionResponse->setGroups(new SuggestGroupCollection($suggestGroups));
     }
 
     /**
@@ -234,42 +233,5 @@ class SuggestionTransformer implements ResponseTransformerInterface
 
         $suggestItem->setType($type);
         return $suggestItem;
-    }
-
-    /**
-     * Sets the visibility and the order of the given groups
-     *
-     * @param SuggestGroup[] $groups
-     * @param Configuration $config
-     * @return SuggestGroup[]
-     */
-    protected function setResultRepresentation(array $groups, Configuration $config): array
-    {
-        $acceptedTypes = $config->getSuggestAcceptedTypes();
-
-        if(empty($acceptedTypes)) {
-            return $groups;
-        }
-
-        // set visibility and position
-        foreach ($groups as $group) {
-            $type = $group->getType();
-            $acceptedTypePosition = array_search($type, $acceptedTypes, true);
-
-            if($acceptedTypePosition === false) {
-                $group->setVisible(false);
-            } else {
-                $group->setVisible(true);
-                $group->setPosition((int)$acceptedTypePosition);
-            }
-        }
-
-        // sort groups
-        uasort($groups, static function (SuggestGroup $a, SuggestGroup $b) {
-            $posA = $a->getPosition();
-            $posB = $b->getPosition();
-            return $posA <=> $posB;
-        });
-        return $groups;
     }
 }
