@@ -146,7 +146,7 @@ class SearchApiDecorator extends SearchApi
 
         foreach ($searchRequest->getFilter() as $key => $values) {
             $value = array_shift($values['values']);
-            if (is_array($value) && isset($value['type']) && $value['type'] === 'range') {
+            if (is_array($value) && isset($value['type']) && ($value['type'] === 'range' || $value['type'] === 'rating')) {
                 if ($value['from']) {
                     $filters['f[' . $key . '][from]'] = $value['from'];
                 }

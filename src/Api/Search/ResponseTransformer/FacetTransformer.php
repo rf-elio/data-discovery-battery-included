@@ -134,6 +134,9 @@ class FacetTransformer implements ResponseTransformerInterface
             ) {
                 $style = 'RANGE';
             }
+            if (property_exists($facet, 'type') && $facet->type === 'rating') {
+                $style = 'RATING';
+            }
 
             $name = $this->getFilterName($fieldName, $filters->getElements());
             switch ($style) {
@@ -146,6 +149,7 @@ class FacetTransformer implements ResponseTransformerInterface
                         $style
                     );
                     break;
+                case 'RATING':
                 case 'RANGE':
                     $sliderResult = $this->transformSlider($fieldName, $name, $facet);
                     if ($sliderResult) {
