@@ -185,8 +185,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
                     $suggestItem->setImgUrl($propertyAccess->getValue($hit, $commonImageUrlPropertyPath));
                 }
                 $commonThumbnailUrlPropertyPath = $commonPropertyPath.'.thumbnailUrl';
-                if ($propertyAccess->isReadable($hit, $commonThumbnailUrlPropertyPath)
-                    && $propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath) !== null) {
+                if (
+                    $propertyAccess->isReadable($hit, $commonThumbnailUrlPropertyPath)
+                    && $propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath) !== null
+                    && !empty($propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath))
+                ) {
                     $suggestItem->setImgUrl($propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath));
                 }
             }
