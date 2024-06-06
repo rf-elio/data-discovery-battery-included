@@ -319,7 +319,7 @@ class ProductMappingService
     private function prepareHistoryFields(ProductDataType $product): array
     {
         return [
-            'ratingAverage' => $product->getRatingAverage(),
+            'ratingAverage' => $product->getRatingAverage() ?? 0.0,
             'salesCount' => $product->getSales(),
         ];
     }
