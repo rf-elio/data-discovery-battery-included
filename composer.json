@@ -1,7 +1,7 @@
 {
   "name": "elio/data-discovery-battery-included",
   "description": "BatteryIncluded Data Discovery integration",
-  "version": "2.2.36",
+  "version": "2.2.37",
   "type": "shopware-platform-plugin",
   "license": "proprietary",
   "authors": [
@@ -15,7 +15,7 @@
   ],
   "require": {
     "php": ">= 8.1",
-    "elio/data-discovery-core": "2.2.36",
+    "elio/data-discovery-core": "2.2.37",
     "shopware/core": "~6.5.0",
     "ext-curl": "*"
   },
