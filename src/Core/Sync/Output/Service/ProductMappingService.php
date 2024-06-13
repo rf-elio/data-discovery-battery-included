@@ -131,6 +131,7 @@ class ProductMappingService
                 'position' => $product->getVariant()->getPosition(),
                 'displayByDefault' => $product->getVariant()->isDisplayByDefault()
             ],
+            'hasImageUrl' => empty($product->getCover()?->getMedia()?->getUrl()),
         ];
     }
 

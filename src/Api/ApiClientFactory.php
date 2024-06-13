@@ -99,7 +99,7 @@ class ApiClientFactory
         $batteryIncludedConfig = $configuration->getExtension(BatteryIncludedConfiguration::NAME);
 
         $config = [
-            'max' => $batteryIncludedConfig->getApiTimeOut(),
+            'timeout' => $batteryIncludedConfig->getApiTimeOut(),
             'handler' => $stack,
         ];
 
