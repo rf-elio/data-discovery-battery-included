@@ -194,6 +194,7 @@ class ProductMappingService
                 'variant' => [
                     'options' => $this->getProductOptions($productTranslation->getOptions()),
                 ],
+                'ratingCount' => $productTranslation->getRatingCount() ?? 0,
                 'mappedFields' => MappingUtil::addMappedProperties($product, $syncContext->getSyncProfile()->getMapping(), PropertyAccess::createPropertyAccessor()),
             ];
         }
