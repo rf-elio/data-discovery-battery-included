@@ -43,7 +43,9 @@ use Elio\ElioDataDiscovery\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\SearchApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
+use Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\Aggregation\Visibilities;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
@@ -75,14 +77,21 @@ class SearchApiDecorator extends SearchApi
         private readonly LocaleService $localeService,
         LoggerInterface $logger,
         private readonly SystemConfigService $systemConfigService,
-        private readonly EntityRepository $filterRepository
+        private readonly EntityRepository $filterRepository,
+        private readonly RequestLoggingService $requestLoggingService,
+        private readonly ElioDataDiscoveryConfigService $configService
     ) {
         parent::__construct($logger);
     }
 
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
+        $config = $this->configService->getByContext($context);
         $apiClient = $this->apiFactory->createSearchApi($context);
+
+        if ($config->isLoggingSearchRequestActive()) {
+            $this->requestLoggingService->logRequest($searchRequest, $context);
+        }
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
@@ -96,7 +105,12 @@ class SearchApiDecorator extends SearchApi
     public function searchContent(ContentSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $locale = $this->localeService->getLocaleByContext($context);
+        $config = $this->configService->getByContext($context);
         $apiClient = $this->apiFactory->createSearchApi($context);
+
+        if ($config->isLoggingSearchRequestActive()) {
+            $this->requestLoggingService->logRequest($searchRequest, $context);
+        }
         $result = $apiClient->filter(
             $searchRequest->getQuery(),
             $locale,
@@ -118,6 +132,7 @@ class SearchApiDecorator extends SearchApi
         SalesChannelContext $context
     ): ResponseCollection {
         $apiClient = $this->apiFactory->createSearchApi($context);
+        $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
@@ -135,6 +150,10 @@ class SearchApiDecorator extends SearchApi
 
         // locale
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
+
+        if ($config->isLoggingSearchRequestActive()) {
+            $this->requestLoggingService->logRequest($searchRequest, $context);
+        }
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
