@@ -90,7 +90,7 @@ class SearchApiDecorator extends SearchApi
         $apiClient = $this->apiFactory->createSearchApi($context);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($searchRequest, $context);
+            $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
         }
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
@@ -109,7 +109,7 @@ class SearchApiDecorator extends SearchApi
         $apiClient = $this->apiFactory->createSearchApi($context);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($searchRequest, $context);
+            $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
         }
         $result = $apiClient->filter(
             $searchRequest->getQuery(),
@@ -152,7 +152,7 @@ class SearchApiDecorator extends SearchApi
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($searchRequest, $context);
+            $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
         }
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
         return $this->transformer->transformResponse($result, $context, $searchRequest);

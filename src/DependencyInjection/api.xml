@@ -54,7 +54,6 @@
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\ProductTransformer">
             <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Listing\ProductListingLoader" />
-            <argument type="service" id="Doctrine\DBAL\Connection"/>
             <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestionTransformer">
