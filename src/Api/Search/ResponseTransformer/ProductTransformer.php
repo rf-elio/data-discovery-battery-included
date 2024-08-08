@@ -93,11 +93,8 @@ class ProductTransformer extends AbstractProductTransformer
             },
             $model->getHits()
         );
-        $productsData = $this->extractMainAndVariantProducts($mainNumbers);
-        // TODO: Resolve main variant
-        $productNumbers = array_keys($productsData);
-        $listing = $this->parentTransform($productNumbers, $mainNumbers, $responseCollection, $context);
-        // TODO: Check correct handling for product variants
+
+        $listing = $this->loadProductsForListing($mainNumbers, $responseCollection, $context);
         foreach ($listing->getProducts() as $product) {
             /** @var SearchRecord $hit */
             foreach ($model->getHits() as $hit) {
