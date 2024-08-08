@@ -48,8 +48,7 @@ use Shopware\Core\Content\Category\CategoryCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
-use Shopware\Core\System\Currency\CurrencyCollection;
-use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Shopware\Core\Defaults as ShopwareDefaults;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -319,8 +318,12 @@ class ProductMappingService
 
     private function prepareHistoryFields(ProductDataType $product): array
     {
+        /** @var ProductDataType $productTranslation */
+        $productTranslation = $product->getDataTypeTranslation(ShopwareDefaults::LANGUAGE_SYSTEM);
+
         return [
             'ratingAverage' => $product->getRatingAverage() ?? 0.0,
+            'ratingCount' => $productTranslation->getRatingCount() ?? 0,
             'salesCount' => $product->getSales(),
         ];
     }

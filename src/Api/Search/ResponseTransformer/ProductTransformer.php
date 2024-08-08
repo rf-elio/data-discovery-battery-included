@@ -37,6 +37,7 @@ use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\AbstractProductTransformer;
+use Elio\ElioDataDiscovery\Api\Transform\ExtensionWrapper;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -96,6 +97,15 @@ class ProductTransformer extends AbstractProductTransformer
         // TODO: Resolve main variant
         $productNumbers = array_keys($productsData);
         $listing = $this->parentTransform($productNumbers, $mainNumbers, $responseCollection, $context);
+        // TODO: Check correct handling for product variants
+        foreach ($listing->getProducts() as $product) {
+            /** @var SearchRecord $hit */
+            foreach ($model->getHits() as $hit) {
+                if ($hit->getDocument()['id'] === $product->getProductNumber()) {
+                    $product->addExtension('record', new ExtensionWrapper($hit));
+                }
+            }
+        }
         $listing->setHitsPerPage($model->getRequestParams()['per_page']);
     }
 }
