@@ -62,4 +62,17 @@
             <helpText lang="de-DE">Variablen, die in der Werbevorlage ersetzt werden: %url%, %imageUrl%, %alt%</helpText>
         </input-field>
     </card>
+    <card>
+        <title>Recommendations</title>
+        <title lang="de-DE">Empfehlungen</title>
+
+        <input-field type="text">
+            <name>disabledRecommendationTypes</name>
+            <label>Disabled Recommendation Types</label>
+            <label lang="de-DE">Deaktivierte Empfehlungstypen</label>
+            <helpText>Types of recommendations that are disabled in the detail page: "together", "also", "related".</helpText>
+            <helpText lang="de-DE">Typen von Empfehlungen, die in der Detailseite deaktiviert sind: "toegther", "also", "related"</helpText>
+            <placeholder>together,also,related</placeholder>
+        </input-field>
+    </card>
 </config>
