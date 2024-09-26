@@ -33,7 +33,6 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api;
 
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
-use Elio\ElioDataDiscovery\Api\Recommendations\RecommendationApi;
 use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
 use Elio\ElioDataDiscovery\Core\Logging\GuzzleLogWrapper;
 use Elio\ElioDataDiscovery\Core\Logging\LoggingService;
@@ -66,16 +65,6 @@ class ApiClientFactory
         return new SearchApi(
             $this->createClient($salesChannelContext->getSalesChannelId(), $salesChannelContext),
             $this->createConfiguration($salesChannelContext->getSalesChannelId(), $salesChannelContext)
-        );
-    }
-
-    /**
-     * Creates a recommendation api client
-     */
-    public function createRecommendationApi(LoggerInterface $logger): RecommendationApi
-    {
-        return new RecommendationApi(
-            $logger,
         );
     }
 
