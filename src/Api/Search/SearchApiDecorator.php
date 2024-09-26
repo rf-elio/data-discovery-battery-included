@@ -95,6 +95,7 @@ class SearchApiDecorator extends SearchApi
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
+        $filters = $this->addAdditionalParameters($filters, $searchRequest, $context);
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
 
         $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
@@ -233,6 +234,15 @@ class SearchApiDecorator extends SearchApi
         $defaultSort = self::DEFAULT_SORT . ':';
         if (str_starts_with($filters['sort'], $defaultSort)) {
             unset($filters['sort']);
+        }
+        return $filters;
+    }
+
+    private function addAdditionalParameters(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array
+    {
+        $additionalParameters = $searchRequest->getAdditionalRequestParameters();
+        foreach ($additionalParameters as $key => $value) {
+            $filters[$key] = $value;
         }
         return $filters;
     }
