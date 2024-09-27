@@ -743,7 +743,6 @@ class SearchApi
     protected function recommendRequest($q, $language, $x_bi_api_key = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/recommendations', $this->config->getCollection());
-        //$resourcePath = sprintf('/api/v1/collections/%s/documents/recommendations', "customer.elio.dev");
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -753,13 +752,11 @@ class SearchApi
         // query params
         if ($q !== null) {
             $queryParams['id'] = ClientObjectSerializer::toQueryValue($q, null);
-            //$queryParams['id'] = '4bef1c2ae8ec447198d90f04be8e7b42';
         }
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
             $headerParams['X-BI-API-KEY'] = $this->config->getApiKey('serverApiKey');
-            //$headerParams['X-BI-API-KEY'] = 'av9c73DSZObPJ1ZDNJi3C0O3Y1oeGDzi';
         }
 
         // body params

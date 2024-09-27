@@ -39,7 +39,7 @@ class RecommendationApiDecorator extends RecommendationApi
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
         $locale = $this->localeService->getLocaleByContext($context);
-        $result = new RecommendationResultCollection($apiClient->recommend($request->getProductIds()[0], $locale));
+        $result = new RecommendationResultCollection($apiClient->recommend($request->getProductNumber(), $locale));
         return $this->transformer->transformResponse($result, $context, $request);
     }
 }
