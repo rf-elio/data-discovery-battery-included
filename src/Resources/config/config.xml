@@ -3,7 +3,7 @@
         xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/platform/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
 
     <card>
-        <title>BatteryIncluded configuration</title>
+        <title>BatteryIncluded Configuration</title>
         <title lang="de-DE">BatteryIncluded Konfiguration</title>
 
         <input-field>
@@ -63,8 +63,8 @@
         </input-field>
     </card>
     <card>
-        <title>Recommendations</title>
-        <title lang="de-DE">Empfehlungen</title>
+        <title>Recommendation Configuration</title>
+        <title lang="de-DE">Empfehlungs-Konfiguration</title>
 
         <input-field type="text">
             <name>disabledRecommendationTypes</name>

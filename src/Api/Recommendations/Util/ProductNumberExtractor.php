@@ -31,12 +31,6 @@ class ProductNumberExtractor
         }
 
         return $productNumbersByType;
-
-//        return array_map(static function (RecommendationResult $record) {
-//            return $record->getDocument()['_product']->productNumber[0];
-//        }, array_filter($result->getRecommendationResults(), static function (RecommendationResult $record) {
-//            return array_key_exists('_product', $record->getDocument());
-//        }));
     }
 
 }
