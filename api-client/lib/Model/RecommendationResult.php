@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace Elio\ElioBatteryIncludedApiClient\Model;
 
@@ -6,6 +6,7 @@ use Elio\ElioDataDiscovery\Swagger\ClientObjectSerializer;
 
 class RecommendationResult
 {
+    const DISCRIMINATOR = null;
     /**
      * The original name of the model.
      *
