@@ -39,6 +39,11 @@
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
             <argument type="service" id="elio.data-discovery.core.logging.debug"/>
         </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Configuration\ConfigurationAdapterDecorator" decorates="Elio\ElioDataDiscovery\Api\Configuration\ConfigurationAdapter">
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
+            <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
+            <argument type="service" id="elio.data-discovery.core.logging.debug"/>
+        </service>
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\FacetTransformer">
             <argument type="service" id="Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterService"/>
