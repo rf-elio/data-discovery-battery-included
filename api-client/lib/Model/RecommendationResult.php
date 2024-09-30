@@ -6,17 +6,12 @@ use Elio\ElioDataDiscovery\Swagger\ClientObjectSerializer;
 
 class RecommendationResult
 {
-    const DISCRIMINATOR = null;
-
-    public const RESULT_TYPE_DOCUMENT = 'document';
-    public const RESULT_TYPE_QUERY_COMPLETION = 'query-completion';
-    public const RESULT_TYPE_TAG_CLOUD = 'tag-cloud';
     /**
      * The original name of the model.
      *
      * @var string
      */
-    protected static $swaggerModelName = 'SuggestionResult';
+    protected static $swaggerModelName = 'RecommendationResult';
 
     /**
      * Array of property to type mappings. Used for (de)serialization
