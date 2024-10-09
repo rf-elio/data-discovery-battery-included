@@ -33,11 +33,15 @@
             <argument type="service" id="Elio\ElioDataDiscovery\Api\Transform\Transformer"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
         </service>
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Recommendations\RecommendationApiDecorator" decorates="Elio\ElioDataDiscovery\Api\Recommendations\RecommendationApi">
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Recommendations\RecommendationAdapterDecorator" decorates="Elio\ElioDataDiscovery\Api\Recommendations\RecommendationAdapter">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
             <argument type="service" id="Elio\ElioDataDiscovery\Api\Transform\Transformer"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
             <argument type="service" id="elio.data-discovery.core.logging.debug"/>
+        </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Recommendations\ResponseTransformer\RecommendationProductTransformer">
+            <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Listing\ProductListingLoader" />
+            <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Configuration\ConfigurationAdapterDecorator" decorates="Elio\ElioDataDiscovery\Api\Configuration\ConfigurationAdapter">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>

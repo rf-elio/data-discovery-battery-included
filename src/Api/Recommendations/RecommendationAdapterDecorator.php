@@ -5,14 +5,14 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Recommendations;
 use Elio\ElioBatteryIncludedApiClient\Model\RecommendationResultCollection;
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
-use Elio\ElioDataDiscovery\Api\Recommendations\RecommendationApi;
+use Elio\ElioDataDiscovery\Api\Recommendations\RecommendationAdapter;
 use Elio\ElioDataDiscovery\Api\Recommendations\Request\RecommendationRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
-class RecommendationApiDecorator extends RecommendationApi
+class RecommendationAdapterDecorator extends RecommendationAdapter
 {
     /**
      * SearchApi constructor.
