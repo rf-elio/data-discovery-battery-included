@@ -15,7 +15,6 @@ class ConfigurationAdapterDecorator extends ConfigurationAdapter
 {
     public function __construct(
         private readonly ApiClientFactory $apiClientFactory,
-        private readonly LocaleService $localeService,
         LoggerInterface $logger
     )
     {
@@ -25,8 +24,7 @@ class ConfigurationAdapterDecorator extends ConfigurationAdapter
     public function getConfig(ConfigurationRequest $request, SalesChannelContext $context): ConfigurationResponseCollection
     {
         $apiClient = $this->apiClientFactory->createSearchApi($context);
-        $locale = $this->localeService->getLocaleByContext($context);
-        $presets = $apiClient->configuration($request->getType(), $locale);
+        $presets = $apiClient->configuration($request->getType());
         $response = new ConfigurationResponseCollection();
         $response->addConfigurationResponse(new PresetConfigurationResponse($presets));
         return $response;
