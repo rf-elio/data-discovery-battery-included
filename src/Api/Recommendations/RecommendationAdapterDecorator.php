@@ -9,8 +9,10 @@ use Elio\ElioDataDiscovery\Api\Recommendations\RecommendationAdapter;
 use Elio\ElioDataDiscovery\Api\Recommendations\Request\RecommendationRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
+use Elio\ElioDataDiscovery\Swagger\ClientApiException;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
+use Throwable;
 
 class RecommendationAdapterDecorator extends RecommendationAdapter
 {
@@ -34,6 +36,8 @@ class RecommendationAdapterDecorator extends RecommendationAdapter
      * @param RecommendationRequest $request
      * @param SalesChannelContext $context
      * @return ResponseCollection
+     * @throws ClientApiException
+     * @throws Throwable
      */
     public function getRecommendations(RecommendationRequest $request, SalesChannelContext $context): ResponseCollection
     {
