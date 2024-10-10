@@ -588,6 +588,466 @@ class SearchApi
     }
 
     /**
+     * Operation recommend
+     *
+     * Recommend
+     *
+     * @param string $q q (optional)
+     * @param string $x_bi_api_key x_bi_api_key (optional)
+     *
+     * @throws ClientApiException on non-2xx response
+     * @throws InvalidArgumentException
+     *  TODO: Add request into parameters
+     */
+    public function recommend($q, $language, $x_bi_api_key = null)
+    {
+        list($response) = $this->recommendWithHttpInfo($q, $language, $x_bi_api_key);
+        return $response;
+    }
+
+    /**
+     * Operation recommendWithHttpInfo
+     *
+     * Recommend
+     *
+     * @param string $q (optional)
+     * @param string $x_bi_api_key (optional)
+     *
+     * @return array of null, HTTP status code, HTTP response headers (array of strings)
+     * @throws InvalidArgumentException
+     * @throws ApiException on non-2xx response
+     */
+    public function recommendWithHttpInfo($q, $language, $x_bi_api_key = null)
+    {
+        $returnType = '\Elio\ElioBatteryIncludedApiClient\Model\RecommendationResult[]';
+        $request = $this->recommendRequest($q, $language, $x_bi_api_key);
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ClientApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? $e->getResponse()->getBody()->getContents() : null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ClientApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    $response->getBody()
+                );
+            }
+
+            $responseBody = $response->getBody();
+            if ($returnType === '\SplFileObject') {
+                $content = $responseBody; //stream goes to serializer
+            } else {
+                $content = $responseBody->getContents();
+                if ($returnType !== 'string') {
+                    $content = json_decode($content);
+                }
+            }
+
+            return [
+                ClientObjectSerializer::deserialize($content, $returnType, []),
+                $statusCode,
+                $response->getHeaders()
+            ];
+        } catch (ClientApiException $e) {
+            switch ($e->getCode()) {
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation recommendAsync
+     *
+     * Recommend
+     *
+     * @param string $q (optional)
+     * @param string $x_bi_api_key (optional)
+     *
+     * @return PromiseInterface
+     * @throws InvalidArgumentException
+     */
+    public function recommendAsync($q, $language, $x_bi_api_key = null)
+    {
+        return $this->recommendAsyncWithHttpInfo($q, $language, $x_bi_api_key)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation recommendAsyncWithHttpInfo
+     *
+     * Recommend
+     *
+     * @param string $q (optional)
+     * @param string $x_bi_api_key (optional)
+     *
+     * @return PromiseInterface
+     * @throws InvalidArgumentException
+     */
+    public function recommendAsyncWithHttpInfo($q, $language, $x_bi_api_key = null)
+    {
+        $returnType = '';
+        $request = $this->recommendRequest($q, $language, $x_bi_api_key);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    return [null, $response->getStatusCode(), $response->getHeaders()];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ClientApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'recommend'
+     *
+     * @param string $q (optional)
+     * @param string $x_bi_api_key (optional)
+     *
+     * @return Request
+     * @throws InvalidArgumentException
+     */
+    protected function recommendRequest($q, $language, $x_bi_api_key = null)
+    {
+        $resourcePath = sprintf('/api/v1/collections/%s/documents/recommendations', $this->config->getCollection());
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+        // query params
+        if ($q !== null) {
+            $queryParams['id'] = ClientObjectSerializer::toQueryValue($q, null);
+        }
+
+        // header params
+        if ($this->config->getApiKey('serverApiKey') !== null) {
+            $headerParams['X-BI-API-KEY'] = $this->config->getApiKey('serverApiKey');
+        }
+
+        // body params
+        $_tempBody = null;
+
+        if ($multipart) {
+            $headers = $this->headerSelector->selectHeadersForMultipart(
+                []
+            );
+        } else {
+            $headers = $this->headerSelector->selectHeaders(
+                [],
+                []
+            );
+        }
+
+        // for model (json/xml)
+        if (isset($_tempBody)) {
+            // $_tempBody is the method argument, if present
+            $httpBody = $_tempBody;
+            // \stdClass has no __toString(), so we should encode it manually
+            if ($httpBody instanceof stdClass && $headers['Content-Type'] === 'application/json') {
+                $httpBody = \GuzzleHttp\json_encode($httpBody);
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $multipartContents[] = [
+                        'name' => $formParamName,
+                        'contents' => $formParamValue
+                    ];
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif ($headers['Content-Type'] === 'application/json') {
+                $httpBody = \GuzzleHttp\json_encode($formParams);
+
+            } else {
+                // for HTTP post (form)
+                $httpBody = Query::build($formParams);
+            }
+        }
+
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $query = Query::build($queryParams);
+        return new Request(
+            'GET',
+            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    /**
+     * Operation configuration
+     *
+     * Configuration
+     *
+     * @param string $q q (optional)
+     * @param string $x_bi_api_key x_bi_api_key (optional)
+     *
+     * @throws ClientApiException on non-2xx response
+     * @throws InvalidArgumentException
+     *  TODO: Add request into parameters
+     */
+    public function configuration($q, $language, $x_bi_api_key = null)
+    {
+        list($response) = $this->configurationWithHttpInfo($q, $language, $x_bi_api_key);
+        return $response;
+    }
+
+    /**
+     * Operation configurationWithHttpInfo
+     *
+     * Configuration
+     *
+     * @param string $q (optional)
+     * @param string $x_bi_api_key (optional)
+     *
+     * @return array of null, HTTP status code, HTTP response headers (array of strings)
+     * @throws InvalidArgumentException
+     * @throws ApiException on non-2xx response
+     */
+    public function configurationWithHttpInfo($q, $language, $x_bi_api_key = null)
+    {
+        $request = $this->configurationRequest($q, $language, $x_bi_api_key);
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw new ClientApiException(
+                    "[{$e->getCode()}] {$e->getMessage()}",
+                    $e->getCode(),
+                    $e->getResponse() ? $e->getResponse()->getHeaders() : null,
+                    $e->getResponse() ? $e->getResponse()->getBody()->getContents() : null
+                );
+            }
+
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ClientApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    $response->getBody()
+                );
+            }
+
+            $responseBody = $response->getBody();
+            $content = $responseBody->getContents();
+            $content = json_decode($content);
+
+            return [
+                $content,
+                $statusCode,
+                $response->getHeaders()
+            ];
+        } catch (ClientApiException $e) {
+            switch ($e->getCode()) {
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Operation configurationAsync
+     *
+     * Configuration
+     *
+     * @param string $q (optional)
+     * @param string $x_bi_api_key (optional)
+     *
+     * @return PromiseInterface
+     * @throws InvalidArgumentException
+     */
+    public function configurationAsync($q, $language, $x_bi_api_key = null)
+    {
+        return $this->configurationAsyncWithHttpInfo($q, $language, $x_bi_api_key)
+            ->then(
+                function ($response) {
+                    return $response[0];
+                }
+            );
+    }
+
+    /**
+     * Operation configurationAsyncWithHttpInfo
+     *
+     * Configuration
+     *
+     * @param string $q (optional)
+     * @param string $x_bi_api_key (optional)
+     *
+     * @return PromiseInterface
+     * @throws InvalidArgumentException
+     */
+    public function configurationAsyncWithHttpInfo($q, $language, $x_bi_api_key = null)
+    {
+        $returnType = '';
+        $request = $this->recommendRequest($q, $language, $x_bi_api_key);
+
+        return $this->client
+            ->sendAsync($request, $this->createHttpClientOption())
+            ->then(
+                function ($response) use ($returnType) {
+                    return [null, $response->getStatusCode(), $response->getHeaders()];
+                },
+                function ($exception) {
+                    $response = $exception->getResponse();
+                    $statusCode = $response->getStatusCode();
+                    throw new ClientApiException(
+                        sprintf(
+                            '[%d] Error connecting to the API (%s)',
+                            $statusCode,
+                            $exception->getRequest()->getUri()
+                        ),
+                        $statusCode,
+                        $response->getHeaders(),
+                        $response->getBody()
+                    );
+                }
+            );
+    }
+
+    /**
+     * Create request for operation 'configuration'
+     *
+     * @param string $q (optional)
+     * @param string $x_bi_api_key (optional)
+     *
+     * @return Request
+     * @throws InvalidArgumentException
+     */
+    protected function configurationRequest($q, $language, $x_bi_api_key = null)
+    {
+        $resourcePath = sprintf('/api/v1/collections/%s/documents/presets', $this->config->getCollection());
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+
+        // header params
+        if ($this->config->getApiKey('serverApiKey') !== null) {
+            $headerParams['X-BI-API-KEY'] = $this->config->getApiKey('serverApiKey');
+        }
+
+        // body params
+        $_tempBody = null;
+
+        if ($multipart) {
+            $headers = $this->headerSelector->selectHeadersForMultipart(
+                []
+            );
+        } else {
+            $headers = $this->headerSelector->selectHeaders(
+                [],
+                []
+            );
+        }
+
+        // for model (json/xml)
+        if (isset($_tempBody)) {
+            // $_tempBody is the method argument, if present
+            $httpBody = $_tempBody;
+            // \stdClass has no __toString(), so we should encode it manually
+            if ($httpBody instanceof stdClass && $headers['Content-Type'] === 'application/json') {
+                $httpBody = \GuzzleHttp\json_encode($httpBody);
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $multipartContents[] = [
+                        'name' => $formParamName,
+                        'contents' => $formParamValue
+                    ];
+                }
+                // for HTTP post (form)
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif ($headers['Content-Type'] === 'application/json') {
+                $httpBody = \GuzzleHttp\json_encode($formParams);
+
+            } else {
+                // for HTTP post (form)
+                $httpBody = Query::build($formParams);
+            }
+        }
+
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $query = Query::build($queryParams);
+        return new Request(
+            'GET',
+            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    /**
      * Create http client option
      *
      * @return array of http client options
