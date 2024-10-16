@@ -844,9 +844,9 @@ class SearchApi
      * @throws InvalidArgumentException
      *  TODO: Add request into parameters
      */
-    public function configuration($q, $language, $x_bi_api_key = null)
+    public function configuration($q, $x_bi_api_key = null)
     {
-        list($response) = $this->configurationWithHttpInfo($q, $language, $x_bi_api_key);
+        list($response) = $this->configurationWithHttpInfo($q, $x_bi_api_key);
         return $response;
     }
 
@@ -862,9 +862,9 @@ class SearchApi
      * @throws InvalidArgumentException
      * @throws ApiException on non-2xx response
      */
-    public function configurationWithHttpInfo($q, $language, $x_bi_api_key = null)
+    public function configurationWithHttpInfo($q, $x_bi_api_key = null)
     {
-        $request = $this->configurationRequest($q, $language, $x_bi_api_key);
+        $request = $this->configurationRequest($q, $x_bi_api_key);
         try {
             $options = $this->createHttpClientOption();
             try {
@@ -978,7 +978,7 @@ class SearchApi
      * @return Request
      * @throws InvalidArgumentException
      */
-    protected function configurationRequest($q, $language, $x_bi_api_key = null)
+    protected function configurationRequest($q, $x_bi_api_key = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/presets', $this->config->getCollection());
         $formParams = [];
