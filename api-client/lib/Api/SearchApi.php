@@ -355,15 +355,16 @@ class SearchApi
      * Suggest
      *
      * @param string $q q (optional)
+     * @param string $type type (optional)
      * @param string $x_bi_api_key x_bi_api_key (optional)
      *
      * @throws ClientApiException on non-2xx response
      * @throws InvalidArgumentException
      *  TODO: Add request into parameters
      */
-    public function suggest($q, $language, $x_bi_api_key = null)
+    public function suggest($q, $language, $type = null, $x_bi_api_key = null)
     {
-        list($response) = $this->suggestWithHttpInfo($q, $language, $x_bi_api_key);
+        list($response) = $this->suggestWithHttpInfo($q, $language, $type, $x_bi_api_key);
         return $response;
     }
 
@@ -373,16 +374,17 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param string $type type (optional)
      * @param string $x_bi_api_key (optional)
      *
      * @return array of null, HTTP status code, HTTP response headers (array of strings)
      * @throws InvalidArgumentException
      * @throws ApiException on non-2xx response
      */
-    public function suggestWithHttpInfo($q, $language, $x_bi_api_key = null)
+    public function suggestWithHttpInfo($q, $language, $type = null, $x_bi_api_key = null)
     {
         $returnType = '\Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult[]';
-        $request = $this->suggestRequest($q, $language, $x_bi_api_key);
+        $request = $this->suggestRequest($q, $language, $type, $x_bi_api_key);
         try {
             $options = $this->createHttpClientOption();
             try {
@@ -439,14 +441,15 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param string $type type (optional)
      * @param string $x_bi_api_key (optional)
      *
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function suggestAsync($q, $language, $x_bi_api_key = null)
+    public function suggestAsync($q, $language, $type = null, $x_bi_api_key = null)
     {
-        return $this->suggestAsyncWithHttpInfo($q, $language, $x_bi_api_key)
+        return $this->suggestAsyncWithHttpInfo($q, $language, $type, $x_bi_api_key)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -460,15 +463,16 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param string $type type (optional)
      * @param string $x_bi_api_key (optional)
      *
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function suggestAsyncWithHttpInfo($q, $language, $x_bi_api_key = null)
+    public function suggestAsyncWithHttpInfo($q, $language, $type = null, $x_bi_api_key = null)
     {
         $returnType = '';
-        $request = $this->suggestRequest($q, $language, $x_bi_api_key);
+        $request = $this->suggestRequest($q, $language, $type, $x_bi_api_key);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -497,12 +501,13 @@ class SearchApi
      * Create request for operation 'suggest'
      *
      * @param string $q (optional)
+     * @param string $type type (optional)
      * @param string $x_bi_api_key (optional)
      *
      * @return Request
      * @throws InvalidArgumentException
      */
-    protected function suggestRequest($q, $language, $x_bi_api_key = null)
+    protected function suggestRequest($q, $language, $type = null, $x_bi_api_key = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/suggest', $this->config->getCollection());
         $formParams = [];
@@ -517,6 +522,10 @@ class SearchApi
         }
 
         $queryParams['locale'] = ClientObjectSerializer::toQueryValue($language, null);
+
+        if ($type !== null) {
+            $queryParams['type'] = ClientObjectSerializer::toQueryValue($type, null);
+        }
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
@@ -835,9 +844,9 @@ class SearchApi
      * @throws InvalidArgumentException
      *  TODO: Add request into parameters
      */
-    public function configuration($q, $language, $x_bi_api_key = null)
+    public function configuration($q, $x_bi_api_key = null)
     {
-        list($response) = $this->configurationWithHttpInfo($q, $language, $x_bi_api_key);
+        list($response) = $this->configurationWithHttpInfo($q, $x_bi_api_key);
         return $response;
     }
 
@@ -853,9 +862,9 @@ class SearchApi
      * @throws InvalidArgumentException
      * @throws ApiException on non-2xx response
      */
-    public function configurationWithHttpInfo($q, $language, $x_bi_api_key = null)
+    public function configurationWithHttpInfo($q, $x_bi_api_key = null)
     {
-        $request = $this->configurationRequest($q, $language, $x_bi_api_key);
+        $request = $this->configurationRequest($q, $x_bi_api_key);
         try {
             $options = $this->createHttpClientOption();
             try {
@@ -969,7 +978,7 @@ class SearchApi
      * @return Request
      * @throws InvalidArgumentException
      */
-    protected function configurationRequest($q, $language, $x_bi_api_key = null)
+    protected function configurationRequest($q, $x_bi_api_key = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/presets', $this->config->getCollection());
         $formParams = [];
