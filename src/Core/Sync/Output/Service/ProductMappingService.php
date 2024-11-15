@@ -35,10 +35,11 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\CategoryPathUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioDataDiscovery\Core\Defaults;
+use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingTreeCollection;
+use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingTreeEntity;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioDataDiscovery\Core\Sync\Defaults\SyncDefaults;
 use Elio\ElioDataDiscovery\Core\Sync\Output\SeoRoute;
-use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingCollection;
 use Elio\ElioDataDiscovery\Core\Sync\SyncContext;
 use Elio\ElioDataDiscovery\Core\Sync\Util\ProductUtil;
 use Elio\ElioDataDiscovery\Core\Sync\Util\MappingUtil;
@@ -239,7 +240,7 @@ class ProductMappingService
     {
         $sort = [];
         $categories = $product->getCategories() ?? new CategoryCollection();
-        /** @var ProductSortingCollection $productSortingCollection */
+        /** @var ProductSortingTreeCollection $productSortingCollection */
         $productSortingCollection = $product->getExtension('elioDataDiscoveryProductSortingTree');
 
         foreach ($categories as $category) {
@@ -252,7 +253,9 @@ class ProductMappingService
                     continue;
                 }
 
-                if (!$productSorting = $productSortingCollection->filterByProperty('categoryId', $categoryId)->first()) {
+                /** @var ProductSortingTreeEntity|null $productSorting */
+                $productSorting = $productSortingCollection->filterByProperty('categoryId', $categoryId)->first();
+                if (!$productSorting) {
                     continue;
                 }
 

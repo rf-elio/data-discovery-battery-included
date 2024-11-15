@@ -524,7 +524,7 @@ class SearchApi
         $queryParams['locale'] = ClientObjectSerializer::toQueryValue($language, null);
 
         if ($type !== null) {
-            $queryParams['type'] = ClientObjectSerializer::toQueryValue($type, null);
+            $queryParams['f[type]'] = ClientObjectSerializer::toQueryValue($type, null);
         }
 
         // header params

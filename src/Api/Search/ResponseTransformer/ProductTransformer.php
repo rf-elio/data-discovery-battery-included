@@ -93,7 +93,7 @@ class ProductTransformer extends AbstractProductTransformer
             },
             $model->getHits()
         );
-
+        
         $listing = $this->loadProductsForListing($mainNumbers, $responseCollection, $context);
         foreach ($listing->getProducts() as $product) {
             /** @var SearchRecord $hit */

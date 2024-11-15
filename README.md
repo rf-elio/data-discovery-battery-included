@@ -4,13 +4,13 @@
 ### Parepare composer package
 To install this plugin you need to move the code into a composer registry. The following options are available:
 - Use the shopware store package registry (recommended).
-- Move "elio/battery-included-search-extension" and "elio/data-discovery-core" into your static plugins folder (custom/static-plugins).
+- Move "elio/data-discovery-battery-included" and "elio/data-discovery-core" into your static plugins folder (custom/static-plugins).
 - Use your own package registry.
 
 ### Composer Installation
-Require package **elio/battery-included-search-extension**
+Require package **elio/data-discovery-battery-included**
 ```
-composer req elio/battery-included-search-extension 2.2.1
+composer req elio/data-discovery-battery-included 6.6.0
 ```
 
 Install plugin
