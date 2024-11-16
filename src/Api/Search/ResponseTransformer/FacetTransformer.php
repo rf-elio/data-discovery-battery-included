@@ -224,26 +224,39 @@ class FacetTransformer implements ResponseTransformerInterface
         $rootTree = [];
         $treeItems = [];
         $facetCounts = $facet->counts ?? [];
+        $itemLimiter = 0;
         foreach ($facetCounts as $element) {
             $labels = array_map('trim', explode('>', (string) $element->value));
-            $level = count($labels) - 1;
-            $elementLabel = trim(end($labels));
+            $previousTreeItem = null;
 
-            $category = new CategoryEntity();
-            $category->setId(Uuid::randomHex());
-            $category->setName($element->value);
-            $category->setTranslated(['name' => $elementLabel]);
+            foreach ($labels as $level => $label) {
+                if ($itemLimiter > 250) {
+                    break 2;
+                }
 
-            $treeItem = new TreeItem($category, []);
+                $category = new CategoryEntity();
+                $category->setId(Uuid::randomHex());
+                $category->setName($element->value);
+                $category->setTranslated(['name' => $label]);
 
-            if ($level === 0) {
-                $treeItems[$level][$elementLabel] = $treeItem;
-                $rootTree[] = $treeItem;
-            } else {
-                /** @var TreeItem $previousItem */
-                $previousItem = $treeItems[$level - 1][prev($labels)];
-                $treeItems[$level][$elementLabel] = $treeItem;
-                $previousItem->addChildren($treeItem);
+                if (!isset($treeItems[$level][$label])) {
+                    $treeItem = new TreeItem($category, []);
+                    $itemLimiter++;
+
+                    if ($level === 0) {
+                        $rootTree[] = $treeItem;
+                    }
+                } else {
+                    $treeItem = $treeItems[$level][$label];
+                }
+
+                $treeItems[$level][$label] = $treeItem;
+
+                if($previousTreeItem) {
+                    $previousTreeItem->addChildren($treeItem);
+                }
+
+                $previousTreeItem = $treeItem;
             }
         }
 
