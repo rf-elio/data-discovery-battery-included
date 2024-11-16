@@ -15,7 +15,7 @@
   ],
   "require": {
     "php": ">= 8.1",
-    "shopware/core": "^6.6.4",
+    "shopware/core": "~6.6.4.0|~6.6.5.0|~6.6.6.0|~6.6.7.0",
     "elio/data-discovery-core": "6.6.0",
     "ext-curl": "*"
   },
