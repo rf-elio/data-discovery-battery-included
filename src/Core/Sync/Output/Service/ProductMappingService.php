@@ -321,12 +321,9 @@ class ProductMappingService
 
     private function prepareHistoryFields(ProductDataType $product): array
     {
-        /** @var ProductDataType $productTranslation */
-        $productTranslation = $product->getDataTypeTranslation(ShopwareDefaults::LANGUAGE_SYSTEM);
-
         return [
             'ratingAverage' => $product->getRatingAverage() ?? 0.0,
-            'ratingCount' => $productTranslation->getRatingCount() ?? 0,
+            'ratingCount' => $product->getRatingCount(),
             'salesCount' => $product->getSales(),
         ];
     }

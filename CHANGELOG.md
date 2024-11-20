@@ -1,4 +1,11 @@
 # CHANGELOG.md
+## 6.6.1 - 2024-11-20
+### Fix (3 changes)
+- `ProductMappingService.php`: ratingCount is now mapped directly from product
+- `SearchApi.php`:
+  - $locale is now mapped to 'v[locale]' parameter instead of 'locale'
+  - Fixed wrong function call in `configurationAsyncWithHttpInfo` method
+
 ## 6.6.0 - 2024-11-14
 ### Fix (3 changes)
 - README.md: Updated
