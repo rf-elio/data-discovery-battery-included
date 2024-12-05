@@ -276,7 +276,7 @@ class SearchApi
             $queryParams['filters'] = ClientObjectSerializer::toQueryValue($filters, null);
         }
 
-        $queryParams['locale'] = ClientObjectSerializer::toQueryValue($locale, null);
+        $queryParams['v[locale]'] = ClientObjectSerializer::toQueryValue($locale, null);
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
@@ -521,7 +521,7 @@ class SearchApi
             $queryParams['q'] = ClientObjectSerializer::toQueryValue($q, null);
         }
 
-        $queryParams['locale'] = ClientObjectSerializer::toQueryValue($language, null);
+        $queryParams['v[locale]'] = ClientObjectSerializer::toQueryValue($language, null);
 
         if ($type !== null) {
             $queryParams['f[type]'] = ClientObjectSerializer::toQueryValue($type, null);
@@ -944,7 +944,7 @@ class SearchApi
     public function configurationAsyncWithHttpInfo($q, $language, $x_bi_api_key = null)
     {
         $returnType = '';
-        $request = $this->recommendRequest($q, $language, $x_bi_api_key);
+        $request = $this->configurationRequest($q, $language, $x_bi_api_key);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
