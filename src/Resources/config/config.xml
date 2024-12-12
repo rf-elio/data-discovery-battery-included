@@ -62,4 +62,18 @@
             <helpText lang="de-DE">Variablen, die in der Werbevorlage ersetzt werden: %url%, %imageUrl%, %alt%</helpText>
         </input-field>
     </card>
+    <card>
+        <title>Sync Configuration</title>
+        <title lang="de-DE">Sync Konfiguration</title>
+
+        <input-field type="int">
+            <name>startLevelExport</name>
+            <label>Category tree export level</label>
+            <label lang="de-DE">Export-Level des Kategoriebaums</label>
+            <defaultValue>2</defaultValue>
+            <min>1</min>
+            <helpText>Determines the position in a product's category tree from which it will be exported in the sync. 1 means it starts at the first category, e.g. Home, while each higher number moves one child category down in the tree.</helpText>
+            <helpText lang="de-DE">Bestimmt die Position im Kategoriebaum eines Produkts, ab welcher jener im Sync exportiert wird. 1 bedeutet, dass er ab der ersten Kategorie beginnt, z.B. Home, während jede höhere Zahl im Baum eine Kind-Kategorie weiterrückt.</helpText>
+        </input-field>
+    </card>
 </config>

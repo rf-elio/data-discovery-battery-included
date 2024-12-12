@@ -49,4 +49,9 @@ class CategoryPathUtil
     {
         return implode(self::CATEGORY_PATH_SEPARATOR, $categories);
     }
+
+    public static function sliceCategoryExportBreadcrumb(array $breadcrumb, int $startLevelExport): array
+    {
+        return array_slice($breadcrumb, $startLevelExport - 1);
+    }
 }

@@ -55,7 +55,8 @@ class BatteryIncludedConfiguration extends Struct
         private readonly string $serverToken,
         private readonly int $apiTimeOut,
         private readonly string $promotionTemplate,
-        private readonly string $suggestPromotionTemplate
+        private readonly string $suggestPromotionTemplate,
+        private readonly int $startLevelExport
     ) {}
 
     /**
@@ -116,5 +117,13 @@ class BatteryIncludedConfiguration extends Struct
     public function getSuggestPromotionTemplate(): string
     {
         return $this->suggestPromotionTemplate;
+    }
+
+    /**
+     * @return int
+     */
+    public function getStartLevelExport(): int
+    {
+        return $this->startLevelExport;
     }
 }

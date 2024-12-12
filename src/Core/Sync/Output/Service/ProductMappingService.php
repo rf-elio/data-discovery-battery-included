@@ -49,7 +49,6 @@ use Shopware\Core\Content\Category\CategoryCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
-use Shopware\Core\Defaults as ShopwareDefaults;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -67,15 +66,16 @@ class ProductMappingService
      *
      * @param ProductDataType $product
      * @param SyncContext $syncContext
+     * @param int $startLevelExport
      * @return array
      */
-    public function mapData(ProductDataType $product, SyncContext $syncContext): array
+    public function mapData(ProductDataType $product, SyncContext $syncContext, int $startLevelExport): array
     {
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
         $convertedData['_history'] = $this->prepareHistoryFields($product);
         $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext);
-        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
+        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext, $startLevelExport);
         $convertedData['_common'] = $this->prepareCommonFields($product);
         $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $syncContext);
         $convertedData['type'] = StripClassPathUtil::stripClassPath(get_class($product));
@@ -161,11 +161,13 @@ class ProductMappingService
      *
      * @param ProductDataType $product
      * @param SyncContext $syncContext
+     * @param int $startLevelExport
      * @return array
      */
     protected function prepareTranslatedFields(
         ProductDataType $product,
-        SyncContext $syncContext
+        SyncContext $syncContext,
+        int $startLevelExport
     ): array
     {
         $collection = $product->getDataTypeTranslations();
@@ -186,7 +188,7 @@ class ProductMappingService
                 'manufacturer' => $productTranslation->getManufacturer()?->getTranslation('name') ?? $productTranslation->getManufacturer()?->getName(),
                 'keywords' => $productTranslation->getKeywords() ?? $translated['keywords'] ?? '',
                 'searchKeywords' => $productTranslation->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? [],
-                'categories' => $this->getCategoryPath($productTranslation),
+                'categories' => $this->getCategoryPath($productTranslation, $startLevelExport),
                 'categorySort' => $this->getCategorySort($productTranslation),
                 'attributes' => ProductUtil::getProductAttribute(ProductUtil::getFilterableProductProperties($productTranslation)),
                 'attributesNotFilterable' => ProductUtil::getProductAttribute(ProductUtil::getNonFilterableProductProperties($productTranslation)),
@@ -205,22 +207,17 @@ class ProductMappingService
      * Builds the category path for elio search
      *
      * @param ProductEntity $product
+     * @param int $startLevelExport
      * @return array
      */
-    protected function getCategoryPath(ProductEntity $product): array
+    protected function getCategoryPath(ProductEntity $product, int $startLevelExport): array
     {
         $path = [];
         $categories = $product->getCategories() ?? new CategoryCollection();
         foreach ($categories as $category) {
             $parentBreadCrumb = '';
-            $firstSkipped = false;
-            foreach ($category->getBreadcrumb() as $breadcrumb) {
-                // first one is home, we don't want to have home
-                if (!$firstSkipped) {
-                    $firstSkipped = true;
-                    continue;
-                }
-
+            $slicedCategoryBreadcrumb = CategoryPathUtil::sliceCategoryExportBreadcrumb($category->getBreadcrumb(), $startLevelExport);
+            foreach ($slicedCategoryBreadcrumb as $breadcrumb) {
                 $path[] = $parentBreadCrumb . $breadcrumb;
                 $parentBreadCrumb .= $breadcrumb . CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
             }

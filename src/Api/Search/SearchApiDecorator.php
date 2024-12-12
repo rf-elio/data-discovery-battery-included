@@ -143,7 +143,7 @@ class SearchApiDecorator extends SearchApi
         } elseif (!empty($searchRequest->getCategoryPath())) {
             // category path as filter
             $categoryPath = $searchRequest->getCategoryPath();
-            $categoryPath = implode(' > ', $categoryPath);
+            $categoryPath = implode(' > ', array_slice($categoryPath, $config->getStartLevelFilter() - 1));
             $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
         }
 
