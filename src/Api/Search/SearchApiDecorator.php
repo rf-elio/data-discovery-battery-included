@@ -32,6 +32,7 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
+use Elio\ElioBatteryIncludedApiClient\Model\Extension;
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
@@ -100,6 +101,37 @@ class SearchApiDecorator extends SearchApi
 
         $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
+
+        //TODO: entfernen
+        $extension = new Extension();
+        $extension->setType('seo-störer');
+        $extension->setData(json_encode([
+            'type' => 'seo-störer',
+            'position' => 1,
+            'format' => '1x1',
+            'url' => 'http://xxxx',
+            'imageDesktop' => 'https://cdn-eu.dynamicyield.com/api/9877111/images/1313d30491096__banner_copy_2.webp',
+            'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
+            'html' => '<b>Test HTML</b>',
+            'itemId' => 'SW10006',
+            'itemType' => 'product'
+        ]));
+
+        $extension2 = new Extension();
+        $extension2->setType('seo-störer');
+        $extension2->setData(json_encode([
+            'type' => 'seo-störer',
+            'position' => 3,
+            'format' => '1x1',
+            'url' => 'http://xxxx',
+            'imageDesktop' => 'https://web.dev/static/blog/viewport-units/image/a-light-blue-element-set-6daa79ea2e48a.png',
+            'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
+            'html' => '<b>Test HTML</b>',
+            'itemId' => '4bef1c2ae8ec447198d90f04be8e7b42',
+            'itemType' => 'category'
+        ]));
+        $result->setExtensions([$extension, $extension2]);
+
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
@@ -156,6 +188,37 @@ class SearchApiDecorator extends SearchApi
             $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
         }
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
+
+        //TODO: entfernen
+        $extension = new Extension();
+        $extension->setType('seo-störer');
+        $extension->setData(json_encode([
+            'type' => 'seo-störer',
+            'position' => 1,
+            'format' => '1x1',
+            'url' => 'http://xxxx',
+            'imageDesktop' => 'https://cdn-eu.dynamicyield.com/api/9877111/images/1313d30491096__banner_copy_2.webp',
+            'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
+            'html' => '<b>Test HTML</b>',
+            'itemId' => 'SW10006',
+            'itemType' => 'product'
+        ]));
+
+        $extension2 = new Extension();
+        $extension2->setType('seo-störer');
+        $extension2->setData(json_encode([
+            'type' => 'seo-störer',
+            'position' => 3,
+            'format' => '1x2',
+            'url' => 'http://xxxx',
+            'imageDesktop' => 'https://web.dev/static/blog/viewport-units/image/a-light-blue-element-set-6daa79ea2e48a.png',
+            'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
+            'html' => '<b>Test HTML</b>',
+            'itemId' => '4bef1c2ae8ec447198d90f04be8e7b42',
+            'itemType' => 'category'
+        ]));
+        $result->setExtensions([$extension, $extension2]);
+
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 

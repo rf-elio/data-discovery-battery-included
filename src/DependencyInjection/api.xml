@@ -92,5 +92,9 @@
             <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
             <tag name="elio-data-discovery.api.transformer.response" priority="49"/>
         </service>
+        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\InterrupterTransformer">
+            <argument type="service" id="Elio\ElioDataDiscovery\Core\Content\Interrupter\SalesChannel\SeoResolver"/>
+            <tag name="elio-data-discovery.api.transformer.response"/>
+        </service>
     </services>
 </container>
