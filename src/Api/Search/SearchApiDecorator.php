@@ -110,8 +110,8 @@ class SearchApiDecorator extends SearchApi
             'position' => 1,
             'format' => '1x1',
             'url' => 'http://xxxx',
-            'imageDesktop' => 'https://cdn-eu.dynamicyield.com/api/9877111/images/1313d30491096__banner_copy_2.webp',
-            'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
+            'imageDesktop' => '',
+            'imageMobile' => '',
             'html' => '<b>Test HTML</b>',
             'itemId' => 'SW10006',
             'itemType' => 'product'
@@ -126,7 +126,7 @@ class SearchApiDecorator extends SearchApi
             'url' => 'http://xxxx',
             'imageDesktop' => 'https://web.dev/static/blog/viewport-units/image/a-light-blue-element-set-6daa79ea2e48a.png',
             'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
-            'html' => '<b>Test HTML</b>',
+            'html' => '',
             'itemId' => '4bef1c2ae8ec447198d90f04be8e7b42',
             'itemType' => 'category'
         ]));
@@ -197,8 +197,8 @@ class SearchApiDecorator extends SearchApi
             'position' => 1,
             'format' => '1x1',
             'url' => 'http://xxxx',
-            'imageDesktop' => 'https://cdn-eu.dynamicyield.com/api/9877111/images/1313d30491096__banner_copy_2.webp',
-            'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
+            'imageDesktop' => '',
+            'imageMobile' => '',
             'html' => '<b>Test HTML</b>',
             'itemId' => 'SW10006',
             'itemType' => 'product'
@@ -213,7 +213,7 @@ class SearchApiDecorator extends SearchApi
             'url' => 'http://xxxx',
             'imageDesktop' => 'https://web.dev/static/blog/viewport-units/image/a-light-blue-element-set-6daa79ea2e48a.png',
             'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
-            'html' => '<b>Test HTML</b>',
+            'html' => '',
             'itemId' => '4bef1c2ae8ec447198d90f04be8e7b42',
             'itemType' => 'category'
         ]));
