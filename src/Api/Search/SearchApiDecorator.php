@@ -114,7 +114,8 @@ class SearchApiDecorator extends SearchApi
             'imageMobile' => '',
             'html' => '<b>Test HTML</b>',
             'itemId' => 'SW10006',
-            'itemType' => 'product'
+            'itemType' => 'product',
+            'alt' => 'mein alt text'
         ]));
 
         $extension2 = new Extension();
@@ -128,7 +129,8 @@ class SearchApiDecorator extends SearchApi
             'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
             'html' => '',
             'itemId' => '4bef1c2ae8ec447198d90f04be8e7b42',
-            'itemType' => 'category'
+            'itemType' => 'category',
+            'alt' => 'mein alt text'
         ]));
         $result->setExtensions([$extension, $extension2]);
 
@@ -201,7 +203,8 @@ class SearchApiDecorator extends SearchApi
             'imageMobile' => '',
             'html' => '<b>Test HTML</b>',
             'itemId' => 'SW10006',
-            'itemType' => 'product'
+            'itemType' => 'product',
+            'alt' => 'mein alt text'
         ]));
 
         $extension2 = new Extension();
@@ -215,7 +218,8 @@ class SearchApiDecorator extends SearchApi
             'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
             'html' => '',
             'itemId' => '4bef1c2ae8ec447198d90f04be8e7b42',
-            'itemType' => 'category'
+            'itemType' => 'category',
+            'alt' => 'mein alt text'
         ]));
         $result->setExtensions([$extension, $extension2]);
 
