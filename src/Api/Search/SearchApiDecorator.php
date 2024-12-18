@@ -102,38 +102,6 @@ class SearchApiDecorator extends SearchApi
         $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
 
-        //TODO: entfernen
-        $extension = new Extension();
-        $extension->setType('seo-störer');
-        $extension->setData(json_encode([
-            'type' => 'seo-störer',
-            'position' => 1,
-            'format' => '1x1',
-            'url' => 'http://xxxx',
-            'imageDesktop' => '',
-            'imageMobile' => '',
-            'html' => '<b>Test HTML</b>',
-            'itemId' => 'SW10006',
-            'itemType' => 'product',
-            'alt' => 'mein alt text'
-        ]));
-
-        $extension2 = new Extension();
-        $extension2->setType('seo-störer');
-        $extension2->setData(json_encode([
-            'type' => 'seo-störer',
-            'position' => 3,
-            'format' => '1x1',
-            'url' => 'http://xxxx',
-            'imageDesktop' => 'https://web.dev/static/blog/viewport-units/image/a-light-blue-element-set-6daa79ea2e48a.png',
-            'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
-            'html' => '',
-            'itemId' => '4bef1c2ae8ec447198d90f04be8e7b42',
-            'itemType' => 'category',
-            'alt' => 'mein alt text'
-        ]));
-        $result->setExtensions([$extension, $extension2]);
-
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
@@ -190,38 +158,6 @@ class SearchApiDecorator extends SearchApi
             $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
         }
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
-
-        //TODO: entfernen
-        $extension = new Extension();
-        $extension->setType('seo-störer');
-        $extension->setData(json_encode([
-            'type' => 'seo-störer',
-            'position' => 1,
-            'format' => '1x1',
-            'url' => 'http://xxxx',
-            'imageDesktop' => '',
-            'imageMobile' => '',
-            'html' => '<b>Test HTML</b>',
-            'itemId' => 'SW10006',
-            'itemType' => 'product',
-            'alt' => 'mein alt text'
-        ]));
-
-        $extension2 = new Extension();
-        $extension2->setType('seo-störer');
-        $extension2->setData(json_encode([
-            'type' => 'seo-störer',
-            'position' => 3,
-            'format' => '1x2',
-            'url' => 'http://xxxx',
-            'imageDesktop' => 'https://web.dev/static/blog/viewport-units/image/a-light-blue-element-set-6daa79ea2e48a.png',
-            'imageMobile' => 'https://web.dev/static/blog/viewport-units/image/100dvh-adapts-itself-be-91c728b09836d.png',
-            'html' => '',
-            'itemId' => '4bef1c2ae8ec447198d90f04be8e7b42',
-            'itemType' => 'category',
-            'alt' => 'mein alt text'
-        ]));
-        $result->setExtensions([$extension, $extension2]);
 
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }

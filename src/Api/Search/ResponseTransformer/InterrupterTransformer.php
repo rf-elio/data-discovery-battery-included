@@ -39,22 +39,24 @@ class InterrupterTransformer implements ResponseTransformerInterface
         $interrupterResponse = new InterrupterResponse();
 
         foreach ($extensions as $extension) {
-            //TODO: Der Teil muss eventuell angepasst werden, sobald Störer bei BI implementiert und Teil der Response sind.
-            if ($extension->getType() !== 'seo-störer') {
+            if ($extension->getType() !== InterrupterItem::INTERRUPTER_ITEM_TYPE) {
                 continue;
             }
 
-            $data = json_decode($extension->getData(), true);
+            $data = $extension->getData();
+            $imageData = json_decode(json_encode($data['image']), true);
+
             $interrupter = new InterrupterItem(
-                $data['type'],
-                $data['position'],
-                $data['format'],
-                $data['url'],
-                $data['imageDesktop'],
-                $data['imageMobile'],
-                $data['html'],
-                $data['itemId'],
-                $data['itemType']
+                $data['name'] ?? '',
+                ($data['position'] ?? 1) - 1,
+                $data['format'] ?? '1x1',
+                $data['url'] ?? '',
+                $imageData['desktop'] ?? '',
+                $imageData['mobile'] ?? '',
+                $imageData['alt'] ?? '',
+                $data['code'] ?? '',
+                $data['itemId'] ?? '',
+                $data['itemType'] ?? ''
             );
 
             if ($interrupter->getItemType() === ProductDefinition::ENTITY_NAME) {

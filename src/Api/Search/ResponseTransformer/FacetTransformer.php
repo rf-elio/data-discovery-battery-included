@@ -252,7 +252,7 @@ class FacetTransformer implements ResponseTransformerInterface
 
                 $treeItems[$level][$label] = $treeItem;
 
-                if($previousTreeItem) {
+                if ($previousTreeItem && !in_array($treeItem, $previousTreeItem->getChildren(), true)) {
                     $previousTreeItem->addChildren($treeItem);
                 }
 
