@@ -32,7 +32,6 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
-use Elio\ElioBatteryIncludedApiClient\Model\Extension;
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
