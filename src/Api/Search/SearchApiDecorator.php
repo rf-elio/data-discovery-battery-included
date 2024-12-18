@@ -101,7 +101,6 @@ class SearchApiDecorator extends SearchApi
 
         $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
-
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
@@ -158,7 +157,6 @@ class SearchApiDecorator extends SearchApi
             $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
         }
         $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
-
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
