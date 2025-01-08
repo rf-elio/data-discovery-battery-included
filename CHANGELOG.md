@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.6.2 - 2024-12-05
+### Fix (1 change)
+- `SearchApiDecorator`: added fallback for maximum value in range filter to fix broken product filtering when it is not set
+
 ## 6.6.1 - 2024-11-20
 ### Fix (3 changes)
 - `ProductMappingService.php`: ratingCount is now mapped directly from product
