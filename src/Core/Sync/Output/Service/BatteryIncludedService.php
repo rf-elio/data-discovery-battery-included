@@ -74,10 +74,11 @@ class BatteryIncludedService
             ContentDataType::class => $this->contentMappingService,
             default => throw new InvalidArgumentException(),
         };
+        $config = $this->getConfiguration($context);
 
         $data = [];
         foreach ($collection->getElements() as $entity) {
-            $data[] = $mapper->mapData($entity, $syncContext);
+            $data[] = $mapper->mapData($entity, $syncContext, $config);
         }
 
         return $data;
