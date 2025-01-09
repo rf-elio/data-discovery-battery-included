@@ -43,6 +43,8 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util;
  */
 class CategoryPathUtil
 {
+    public const CATEGORY_PATH_SEPARATOR = ' > ';
+
     public static function sliceCategoryExportBreadcrumb(array $breadcrumb, int $navigationStartLevelExport): array
     {
         return array_slice($breadcrumb, $navigationStartLevelExport - 1);
