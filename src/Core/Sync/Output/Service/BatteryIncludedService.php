@@ -74,11 +74,11 @@ class BatteryIncludedService
             ContentDataType::class => $this->contentMappingService,
             default => throw new InvalidArgumentException(),
         };
-        $startLevelExport = $this->getConfiguration($context)->getStartLevelExport();
+        $config = $this->getConfiguration($context);
 
         $data = [];
         foreach ($collection->getElements() as $entity) {
-            $data[] = $mapper->mapData($entity, $syncContext, $startLevelExport);
+            $data[] = $mapper->mapData($entity, $syncContext, $config);
         }
 
         return $data;

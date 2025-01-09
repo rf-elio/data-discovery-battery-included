@@ -67,7 +67,7 @@
         <title lang="de-DE">Sync Konfiguration</title>
 
         <input-field type="int">
-            <name>startLevelExport</name>
+            <name>navigationStartLevelExport</name>
             <label>Category tree export level</label>
             <label lang="de-DE">Export-Level des Kategoriebaums</label>
             <defaultValue>2</defaultValue>

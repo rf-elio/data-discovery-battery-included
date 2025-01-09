@@ -56,7 +56,7 @@ class BatteryIncludedConfiguration extends Struct
         private readonly int $apiTimeOut,
         private readonly string $promotionTemplate,
         private readonly string $suggestPromotionTemplate,
-        private readonly int $startLevelExport
+        private readonly int $navigationStartLevelExport
     ) {}
 
     /**
@@ -122,8 +122,8 @@ class BatteryIncludedConfiguration extends Struct
     /**
      * @return int
      */
-    public function getStartLevelExport(): int
+    public function getNavigationStartLevelExport(): int
     {
-        return $this->startLevelExport;
+        return $this->navigationStartLevelExport;
     }
 }

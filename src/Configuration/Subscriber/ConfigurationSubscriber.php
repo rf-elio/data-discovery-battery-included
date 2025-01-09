@@ -77,7 +77,7 @@ class ConfigurationSubscriber implements EventSubscriberInterface
             $pluginConfig['apiTimeout'] ?? 60,
             $pluginConfig['promotionTemplate'] ?? '',
             $pluginConfig['suggestPromotionTemplate'] ?? '',
-            $pluginConfig['startLevelExport'] ?? 2
+            $pluginConfig['navigationStartLevelExport'] ?? 2
         ));
         $event->setConfiguration($configuration);
     }

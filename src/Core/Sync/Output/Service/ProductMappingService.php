@@ -32,9 +32,9 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\CategoryPathUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
-use Elio\ElioDataDiscovery\Core\Defaults;
 use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingTreeCollection;
 use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingTreeEntity;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
@@ -66,16 +66,16 @@ class ProductMappingService
      *
      * @param ProductDataType $product
      * @param SyncContext $syncContext
-     * @param int $startLevelExport
+     * @param BatteryIncludedConfiguration $config
      * @return array
      */
-    public function mapData(ProductDataType $product, SyncContext $syncContext, int $startLevelExport): array
+    public function mapData(ProductDataType $product, SyncContext $syncContext, BatteryIncludedConfiguration $config): array
     {
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
         $convertedData['_history'] = $this->prepareHistoryFields($product);
         $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext);
-        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext, $startLevelExport);
+        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext, $config->getNavigationStartLevelExport());
         $convertedData['_common'] = $this->prepareCommonFields($product);
         $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $syncContext);
         $convertedData['type'] = StripClassPathUtil::stripClassPath(get_class($product));
@@ -161,13 +161,13 @@ class ProductMappingService
      *
      * @param ProductDataType $product
      * @param SyncContext $syncContext
-     * @param int $startLevelExport
+     * @param int $navigationStartLevelExport
      * @return array
      */
     protected function prepareTranslatedFields(
         ProductDataType $product,
         SyncContext $syncContext,
-        int $startLevelExport
+        int $navigationStartLevelExport
     ): array
     {
         $collection = $product->getDataTypeTranslations();
@@ -188,7 +188,7 @@ class ProductMappingService
                 'manufacturer' => $productTranslation->getManufacturer()?->getTranslation('name') ?? $productTranslation->getManufacturer()?->getName(),
                 'keywords' => $productTranslation->getKeywords() ?? $translated['keywords'] ?? '',
                 'searchKeywords' => $productTranslation->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? [],
-                'categories' => $this->getCategoryPath($productTranslation, $startLevelExport),
+                'categories' => $this->getCategoryPath($productTranslation, $navigationStartLevelExport),
                 'categorySort' => $this->getCategorySort($productTranslation),
                 'attributes' => ProductUtil::getProductAttribute(ProductUtil::getFilterableProductProperties($productTranslation)),
                 'attributesNotFilterable' => ProductUtil::getProductAttribute(ProductUtil::getNonFilterableProductProperties($productTranslation)),
@@ -209,16 +209,16 @@ class ProductMappingService
      * Builds the category path for elio search
      *
      * @param ProductEntity $product
-     * @param int $startLevelExport
+     * @param int $navigationStartLevelExport
      * @return array
      */
-    protected function getCategoryPath(ProductEntity $product, int $startLevelExport): array
+    protected function getCategoryPath(ProductEntity $product, int $navigationStartLevelExport): array
     {
         $path = [];
         $categories = $product->getCategories() ?? new CategoryCollection();
         foreach ($categories as $category) {
             $parentBreadCrumb = '';
-            $slicedCategoryBreadcrumb = CategoryPathUtil::sliceCategoryExportBreadcrumb($category->getBreadcrumb(), $startLevelExport);
+            $slicedCategoryBreadcrumb = CategoryPathUtil::sliceCategoryExportBreadcrumb($category->getBreadcrumb(), $navigationStartLevelExport);
             foreach ($slicedCategoryBreadcrumb as $breadcrumb) {
                 $path[] = $parentBreadCrumb . $breadcrumb;
                 $parentBreadCrumb .= $breadcrumb . CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
