@@ -6,23 +6,14 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer
 use Elio\ElioBatteryIncludedApiClient\Model\Result;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
-use Elio\ElioDataDiscovery\Api\Search\Response\InterrupterResponse;
-use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
+use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\AbstractInterrupterTransformer;
 use Elio\ElioDataDiscovery\Core\Content\Interrupter\SalesChannel\InterrupterItem;
-use Elio\ElioDataDiscovery\Core\Content\Interrupter\SalesChannel\SeoResolver;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
-use Shopware\Core\Content\Product\ProductDefinition;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
-class InterrupterTransformer implements ResponseTransformerInterface
+class InterrupterTransformer extends AbstractInterrupterTransformer
 {
-    public function __construct(
-        private readonly SeoResolver $seoResolver,
-    )
-    {
-    }
-
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
     {
         return $model instanceof Result;
@@ -35,8 +26,7 @@ class InterrupterTransformer implements ResponseTransformerInterface
         }
 
         $extensions = $model->getExtensions();
-        $productInterrupters = [];
-        $interrupterResponse = new InterrupterResponse();
+        $interrupters = [];
 
         foreach ($extensions as $extension) {
             if ($extension->getType() !== InterrupterItem::INTERRUPTER_ITEM_TYPE) {
@@ -44,7 +34,10 @@ class InterrupterTransformer implements ResponseTransformerInterface
             }
 
             $data = $extension->getData();
-            $imageData = json_decode(json_encode($data['image']), true);
+            $imageData = get_object_vars($data['image']);
+            if (isset($data['itemId'])) {
+                $data['itemId'] = trim($data['itemId']);
+            }
 
             $interrupter = new InterrupterItem(
                 $data['name'] ?? '',
@@ -59,21 +52,9 @@ class InterrupterTransformer implements ResponseTransformerInterface
                 $data['itemType'] ?? ''
             );
 
-            if ($interrupter->getItemType() === ProductDefinition::ENTITY_NAME) {
-                $productInterrupters[] = $interrupter;
-                continue;
-            }
-
-            $interrupterResponse->addInterrupterItem($interrupter);
+            $interrupters[] = $interrupter;
         }
 
-        if (!empty($productInterrupters)) {
-            $productInterrupters = $this->seoResolver->resolveProductNumbersIntoIds($productInterrupters, $context);
-            foreach ($productInterrupters as $interrupter) {
-                $interrupterResponse->addInterrupterItem($interrupter);
-            }
-        }
-
-        $responseCollection->set(InterrupterResponse::class, $interrupterResponse);
+        $this->createInterrupterResponse($responseCollection, $interrupters, $context);
     }
 }
