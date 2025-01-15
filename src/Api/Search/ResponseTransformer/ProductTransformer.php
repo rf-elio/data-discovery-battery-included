@@ -84,7 +84,7 @@ class ProductTransformer extends AbstractProductTransformer
             throw new InvalidTypeException($model, Result::class);
         }
 
-        $mainNumbers = array_map(
+        $mainNumbers = array_filter(array_map(
             static function (SearchRecord $record) {
                 if ($record->getDocument()['type'] === StripClassPathUtil::stripClassPath(ProductDataType::class)) {
                     return $record->getDocument()['_product']->productNumber[0];
@@ -92,7 +92,7 @@ class ProductTransformer extends AbstractProductTransformer
                 return null;
             },
             $model->getHits()
-        );
+        ));
         
         $listing = $this->loadProductsForListing($mainNumbers, $responseCollection, $context);
         foreach ($listing->getProducts() as $product) {
