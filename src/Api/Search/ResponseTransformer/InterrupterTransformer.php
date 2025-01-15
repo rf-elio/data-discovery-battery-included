@@ -55,6 +55,8 @@ class InterrupterTransformer extends AbstractInterrupterTransformer
             $interrupters[] = $interrupter;
         }
 
-        $this->createInterrupterResponse($responseCollection, $interrupters, $context);
+        if (!empty($interrupters)) {
+            $this->createInterrupterResponse($responseCollection, $interrupters, $context);
+        }
     }
 }
