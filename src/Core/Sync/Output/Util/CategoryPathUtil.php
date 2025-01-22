@@ -45,8 +45,8 @@ class CategoryPathUtil
 {
     public const CATEGORY_PATH_SEPARATOR = ' > ';
 
-    public static function createCategoryPath(array $categories): string
+    public static function sliceCategoryExportBreadcrumb(array $breadcrumb, int $navigationStartLevelExport): array
     {
-        return implode(self::CATEGORY_PATH_SEPARATOR, $categories);
+        return array_slice($breadcrumb, $navigationStartLevelExport - 1);
     }
 }

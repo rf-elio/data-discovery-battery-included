@@ -177,6 +177,9 @@ class SearchApiDecorator extends SearchApi
                         $filters['f[' . $key . '][from]'] = 1;
                     }
                 }
+                else {
+                    $filters['f[' . $key . '][till]'] = PHP_INT_MAX;
+                }
             } else {
                $filters['f[' . $key . ']'] = $value;
             }

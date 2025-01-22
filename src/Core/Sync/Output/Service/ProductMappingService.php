@@ -32,9 +32,9 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\CategoryPathUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
-use Elio\ElioDataDiscovery\Core\Defaults;
 use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingTreeCollection;
 use Elio\ElioDataDiscovery\Core\Sorting\ProductSortingTreeEntity;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
@@ -49,7 +49,6 @@ use Shopware\Core\Content\Category\CategoryCollection;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionCollection;
 use Shopware\Core\Content\Property\Aggregate\PropertyGroupOption\PropertyGroupOptionEntity;
-use Shopware\Core\Defaults as ShopwareDefaults;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 
 /**
@@ -67,15 +66,16 @@ class ProductMappingService
      *
      * @param ProductDataType $product
      * @param SyncContext $syncContext
+     * @param BatteryIncludedConfiguration $config
      * @return array
      */
-    public function mapData(ProductDataType $product, SyncContext $syncContext): array
+    public function mapData(ProductDataType $product, SyncContext $syncContext, BatteryIncludedConfiguration $config): array
     {
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
         $convertedData['_history'] = $this->prepareHistoryFields($product);
         $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext);
-        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
+        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext, $config->getNavigationStartLevelExport());
         $convertedData['_common'] = $this->prepareCommonFields($product);
         $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $syncContext);
         $convertedData['type'] = StripClassPathUtil::stripClassPath(get_class($product));
@@ -161,11 +161,13 @@ class ProductMappingService
      *
      * @param ProductDataType $product
      * @param SyncContext $syncContext
+     * @param int $navigationStartLevelExport
      * @return array
      */
     protected function prepareTranslatedFields(
         ProductDataType $product,
-        SyncContext $syncContext
+        SyncContext $syncContext,
+        int $navigationStartLevelExport
     ): array
     {
         $collection = $product->getDataTypeTranslations();
@@ -186,10 +188,12 @@ class ProductMappingService
                 'manufacturer' => $productTranslation->getManufacturer()?->getTranslation('name') ?? $productTranslation->getManufacturer()?->getName(),
                 'keywords' => $productTranslation->getKeywords() ?? $translated['keywords'] ?? '',
                 'searchKeywords' => $productTranslation->getSearchKeywords() ?? $translated['customSearchKeywords'] ?? [],
-                'categories' => $this->getCategoryPath($productTranslation),
+                'categories' => $this->getCategoryPath($productTranslation, $navigationStartLevelExport),
                 'categorySort' => $this->getCategorySort($productTranslation),
                 'attributes' => ProductUtil::getProductAttribute(ProductUtil::getFilterableProductProperties($productTranslation)),
                 'attributesNotFilterable' => ProductUtil::getProductAttribute(ProductUtil::getNonFilterableProductProperties($productTranslation)),
+                'properties' => ProductUtil::getProductProperty(ProductUtil::getFilterableProductProperties($productTranslation)),
+                'propertiesNotFilterable' => ProductUtil::getProductProperty(ProductUtil::getNonFilterableProductProperties($productTranslation)),
                 'tags' => ProductUtil::getProductTags($productTranslation),
                 'variant' => [
                     'options' => $this->getProductOptions($productTranslation->getOptions()),
@@ -205,22 +209,17 @@ class ProductMappingService
      * Builds the category path for elio search
      *
      * @param ProductEntity $product
+     * @param int $navigationStartLevelExport
      * @return array
      */
-    protected function getCategoryPath(ProductEntity $product): array
+    protected function getCategoryPath(ProductEntity $product, int $navigationStartLevelExport): array
     {
         $path = [];
         $categories = $product->getCategories() ?? new CategoryCollection();
         foreach ($categories as $category) {
             $parentBreadCrumb = '';
-            $firstSkipped = false;
-            foreach ($category->getBreadcrumb() as $breadcrumb) {
-                // first one is home, we don't want to have home
-                if (!$firstSkipped) {
-                    $firstSkipped = true;
-                    continue;
-                }
-
+            $slicedCategoryBreadcrumb = CategoryPathUtil::sliceCategoryExportBreadcrumb($category->getBreadcrumb(), $navigationStartLevelExport);
+            foreach ($slicedCategoryBreadcrumb as $breadcrumb) {
                 $path[] = $parentBreadCrumb . $breadcrumb;
                 $parentBreadCrumb .= $breadcrumb . CategoryPathUtil::CATEGORY_PATH_SEPARATOR;
             }
@@ -264,31 +263,6 @@ class ProductMappingService
         }
 
         return $sort;
-    }
-
-    /**
-     * Builds the category path for elio search
-     *
-     * @param ProductEntity $product
-     * @return string
-     */
-    protected function getCategoryIds(ProductEntity $product): string
-    {
-        if (!$product->getCategories()) {
-            return '';
-        }
-
-        $productCategoryIds = [];
-        $categories = $product->getCategories()->getElements();
-
-        foreach ($categories as $category) {
-            $path = $category->getPath();
-            $ids = explode('|', (string) $path);
-            $ids = array_filter($ids);
-            $productCategoryIds[] = implode('/', $ids);
-        }
-
-        return implode(Defaults::VALUE_SEPARATOR, $productCategoryIds);
     }
 
     /**

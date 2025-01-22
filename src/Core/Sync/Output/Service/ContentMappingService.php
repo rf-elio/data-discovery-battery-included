@@ -32,6 +32,8 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
+use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\CategoryPathUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioDataDiscovery\Core\Defaults;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
@@ -60,15 +62,16 @@ class ContentMappingService
      *
      * @param ContentDataType $content
      * @param SyncContext $syncContext
+     * @param BatteryIncludedConfiguration $config
      * @return array
      */
-    public function mapData(ContentDataType $content, SyncContext $syncContext): array
+    public function mapData(ContentDataType $content, SyncContext $syncContext, BatteryIncludedConfiguration $config): array
     {
         $convertedData = [];
         $convertedData['id'] = $content->getIdentifier();
         $convertedData['_content'] = $this->prepareBaseFields($content);
         $convertedData['_content_i18n'] = $this->prepareTranslatedFields(
-            $content->getDataTypeTranslations(), $syncContext
+            $content->getDataTypeTranslations(), $syncContext, $config->getNavigationStartLevelExport()
         );
         $convertedData['_common'] = $this->prepareCommonFields($content);
         $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields(
@@ -132,9 +135,10 @@ class ContentMappingService
      *
      * @param array $collection
      * @param SyncContext $syncContext
+     * @param int $navigationStartLevelExport
      * @return array
      */
-    protected function prepareTranslatedFields(array $collection, SyncContext $syncContext): array
+    protected function prepareTranslatedFields(array $collection, SyncContext $syncContext, int $navigationStartLevelExport): array
     {
         $translatedFields = [];
         foreach ($collection as $languageId => $content) {
@@ -146,7 +150,7 @@ class ContentMappingService
                 'seoText' => $content->getSeoText(),
                 'keywords' => $content->getKeywords(),
                 'description' => $content->getDescription(),
-                'contentStructure' => ValueUtil::cleanValue(implode('/', array_map('rawurlencode', array_slice($content->getBreadcrumb() ?? [], 1)))),
+                'contentStructure' => ValueUtil::cleanValue(implode('/', array_map('rawurlencode', CategoryPathUtil::sliceCategoryExportBreadcrumb($content->getBreadcrumb() ?? [], $navigationStartLevelExport)))),
                 'tags' => $this->getTags($content),
                 'mappedFields' => MappingUtil::addMappedProperties($content, $syncContext->getSyncProfile()->getMapping(), PropertyAccess::createPropertyAccessor()),
             ];
