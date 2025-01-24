@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.6.3 - 2025-01-24
+### Features (1 change)
+- Compatibility with Shopware 6.6.8 and 6.6.9
+
 ## 6.6.2 - 2025-01-15
 ### Features (1 change)
 - Added Interrupters:
