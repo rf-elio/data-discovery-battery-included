@@ -1,7 +1,9 @@
 # CHANGELOG.md
-## 6.6.4 - 2025-02-10
-### Fix (1 change)
+## 6.6.4 - 2025-02-13
+### Fix (3 changes)
 - Added missing return in `ProductListingLoaderDecorator` which prevented falling back to the original service (Core)
+- Replaced `form-check` class selector for multi-select filter items with `edd-filter-form-check` selector for styling (Core)
+- `search.html.twig`: Added `searchWidgetMinChars` option to use Shopware's `Minimal search term length` setting in the suggest (Core)
 
 ## 6.6.3 - 2025-01-24
 ### Features (1 change)
