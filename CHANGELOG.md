@@ -1,4 +1,6 @@
 # CHANGELOG.md
+## 2.2.42 - 2025-02-17
+- Variant display logic from latest 6.6.4 version applied to disable shopware's custom variant display logic for navigation and search results provided by search engines
 
 ## 2.2.0 - 2024-03-18
 ### Fix (1 change)
