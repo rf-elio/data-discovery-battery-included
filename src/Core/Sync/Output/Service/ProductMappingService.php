@@ -190,6 +190,8 @@ class ProductMappingService
                 'categorySort' => $this->getCategorySort($productTranslation),
                 'attributes' => ProductUtil::getProductAttribute(ProductUtil::getFilterableProductProperties($productTranslation)),
                 'attributesNotFilterable' => ProductUtil::getProductAttribute(ProductUtil::getNonFilterableProductProperties($productTranslation)),
+                'properties' => ProductUtil::getProductProperty(ProductUtil::getFilterableProductProperties($productTranslation)),
+                'propertiesNotFilterable' => ProductUtil::getProductProperty(ProductUtil::getNonFilterableProductProperties($productTranslation)),
                 'tags' => ProductUtil::getProductTags($productTranslation),
                 'variant' => [
                     'options' => $this->getProductOptions($productTranslation->getOptions()),
@@ -262,31 +264,6 @@ class ProductMappingService
         }
 
         return $sort;
-    }
-
-    /**
-     * Builds the category path for elio search
-     *
-     * @param ProductEntity $product
-     * @return string
-     */
-    protected function getCategoryIds(ProductEntity $product): string
-    {
-        if (!$product->getCategories()) {
-            return '';
-        }
-
-        $productCategoryIds = [];
-        $categories = $product->getCategories()->getElements();
-
-        foreach ($categories as $category) {
-            $path = $category->getPath();
-            $ids = explode('|', (string) $path);
-            $ids = array_filter($ids);
-            $productCategoryIds[] = implode('/', $ids);
-        }
-
-        return implode(Defaults::VALUE_SEPARATOR, $productCategoryIds);
     }
 
     /**
