@@ -40,7 +40,7 @@
             <argument type="service" id="elio.data-discovery.core.logging.debug"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Recommendations\ResponseTransformer\RecommendationProductTransformer">
-            <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Listing\ProductListingLoader" />
+            <argument type="service" id="sales_channel.product.repository" />
             <tag name="elio-data-discovery.api.transformer.response"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Configuration\ConfigurationAdapterDecorator" decorates="Elio\ElioDataDiscovery\Api\Configuration\ConfigurationAdapter">

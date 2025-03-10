@@ -1,4 +1,11 @@
 # CHANGELOG.md
+## 6.6.5 - 2025-03-05
+### Features (1 change)
+- Added support for AI pick badges
+
+### Fix (1 change)
+- `ProductMappingService`: Replaced product with productTranslation when mapping custom fields in case no custom field value for the default language exists
+
 ## 6.6.4 - 2025-02-13
 ### Fix (3 changes)
 - Added missing return in `ProductListingLoaderDecorator` which prevented falling back to the original service (Core)
