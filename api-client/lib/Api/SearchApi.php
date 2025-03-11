@@ -276,7 +276,7 @@ class SearchApi
             $queryParams['filters'] = ClientObjectSerializer::toQueryValue($filters, null);
         }
 
-        $queryParams['locale'] = ClientObjectSerializer::toQueryValue($locale, null);
+        $queryParams['v[locale]'] = ClientObjectSerializer::toQueryValue($locale, null);
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
@@ -516,7 +516,7 @@ class SearchApi
             $queryParams['q'] = ClientObjectSerializer::toQueryValue($q, null);
         }
 
-        $queryParams['locale'] = ClientObjectSerializer::toQueryValue($language, null);
+        $queryParams['v[locale]'] = ClientObjectSerializer::toQueryValue($language, null);
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {

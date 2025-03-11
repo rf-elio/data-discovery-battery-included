@@ -1,4 +1,9 @@
 # CHANGELOG.md
+## 2.2.43 - 2025-03-11
+### Fix (1 change)
+- `SearchApi.php`:
+    - $locale is now mapped to 'v[locale]' parameter instead of 'locale' (applied changes from 6.6.1)
+
 ## 2.2.42 - 2025-02-20
 ### Fix (2 changes)
 - Variant display logic from latest 6.6.4 version applied to disable shopware's custom variant display logic for navigation and search results provided by search engines
