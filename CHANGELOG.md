@@ -1,8 +1,9 @@
 # CHANGELOG.md
-## 2.2.43 - 2025-03-11
-### Fix (1 change)
+## 2.2.43 - 2025-03-17
+### Fix (2 changes)
 - `SearchApi.php`:
     - $locale is now mapped to 'v[locale]' parameter instead of 'locale' (applied changes from 6.6.1)
+- Applied change from 6.6.6 that allows the locale to be omitted when defining filters and sort options
 
 ## 2.2.42 - 2025-02-20
 ### Fix (2 changes)
