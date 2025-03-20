@@ -98,9 +98,10 @@ class SuggestProductTransformer implements ResponseTransformerInterface
     {
         $attributes = $item->getAttributes();
         if (!empty($attributes['ProductNumber'])) {
-            return array_shift($attributes['ProductNumber']);
+            return str_replace(['<mark>', '</mark>'], ['', ''], array_shift($attributes['ProductNumber']));
         }
 
-        return $attributes['MasterProductNumber'] ?? null;
+        $masterProductNumber = $attributes['MasterProductNumber'] ?? null;
+        return str_replace(['<mark>', '</mark>'], ['', ''], $masterProductNumber);
     }
 }

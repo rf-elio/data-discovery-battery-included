@@ -143,7 +143,7 @@ class SortTransformer implements ResponseTransformerInterface
             } elseif ($categoryId) {
                 $key = str_replace(self::CATEGORY_REPLACE, $categoryId, $key);
             }
-            
+
             $label = $filter->getTranslation('label');
 
             $sorting = new ProductSortingEntity();
