@@ -33,6 +33,8 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util;
 
 
+use Shopware\Core\System\Language\LanguageEntity;
+
 /**
  * Class LocaleFilterUtil
  * @package Api\Search\ResponseTransformer\Util
@@ -45,7 +47,10 @@ class LocaleUtil
 {
     public static function fieldByLocalAllowed(string $fieldName, string $locale): bool
     {
-        return !str_contains($fieldName, '_i18n') || str_contains($fieldName, '_i18n.'.$locale);
+        if (!preg_match('/_i18n\.\w{2}\./', $fieldName)) {
+            return true;
+        }
+        return str_contains($fieldName, '_i18n.'.$locale);
     }
 
     public static function normalizeToLocalePlaceholder(string $fieldName, string $locale): string
@@ -56,5 +61,11 @@ class LocaleUtil
     public static function replaceLocalPlaceholder(string $fieldName, string $locale): string
     {
         return str_replace('i18n.%locale%', $locale, $fieldName);
+    }
+
+    public static function getLocaleByLanguage(LanguageEntity $language): string
+    {
+        $locale = $language->getLocale()?->getCode() ?? '--';
+        return substr($locale, 0, 2);
     }
 }
