@@ -33,6 +33,8 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util;
 
 
+use Shopware\Core\System\Language\LanguageEntity;
+
 /**
  * Class LocaleFilterUtil
  * @package Api\Search\ResponseTransformer\Util
@@ -59,5 +61,11 @@ class LocaleUtil
     public static function replaceLocalPlaceholder(string $fieldName, string $locale): string
     {
         return str_replace('i18n.%locale%', $locale, $fieldName);
+    }
+
+    public static function getLocaleByLanguage(LanguageEntity $language): string
+    {
+        $locale = $language->getLocale()?->getCode() ?? '--';
+        return substr($locale, 0, 2);
     }
 }
