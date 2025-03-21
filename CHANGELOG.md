@@ -1,4 +1,13 @@
 # CHANGELOG.md
+## 6.6.6 - 2025-03-20
+### Feature (1 change)
+- Removed BI Sync, as it is now handled directly by BI instead of the plugin
+
+### Fix (3 changes)
+- Locale can now be omitted when defining filters and sort options
+- Product numbers are now sanitized in the `SuggestProductTransformer`
+- Moved function from sync `LocaleUtil` to the response transformer `LocaleUtil` and adjusted `LocaleService`
+
 ## 6.6.5 - 2025-03-05
 ### Features (1 change)
 - Added support for AI pick badges

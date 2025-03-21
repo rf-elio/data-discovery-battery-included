@@ -6,7 +6,6 @@
     <imports>
         <import resource="api.xml"/>
         <import resource="configuration.xml"/>
-        <import resource="sync-profile.xml"/>
         <import resource="features.xml"/>
     </imports>
 </container>
