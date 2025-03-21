@@ -102,6 +102,10 @@ class SuggestProductTransformer implements ResponseTransformerInterface
         }
 
         $masterProductNumber = $attributes['MasterProductNumber'] ?? null;
-        return str_replace(['<mark>', '</mark>'], ['', ''], $masterProductNumber);
+        if ($masterProductNumber) {
+            return str_replace(['<mark>', '</mark>'], ['', ''], $masterProductNumber);
+        }
+
+        return null;
     }
 }
