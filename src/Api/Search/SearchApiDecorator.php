@@ -36,6 +36,7 @@ use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\NavigationRequestProduct;
@@ -135,6 +136,9 @@ class SearchApiDecorator extends SearchApi
         $apiClient = $this->apiFactory->createSearchApi($context);
         $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
+
+        /** @var BatteryIncludedConfiguration $biConfig */
+        $biConfig = $config->getExtension(BatteryIncludedConfiguration::NAME);
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
         if (!empty($searchRequest->getStreamId())) {
@@ -144,7 +148,7 @@ class SearchApiDecorator extends SearchApi
             // category path as filter
             $categoryPath = $searchRequest->getCategoryPath();
             $categoryPath = implode(' > ', $categoryPath);
-            $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
+            $biConfig->isIgnoreLocaleForListingRequest() ? $filters['f[_product_i18n.categories]'] = $categoryPath : $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
         }
 
         $filters['f[_product.visibility]'] = [Visibilities::VISIBILITY_ALL->value];
