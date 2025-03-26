@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 2.2.45 - 2025-03-26
+### Fix (1 change)
+- Fixed missing getter for `ignoreLocaleForListingRequest` setting
+
 ## 2.2.44 - 2025-03-26
 ### Fix(2 changes)
 - Fixed handling of filters when locale is ignored (applied changes from 6.6.7)

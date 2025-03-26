@@ -118,4 +118,9 @@ class BatteryIncludedConfiguration extends Struct
     {
         return $this->suggestPromotionTemplate;
     }
+
+    public function isIgnoreLocaleForListingRequest(): bool
+    {
+        return $this->ignoreLocaleForListingRequest;
+    }
 }
