@@ -45,6 +45,7 @@ use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\SearchApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
 use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService;
+use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\Aggregation\Visibilities;
@@ -148,6 +149,9 @@ class SearchApiDecorator extends SearchApi
             // category path as filter
             $categoryPath = $searchRequest->getCategoryPath();
             $categoryPath = implode(' > ', $categoryPath);
+            if (!$biConfig) {
+                throw new InvalidTypeException($biConfig, BatteryIncludedConfiguration::class);
+            }
             $biConfig->isIgnoreLocaleForListingRequest() ? $filters['f[_product_i18n.categories]'] = $categoryPath : $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
         }
 
