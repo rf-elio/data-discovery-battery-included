@@ -157,7 +157,13 @@ class SuggestionTransformer implements ResponseTransformerInterface
             ) {
                 $suggestItem->setType(SuggestTypes::PRODUCT->value);
             }
-            $namePropertyPath = 'highlighted._product_i18n.'.$locale.'.name';
+
+            if ($propertyAccess->isReadable($hit, 'highlighted._product_i18n.'.$locale)) {
+                $productTranslationPropertyPath = 'highlighted._product_i18n.'.$locale;
+            } else {
+                $productTranslationPropertyPath = 'highlighted._product_i18n';
+            }
+            $namePropertyPath = $productTranslationPropertyPath . '.name';
             if ($propertyAccess->isReadable($hit, $namePropertyPath)) {
                 $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $namePropertyPath)));
             }
@@ -194,9 +200,13 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 }
             }
 
-            $commonTranslationPropertyPath = 'highlighted._common_i18n';
+            if ($propertyAccess->isReadable($hit, 'highlighted._common_i18n.' . $locale)) {
+                $commonTranslationPropertyPath = 'highlighted._common_i18n.' . $locale;
+            } else {
+                $commonTranslationPropertyPath = 'highlighted._common_i18n';
+            }
             if ($propertyAccess->isReadable($hit, $commonTranslationPropertyPath)) {
-                $urlPropertyPath = $commonTranslationPropertyPath.'.'.$locale.'.url';
+                $urlPropertyPath = $commonTranslationPropertyPath.'.url';
                 if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
                     $suggestItem->setUrl(strip_tags((string) $propertyAccess->getValue($hit, $urlPropertyPath)));
                 }
@@ -204,14 +214,21 @@ class SuggestionTransformer implements ResponseTransformerInterface
 
             $contentPropertyPath = 'highlighted._content';
             if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
-                $contentNamePropertyPath = 'highlighted._content_i18n.'.$locale.'.name';
-                if ($propertyAccess->isReadable($hit, $contentNamePropertyPath)) {
-                    $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
-                }
-
                 $contentTypePath = $contentPropertyPath.'.contentType';
                 if ($propertyAccess->isReadable($hit, $contentTypePath)) {
                     $suggestItem->setType(strip_tags($propertyAccess->getValue($hit, $contentTypePath)));
+                }
+            }
+
+            if ($propertyAccess->isReadable($hit, 'highlighted._content_i18n.' . $locale)) {
+                $contentTranslationPropertyPath = 'highlighted._content_i18n.' . $locale;
+            } else {
+                $contentTranslationPropertyPath = 'highlighted._content_i18n';
+            }
+            if ($propertyAccess->isReadable($hit, $contentTranslationPropertyPath)) {
+                $contentNamePropertyPath = $contentTranslationPropertyPath.'name';
+                if ($propertyAccess->isReadable($hit, $contentNamePropertyPath)) {
+                    $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
                 }
             }
 

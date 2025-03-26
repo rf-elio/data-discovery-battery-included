@@ -62,4 +62,17 @@
             <helpText lang="de-DE">Variablen, die in der Werbevorlage ersetzt werden: %url%, %imageUrl%, %alt%</helpText>
         </input-field>
     </card>
+    <card>
+        <title>Listing Configuration</title>
+        <title lang="de-DE">Listing Konfiguration</title>
+
+        <input-field type="bool">
+            <name>ignoreLocaleForListingRequest</name>
+            <label>Ignore locale for listing request</label>
+            <label lang="de-DE">Locale für Listing-Request ignorieren</label>
+            <defaultValue>false</defaultValue>
+            <helpText>Ignores the locale in the listing request in case a locale variable is defined in the portal</helpText>
+            <helpText lang="de-DE">Ignoriert die Locale im Listing-Request falls im Portal eine locale Variable definiert ist</helpText>
+        </input-field>
+    </card>
 </config>

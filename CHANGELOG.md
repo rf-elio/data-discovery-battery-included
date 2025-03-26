@@ -1,4 +1,9 @@
 # CHANGELOG.md
+## 2.2.44 - 2025-03-26
+### Fix(2 changes)
+- Fixed handling of filters when locale is ignored (applied changes from 6.6.7)
+- Added `ignoreLocaleForListingRequest` config setting to ignore the locale when querying BI in the navigation (applied changes from 6.6.7)
+
 ## 2.2.43 - 2025-03-20
 ### Feature (1 change)
 - Removed BI Sync, as it is now handled directly by BI instead of the plugin (applied changes from 6.6.6)
