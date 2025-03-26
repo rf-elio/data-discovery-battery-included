@@ -36,6 +36,7 @@ use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\NavigationRequestProduct;
@@ -43,6 +44,8 @@ use Elio\ElioDataDiscovery\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\SearchApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService;
+use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\Aggregation\Visibilities;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
@@ -75,7 +78,8 @@ class SearchApiDecorator extends SearchApi
         private readonly LocaleService $localeService,
         LoggerInterface $logger,
         private readonly SystemConfigService $systemConfigService,
-        private readonly EntityRepository $filterRepository
+        private readonly EntityRepository $filterRepository,
+        private readonly ElioDataDiscoveryConfigService $configService
     ) {
         parent::__construct($logger);
     }
@@ -118,7 +122,11 @@ class SearchApiDecorator extends SearchApi
         SalesChannelContext $context
     ): ResponseCollection {
         $apiClient = $this->apiFactory->createSearchApi($context);
+        $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
+
+        /** @var BatteryIncludedConfiguration $biConfig */
+        $biConfig = $config->getExtension(BatteryIncludedConfiguration::NAME);
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
         if (!empty($searchRequest->getStreamId())) {
@@ -128,7 +136,10 @@ class SearchApiDecorator extends SearchApi
             // category path as filter
             $categoryPath = $searchRequest->getCategoryPath();
             $categoryPath = implode(' > ', $categoryPath);
-            $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
+            if (!$biConfig) {
+                throw new InvalidTypeException($biConfig, BatteryIncludedConfiguration::class);
+            }
+            $biConfig->isIgnoreLocaleForListingRequest() ? $filters['f[_product_i18n.categories]'] = $categoryPath : $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
         }
 
         $filters['f[_product.visibility]'] = [Visibilities::VISIBILITY_ALL->value];

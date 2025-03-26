@@ -25,6 +25,7 @@
             <argument type="service" id="elio.data-discovery.core.logging.debug"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="elio_data_discovery_filter.repository"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService" />
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SuggestApiDecorator" decorates="Elio\ElioDataDiscovery\Api\Search\SuggestApi">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
