@@ -65,17 +65,22 @@ class ContentTransformer extends AbstractContentTransformer
                 continue;
             }
 
+            if (isset($hit['document']['_content_i18n']->$locale)) {
+                $contentTranslation = $hit->getDocument()['_content_i18n']->$locale;
+            } else {
+                $contentTranslation = $hit->getDocument()['_content_i18n'];
+            }
             $content = new ContentItem(
                 $hit->getDocument()['id'],
                 $hit->getDocument()['_content']->contentType ?? '',
-                explode('/', $hit->getDocument()['_content_i18n']->$locale->contentStructure ?? ''),
-                $hit->getDocument()['_content_i18n']->$locale->name ?? '',
-                $hit->getDocument()['_content_i18n']->$locale->description ?? '',
-                $hit->getDocument()['_common_i18n']->$locale->url ?? '',
+                explode('/', $contentTranslation->contentStructure ?? ''),
+                $contentTranslation->name ?? '',
+                $contentTranslation->description ?? '',
+                $contentTranslation->url ?? '',
                 $hit->getDocument()['_common']->imageUrl ?? '',
                 $this->restoreDateTime($hit->getDocument()['_common']->releaseDate ?? ''),
-                $hit->getDocument()['_content_i18n']->$locale->mappedFields->priority ?? ContentSyncDefaults::DEFAULT_PRIORITY,
-                $hit->getDocument()['_content_i18n']->$locale->mappedFields->position ?? 0,
+                $contentTranslation->mappedFields->priority ?? ContentSyncDefaults::DEFAULT_PRIORITY,
+                $contentTranslation->mappedFields->position ?? 0,
             );
             $content->addExtension(Response::DATA_SOURCE, new StructWrapper($hit));
             $listing->addContentItem($content);

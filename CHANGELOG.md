@@ -1,4 +1,12 @@
 # CHANGELOG.md
+## 6.6.7 - 2025-03-21
+### Feature (1 change)
+- Compatibility with Shopware 6.6.10
+
+### Fix (2 changes)
+- Fixed handling of filters when locale is ignored
+- Added `ignoreLocaleForListingRequest` config setting to ignore the locale when querying BI in the navigation
+
 ## 6.6.6 - 2025-03-20
 ### Feature (1 change)
 - Removed BI Sync, as it is now handled directly by BI instead of the plugin

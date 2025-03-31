@@ -47,10 +47,7 @@ class LocaleUtil
 {
     public static function fieldByLocalAllowed(string $fieldName, string $locale): bool
     {
-        if (!preg_match('/_i18n\.\w{2}\./', $fieldName)) {
-            return true;
-        }
-        return str_contains($fieldName, '_i18n.'.$locale);
+        return !preg_match('/_i18n\.\w{2}\./', $fieldName) || str_contains($fieldName, '_i18n.' . $locale);
     }
 
     public static function normalizeToLocalePlaceholder(string $fieldName, string $locale): string
