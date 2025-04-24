@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 2.2.46 - 2025-04-24
+### Fix (1 change)
+- Compatibility with Data Discovery Core 2.2.46
+
 ## 2.2.45 - 2025-03-26
 ### Fix (1 change)
 - Fixed missing getter for `ignoreLocaleForListingRequest` setting
