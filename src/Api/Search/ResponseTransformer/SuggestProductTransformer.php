@@ -7,12 +7,14 @@ use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Components\SuggestTypes;
 use Elio\ElioDataDiscovery\Api\Search\Response\SuggestionResponse;
+use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\Event\SuggestProductCollectCriteriaEvent;
 use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroup;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Shopware\Core\Content\Product\ProductEntity;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Filter\EqualsAnyFilter;
@@ -23,7 +25,8 @@ class SuggestProductTransformer implements ResponseTransformerInterface
 {
     public function __construct(
         private readonly SalesChannelRepository $productRepository,
-        private readonly ElioDataDiscoveryConfigServiceInterface $configService
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService,
+        private readonly EventDispatcherInterface $eventDispatcher
     ) {}
 
     public function supports(ModelInterface $model, ApiRequest $request, SalesChannelContext $context): bool
@@ -74,10 +77,13 @@ class SuggestProductTransformer implements ResponseTransformerInterface
 
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsAnyFilter('productNumber', $productNumbers));
+        $event = new SuggestProductCollectCriteriaEvent($criteria, $context);
+        $this->eventDispatcher->dispatch($event);
+
         $products = [];
 
         /** @var ProductEntity $product */
-        foreach ($this->productRepository->search($criteria, $context) as $product) {
+        foreach ($this->productRepository->search($event->getCriteria(), $context) as $product) {
             $products[$product->getProductNumber()] = $product;
         }
 

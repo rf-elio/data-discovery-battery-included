@@ -1,4 +1,16 @@
 # CHANGELOG.md
+## 6.6.11 - 2025-05-28
+### Feature (6 changes)
+- Suggest now accepts filters
+- Filter names and values are now decoded if Unicode encoded
+- Added alt text for promotion HTML in `PromotionTransformer`
+- Added support for AI pick badges in suggest
+- Added `SuggestProductCollectCriteriaEvent` in `SuggestProductTransformer` to modify criteria when products are collected
+- Changed handling of locale and make usage of `useLegacyLocale` configuration option from Core plugin
+
+### Fix (1 change)
+- Refactored code for range filter preparation in `SearchApiDecorator`
+
 ## 6.6.7 - 2025-03-21
 ### Feature (1 change)
 - Compatibility with Shopware 6.6.10
