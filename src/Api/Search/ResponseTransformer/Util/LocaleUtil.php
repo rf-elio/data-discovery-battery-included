@@ -47,7 +47,9 @@ class LocaleUtil
 {
     public static function fieldByLocalAllowed(string $fieldName, string $locale): bool
     {
-        return !preg_match('/_i18n\.\w{2}\./', $fieldName) || str_contains($fieldName, '_i18n.' . $locale);
+        $pattern = strlen($locale) === 2 ? '/_i18n\.\w{2}\./' : '/_i18n\.[a-z]{2,3}-[A-Z]{2}\./';
+
+        return !preg_match($pattern, $fieldName) || str_contains($fieldName, '_i18n.' . $locale);
     }
 
     public static function normalizeToLocalePlaceholder(string $fieldName, string $locale): string
@@ -60,9 +62,14 @@ class LocaleUtil
         return str_replace('i18n.%locale%', $locale, $fieldName);
     }
 
-    public static function getLocaleByLanguage(LanguageEntity $language): string
+    public static function getLocaleByLanguage(LanguageEntity $language, bool $substr): string
     {
         $locale = $language->getLocale()?->getCode() ?? '--';
-        return substr($locale, 0, 2);
+
+        if ($substr) {
+            return substr($locale, 0, 2);
+        }
+
+        return $locale;
     }
 }
