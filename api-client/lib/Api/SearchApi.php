@@ -27,7 +27,7 @@
 
 namespace Elio\ElioBatteryIncludedApiClient\Api;
 
-use Elio\ElioDataDiscovery\Core\Util\PropertyUtil;
+use Elio\ElioDataDiscovery\Core\Util\StringUtil;
 use Elio\ElioDataDiscovery\Swagger\ClientApiException;
 use Elio\ElioDataDiscovery\Swagger\ClientConfiguration;
 use Elio\ElioDataDiscovery\Swagger\ClientHeaderSelector;
@@ -266,8 +266,8 @@ class SearchApi
             foreach ($filters as $key => $filter) {
                 if (is_array($filter)) {
                     foreach ($filter as $item) {
-                        $item = PropertyUtil::decodeStringFromUnescapedUnicode($item);
-                        $key = PropertyUtil::decodeStringFromUnescapedUnicode($key);
+                        $item = StringUtil::decodeStringFromUnescapedUnicode($item);
+                        $key = StringUtil::decodeStringFromUnescapedUnicode($key);
                         $queryParams[$key][] = ClientObjectSerializer::toQueryValue($item, null);
                     }
                 } else {
@@ -530,6 +530,8 @@ class SearchApi
             foreach ($filters as $key => $filter) {
                 if (is_array($filter)) {
                     foreach ($filter as $item) {
+                        $item = StringUtil::decodeStringFromUnescapedUnicode($item);
+                        $key = StringUtil::decodeStringFromUnescapedUnicode($key);
                         $queryParams[$key][] = ClientObjectSerializer::toQueryValue($item, null);
                     }
                 } else {

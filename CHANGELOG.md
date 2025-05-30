@@ -1,5 +1,5 @@
 # CHANGELOG.md
-## 6.6.11 - 2025-05-28
+## 6.6.11 - 2025-05-30
 ### Feature (6 changes)
 - Suggest now accepts filters
 - Filter names and values are now decoded if Unicode encoded
