@@ -43,6 +43,7 @@ class SuggestionResult implements ModelInterface, ArrayAccess
     public const RESULT_TYPE_DOCUMENT = 'document';
     public const RESULT_TYPE_QUERY_COMPLETION = 'query-completion';
     public const RESULT_TYPE_TAG_CLOUD = 'tag-cloud';
+    public const RESULT_TYPE_FOUND = 'found';
     /**
      * The original name of the model.
      *
@@ -57,7 +58,8 @@ class SuggestionResult implements ModelInterface, ArrayAccess
      */
     protected static $swaggerTypes = [
         'kind' => 'string',
-        'hits' => 'object'
+        'hits' => 'object',
+        'found' => 'int'
     ];
 
     /**
@@ -67,7 +69,8 @@ class SuggestionResult implements ModelInterface, ArrayAccess
      */
     protected static $swaggerFormats = [
         'kind' => null,
-        'hits' => null
+        'hits' => null,
+        'found' => null
     ];
 
     /**
@@ -98,7 +101,8 @@ class SuggestionResult implements ModelInterface, ArrayAccess
      */
     protected static $attributeMap = [
         'kind' => 'kind',
-        'hits' => 'hits'
+        'hits' => 'hits',
+        'found' => 'found'
     ];
 
     /**
@@ -108,7 +112,8 @@ class SuggestionResult implements ModelInterface, ArrayAccess
      */
     protected static $setters = [
         'kind' => 'setKind',
-        'hits' => 'setHits'
+        'hits' => 'setHits',
+        'found' => 'setFound'
     ];
 
     /**
@@ -118,7 +123,8 @@ class SuggestionResult implements ModelInterface, ArrayAccess
      */
     protected static $getters = [
         'kind' => 'getKind',
-        'hits' => 'getHits'
+        'hits' => 'getHits',
+        'found' => 'getFound'
     ];
 
     /**
@@ -181,8 +187,9 @@ class SuggestionResult implements ModelInterface, ArrayAccess
      */
     public function __construct(array $data = null)
     {
-        $this->container['kind'] = isset($data['kind']) ? $data['kind'] : null;
-        $this->container['hits'] = isset($data['hits']) ? $data['hits'] : null;
+        $this->container['kind'] = $data['kind'] ?? null;
+        $this->container['hits'] = $data['hits'] ?? null;
+        $this->container['found'] = $data['found'] ?? null;
     }
 
     public function getKind()
@@ -205,6 +212,18 @@ class SuggestionResult implements ModelInterface, ArrayAccess
     public function setHits($hits)
     {
         $this->container['hits'] = $hits;
+
+        return $this;
+    }
+
+    public function getFound()
+    {
+        return $this->container['found'];
+    }
+
+    public function setFound($found)
+    {
+        $this->container['found'] = $found;
 
         return $this;
     }
