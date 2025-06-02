@@ -27,6 +27,7 @@
 
 namespace Elio\ElioBatteryIncludedApiClient\Api;
 
+use Elio\ElioDataDiscovery\Core\Util\StringUtil;
 use Elio\ElioDataDiscovery\Swagger\ClientApiException;
 use Elio\ElioDataDiscovery\Swagger\ClientConfiguration;
 use Elio\ElioDataDiscovery\Swagger\ClientHeaderSelector;
@@ -265,6 +266,8 @@ class SearchApi
             foreach ($filters as $key => $filter) {
                 if (is_array($filter)) {
                     foreach ($filter as $item) {
+                        $item = StringUtil::decodeStringFromUnescapedUnicode($item);
+                        $key = StringUtil::decodeStringFromUnescapedUnicode($key);
                         $queryParams[$key][] = ClientObjectSerializer::toQueryValue($item, null);
                     }
                 } else {
@@ -355,15 +358,16 @@ class SearchApi
      * Suggest
      *
      * @param string $q q (optional)
+     * @param array $filters filters (optional)
      * @param string $x_bi_api_key x_bi_api_key (optional)
      *
      * @throws ClientApiException on non-2xx response
      * @throws InvalidArgumentException
      *  TODO: Add request into parameters
      */
-    public function suggest($q, $language, $x_bi_api_key = null)
+    public function suggest($q, $language, $filters = null, $x_bi_api_key = null)
     {
-        list($response) = $this->suggestWithHttpInfo($q, $language, $x_bi_api_key);
+        list($response) = $this->suggestWithHttpInfo($q, $language, $filters, $x_bi_api_key);
         return $response;
     }
 
@@ -373,16 +377,17 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param array $filters filters (optional)
      * @param string $x_bi_api_key (optional)
      *
      * @return array of null, HTTP status code, HTTP response headers (array of strings)
      * @throws InvalidArgumentException
      * @throws ApiException on non-2xx response
      */
-    public function suggestWithHttpInfo($q, $language, $x_bi_api_key = null)
+    public function suggestWithHttpInfo($q, $language, $filters = null, $x_bi_api_key = null)
     {
         $returnType = '\Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult[]';
-        $request = $this->suggestRequest($q, $language, $x_bi_api_key);
+        $request = $this->suggestRequest($q, $language, $filters, $x_bi_api_key);
         try {
             $options = $this->createHttpClientOption();
             try {
@@ -439,14 +444,15 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param array $filters filters (optional)
      * @param string $x_bi_api_key (optional)
      *
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function suggestAsync($q, $language, $x_bi_api_key = null)
+    public function suggestAsync($q, $language, $filters = null, $x_bi_api_key = null)
     {
-        return $this->suggestAsyncWithHttpInfo($q, $language, $x_bi_api_key)
+        return $this->suggestAsyncWithHttpInfo($q, $language, $filters, $x_bi_api_key)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -460,15 +466,16 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param array $filters filters (optional)
      * @param string $x_bi_api_key (optional)
      *
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function suggestAsyncWithHttpInfo($q, $language, $x_bi_api_key = null)
+    public function suggestAsyncWithHttpInfo($q, $language, $filters = null, $x_bi_api_key = null)
     {
         $returnType = '';
-        $request = $this->suggestRequest($q, $language, $x_bi_api_key);
+        $request = $this->suggestRequest($q, $language, $filters, $x_bi_api_key);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -497,12 +504,13 @@ class SearchApi
      * Create request for operation 'suggest'
      *
      * @param string $q (optional)
+     * @param array $filters filters (optional)
      * @param string $x_bi_api_key (optional)
      *
      * @return Request
      * @throws InvalidArgumentException
      */
-    protected function suggestRequest($q, $language, $x_bi_api_key = null)
+    protected function suggestRequest($q, $language, $filters = null, $x_bi_api_key = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/suggest', $this->config->getCollection());
         $formParams = [];
@@ -517,6 +525,23 @@ class SearchApi
         }
 
         $queryParams['v[locale]'] = ClientObjectSerializer::toQueryValue($language, null);
+
+        if (is_array($filters)) {
+            foreach ($filters as $key => $filter) {
+                if (is_array($filter)) {
+                    foreach ($filter as $item) {
+                        $item = StringUtil::decodeStringFromUnescapedUnicode($item);
+                        $key = StringUtil::decodeStringFromUnescapedUnicode($key);
+                        $queryParams[$key][] = ClientObjectSerializer::toQueryValue($item, null);
+                    }
+                } else {
+                    $queryParams[$key][] = ClientObjectSerializer::toQueryValue($filter, null);
+                }
+
+            }
+        } else {
+            $queryParams['filters'] = ClientObjectSerializer::toQueryValue($filters, null);
+        }
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {

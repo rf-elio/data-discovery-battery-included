@@ -12,6 +12,7 @@
         <!-- api -->
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService">
             <argument type="service" id="language.repository"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
         </service>
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory">
@@ -76,6 +77,7 @@
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestProductTransformer">
             <argument type="service" id="sales_channel.product.repository"/>
             <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
+            <argument type="service" id="event_dispatcher"/>
             <tag name="elio-data-discovery.api.transformer.response" priority="49"/>
         </service>
     </services>

@@ -102,6 +102,7 @@ class PromotionTransformer implements ResponseTransformerInterface
                     $promotion['url'] ?? '',
                     $promotion['image']->desktop ?? '',
                     $promotion['image']->mobile ?? '',
+                    $promotion['image']->alt ?? '',
                     $promotion['name'] ?? ''
                 ),
                 true
@@ -161,11 +162,12 @@ class PromotionTransformer implements ResponseTransformerInterface
         string $url,
         string $imageDesktopUrl,
         string $imageMobileUrl,
+        string $imageAlt,
         string $name
     ): string {
         return str_replace(
-            ['%url%', '%imageDesktopUrl%', '%imageMobileUrl%', '%name%'],
-            [$url, $imageDesktopUrl, $imageMobileUrl, $name],
+            ['%url%', '%imageDesktopUrl%', '%imageMobileUrl%', '%alt%', '%name%'],
+            [$url, $imageDesktopUrl, $imageMobileUrl, $imageAlt, $name],
             $promotionTemplate
         );
     }

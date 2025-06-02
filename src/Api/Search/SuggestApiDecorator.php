@@ -33,6 +33,7 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\ApiUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\SuggestRequest;
@@ -74,7 +75,18 @@ class SuggestApiDecorator extends SuggestApi
     {
         $apiClient = $this->apiFactory->createSearchApi($context);
         $locale = $this->localeService->getLocaleByContext($context);
-        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery(), $locale));
+        $filters = $this->prepareFilters($suggestRequest);
+        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery(), $locale, $filters));
         return $this->transformer->transformResponse($result, $context, $suggestRequest);
+    }
+
+    private function prepareFilters(SuggestRequest $suggestRequest): array
+    {
+        $type = $suggestRequest->getType();
+        if ($type) {
+            $suggestRequest->addFilter('type', $type);
+        }
+
+        return ApiUtil::prepareFilters($suggestRequest->getFilters());
     }
 }

@@ -108,6 +108,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $config = $this->configService->getByContext($context);
         $groupLabels = $config->getSuggestTypeLabels();
         $suggestGroups = [];
+        $found = 0;
 
         foreach ($model->getSuggestionResults() as $suggestionResult) {
             if (!$suggestionResult->getHits() || $suggestionResult->getKind() === PromotionTransformer::TYPE_PROMOTION) {
@@ -133,8 +134,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $suggestGroups[$label] = $group;
                 $group->addItem($suggestItem);
             }
+
+            $found += $suggestionResult->getFound() ?? 0;
         }
 
+        $suggestionResponse->setFound($found);
         $suggestionResponse->setGroups(new SuggestGroupCollection($suggestGroups));
     }
 
@@ -181,6 +185,21 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 }
 
                 $suggestItem->setAttributes($attributes);
+            }
+
+            $aIPickPath = 'highlighted._ai.pick';
+            if ($propertyAccess->isReadable($hit, $aIPickPath)) {
+                $aIAttribute = [];
+                $aIPickCategoryPath = $aIPickPath . '.category';
+                if ($propertyAccess->isReadable($hit, $aIPickCategoryPath)) {
+                    $aIAttribute['category'] = $propertyAccess->getValue($hit, $aIPickCategoryPath);
+                }
+                $aIPickNamePath = $aIPickPath . '.name';
+                if ($propertyAccess->isReadable($hit, $aIPickNamePath)) {
+                    $aIAttribute['name'] = $propertyAccess->getValue($hit, $aIPickNamePath);
+                }
+
+                $suggestItem->setAttribute('ai_pick', $aIAttribute);
             }
 
             $commonPropertyPath = 'highlighted._common';

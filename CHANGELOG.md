@@ -1,4 +1,20 @@
 # CHANGELOG.md
+## 5.6.11 - 2025-06-02
+### Feature (7 changes)
+- Suggest now accepts filters (applied changes from 6.6.11)
+- Filter names and values are now decoded if Unicode encoded (applied changes from 6.6.11)
+- Added alt text for promotion HTML in `PromotionTransformer` (applied changes from 6.6.11)
+- Added support for AI pick badges in suggest (applied changes from 6.6.11)
+- Added `SuggestProductCollectCriteriaEvent` in `SuggestProductTransformer` to modify criteria when products are collected (applied changes from 6.6.11)
+- Changed handling of locale and make usage of `useLegacyLocale` configuration option from Core plugin (applied changes from 6.6.11)
+- Added `ApiUtil` to handle filter preparation for request parameters (applied changes from 6.6.11)
+
+### Fix (4 changes)
+- Refactored code for parameter preparation in `SearchApiDecorator` (applied changes from 6.6.11)
+- Moved most logic of the `SuggestProductTransformer` to an abstract class in Core plugin (applied changes from 6.6.11)
+- Added missing `updateDestructive` method to `RemoveSyncProfile` migration
+- Added handling of the new `found` parameter, which returns the count of found matches for the suggest request (applied changes from 6.6.0)
+
 ## 2.2.46 - 2025-04-24
 ### Fix (1 change)
 - Compatibility with Data Discovery Core 2.2.46
