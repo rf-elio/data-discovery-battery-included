@@ -34,7 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Service;
 
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
-use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
 use Shopware\Core\System\Language\LanguageEntity;
@@ -52,7 +52,7 @@ class LocaleService
 {
     public function __construct(
         private readonly EntityRepository $languageRepository,
-        private readonly ElioDataDiscoveryConfigService $configService
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService
     ) {}
 
     public function getLocaleByContext(SalesChannelContext $context): string
