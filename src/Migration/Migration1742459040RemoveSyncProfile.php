@@ -18,6 +18,14 @@ class Migration1742459040RemoveSyncProfile extends MigrationStep
     public function update(Connection $connection): void
     {
         $sql = <<<SQL
+DELETE e
+FROM elio_data_discovery_sync_profile_execution e
+INNER JOIN elio_data_discovery_sync_profile p ON p.id = e.sync_profile_id
+WHERE p.profile = 'BI Sync'
+SQL;
+        $connection->executeStatement($sql);
+
+        $sql = <<<SQL
 DELETE FROM `elio_data_discovery_sync_profile`
 WHERE `profile` = 'BI Sync';
 SQL;
