@@ -1,0 +1,17 @@
+{% sw_extends '@ElioDataDiscovery/storefront/page/elio-suggest/search-suggest-item.html.twig' %}
+
+{% block layout_search_suggest_result_badge %}
+    {# badge #}
+    {% if item.getAttribute('ai_pick') %}
+        {% set ai_pick_badge = item.getAttribute('ai_pick') %}
+        <div class="col-auto search-suggest-product-badge">
+            <div class="badge {% if ai_pick_badge.name == 'bestseller' %}bg-success{% elseif ai_pick_badge.name == 'tip' %}bg-info{% endif %} badge-ai">
+                {% if ai_pick_badge.name == 'bestseller' %}
+                    {{ 'elioBatteryIncluded.listing.badges.bestseller'|trans|sw_sanitize }}
+                {% elseif ai_pick_badge.name == 'tip' %}
+                    {{ 'elioBatteryIncluded.listing.badges.tip'|trans|sw_sanitize }}
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

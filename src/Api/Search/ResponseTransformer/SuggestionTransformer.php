@@ -187,6 +187,21 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $suggestItem->setAttributes($attributes);
             }
 
+            $aIPickPath = 'highlighted._ai.pick';
+            if ($propertyAccess->isReadable($hit, $aIPickPath)) {
+                $aIAttribute = [];
+                $aIPickCategoryPath = $aIPickPath . '.category';
+                if ($propertyAccess->isReadable($hit, $aIPickCategoryPath)) {
+                    $aIAttribute['category'] = $propertyAccess->getValue($hit, $aIPickCategoryPath);
+                }
+                $aIPickNamePath = $aIPickPath . '.name';
+                if ($propertyAccess->isReadable($hit, $aIPickNamePath)) {
+                    $aIAttribute['name'] = $propertyAccess->getValue($hit, $aIPickNamePath);
+                }
+
+                $suggestItem->setAttribute('ai_pick', $aIAttribute);
+            }
+
             $commonPropertyPath = 'highlighted._common';
             if ($propertyAccess->isReadable($hit, $commonPropertyPath)) {
                 $commonImageUrlPropertyPath = $commonPropertyPath.'.imageUrl';
