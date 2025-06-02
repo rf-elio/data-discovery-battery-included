@@ -33,13 +33,12 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\ApiUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\SuggestRequest;
 use Elio\ElioDataDiscovery\Api\Search\SuggestApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
-use Elio\ElioDataDiscovery\Configuration\Configuration;
-use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Throwable;
@@ -59,13 +58,11 @@ class SuggestApiDecorator extends SuggestApi
      * @param ApiClientFactory $apiFactory
      * @param Transformer $transformer
      * @param LocaleService $localeService
-     * @param ElioDataDiscoveryConfigServiceInterface $configService
      */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
-        private readonly LocaleService $localeService,
-        private readonly ElioDataDiscoveryConfigServiceInterface $configService
+        private readonly LocaleService $localeService
     ) {}
 
     /**
@@ -76,28 +73,20 @@ class SuggestApiDecorator extends SuggestApi
      */
     public function suggest(SuggestRequest $suggestRequest, SalesChannelContext $context): ResponseCollection
     {
-        $config = $this->configService->getByContext($context);
         $apiClient = $this->apiFactory->createSearchApi($context);
         $locale = $this->localeService->getLocaleByContext($context);
-        $filters = $this->prepareFilters($suggestRequest, $config, $context);
+        $filters = $this->prepareFilters($suggestRequest);
         $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery(), $locale, $filters));
         return $this->transformer->transformResponse($result, $context, $suggestRequest);
     }
 
-    private function prepareFilters(SuggestRequest $suggestRequest, Configuration $config, SalesChannelContext $context): array
+    private function prepareFilters(SuggestRequest $suggestRequest): array
     {
-        $filters = [];
-
-        foreach ($suggestRequest->getFilters() as $key => $values) {
-            $value = array_shift($values['values']);
-            if (is_array($value) && isset($value['type']) && ($value['type'] === 'range' || $value['type'] === 'rating')) {
-                $filters["f[{$key}][from]"] = $value['from'] ?? 1;
-                $filters["f[{$key}][till]"] = isset($value['till']) ? min($value['till'], PHP_INT_MAX) : PHP_INT_MAX;
-            } else {
-                $filters['f[' . $key . ']'] = $value;
-            }
+        $type = $suggestRequest->getType();
+        if ($type) {
+            $suggestRequest->addFilter('type', $type);
         }
 
-        return $filters;
+        return ApiUtil::prepareFilters($suggestRequest->getFilters());
     }
 }

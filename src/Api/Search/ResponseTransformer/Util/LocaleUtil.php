@@ -33,6 +33,7 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util;
 
 
+use JetBrains\PhpStorm\Deprecated;
 use Shopware\Core\System\Language\LanguageEntity;
 
 /**
@@ -62,11 +63,14 @@ class LocaleUtil
         return str_replace('i18n.%locale%', $locale, $fieldName);
     }
 
-    public static function getLocaleByLanguage(LanguageEntity $language, bool $substr): string
+    public static function getLocaleByLanguage(
+        LanguageEntity $language,
+        #[Deprecated(reason: 'Use full locale code instead', since: '6.6.11')] bool $useLegacyLocale
+    ): string
     {
         $locale = $language->getLocale()?->getCode() ?? '--';
 
-        if ($substr) {
+        if ($useLegacyLocale) {
             return substr($locale, 0, 2);
         }
 
