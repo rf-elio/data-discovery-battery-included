@@ -7,7 +7,7 @@
 - Added support for AI pick badges in suggest
 - Added `SuggestProductCollectCriteriaEvent` in `SuggestProductTransformer` to modify criteria when products are collected
 - Changed handling of locale and make usage of `useLegacyLocale` configuration option from Core plugin
-- Added `ApiUtil` to handle filter preparation for request parameters
+- Added `ApiUtil` to handle filter preparation for request parameters and refactored code
 
 ### Fix (2 changes)
 - Refactored code for parameter preparation in `SearchApiDecorator`
