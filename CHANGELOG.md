@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 5.6.12 - 2025-06-03
+### Fix (1 change)
+- Update plugin name in composer file
+
 ## 5.6.11 - 2025-06-02
 ### Feature (7 changes)
 - Suggest now accepts filters (applied changes from 6.6.11)
