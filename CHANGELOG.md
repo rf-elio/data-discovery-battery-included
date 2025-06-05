@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.6.12 - 2025-06-03
+### Fix (1 change)
+- Compatibility with Core update
+
 ## 6.6.11 - 2025-06-02
 ### Feature (7 changes)
 - Suggest now accepts filters
