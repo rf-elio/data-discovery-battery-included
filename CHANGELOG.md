@@ -1,4 +1,7 @@
 # CHANGELOG.md
+## 6.6.18 - 2025-06-26
+
+
 ## 6.6.12 - 2025-06-03
 ### Fix (1 change)
 - Compatibility with Core update

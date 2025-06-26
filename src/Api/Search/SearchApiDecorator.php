@@ -173,7 +173,7 @@ class SearchApiDecorator extends SearchApi
     protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $searchRequest->addFilter('type', StripClassPathUtil::stripClassPath(ProductDataType::class));
-        return ApiUtil::prepareFilters($searchRequest->getFilter());
+        return ApiUtil::prepareFilters($searchRequest->getFilters());
     }
 
     protected function preparePagination(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array

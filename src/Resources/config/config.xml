@@ -19,13 +19,13 @@
             <label>BatteryIncluded Collection</label>
         </input-field>
 
-        <input-field>
+        <input-field type="password">
             <name>browserApiKey</name>
             <required>true</required>
             <label>Public Api Key</label>
         </input-field>
 
-        <input-field>
+        <input-field type="password">
             <name>serverApiKey</name>
             <required>true</required>
             <label>Server Api Key</label>
@@ -73,6 +73,17 @@
             <defaultValue>false</defaultValue>
             <helpText>Ignores the locale in the listing request in case a locale variable is defined in the portal</helpText>
             <helpText lang="de-DE">Ignoriert die Locale im Listing-Request falls im Portal eine locale Variable definiert ist</helpText>
+        </input-field>
+    </card>
+    <card>
+        <title>Advanced</title>
+        <title lang="de-DE">Advanced</title>
+
+        <input-field type="bool">
+            <name>useLegacyLocale</name>
+            <label>Use legacy locale (2 characters, i.e. "de")</label>
+            <label lang="de-DE">Alte locale benutzen (2 Buchstaben, z.B. "de")</label>
+            <defaultValue>false</defaultValue>
         </input-field>
     </card>
 </config>
