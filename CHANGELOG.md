@@ -1,6 +1,9 @@
 # CHANGELOG.md
 ## 6.6.18 - 2025-06-26
-
+### Fix (3 changes)
+- Added `useLegacyLocale` configuration setting from Core plugin
+- Changed type of API key plugin configuration fields to `password`
+- Renamed `getFilter` method in `SearchApiDecorator` to `getFilters`
 
 ## 6.6.12 - 2025-06-03
 ### Fix (1 change)
