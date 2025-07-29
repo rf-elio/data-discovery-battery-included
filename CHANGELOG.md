@@ -1,4 +1,45 @@
 # CHANGELOG.md
+## 6.6.18 - 2025-06-26
+### Fix (3 changes)
+- Added `useLegacyLocale` configuration setting from Core plugin
+- Changed type of API key plugin configuration fields to `password`
+- Renamed `getFilter` method in `SearchApiDecorator` to `getFilters`
+
+## 6.6.12 - 2025-06-03
+### Fix (1 change)
+- Compatibility with Core update
+
+## 6.6.11 - 2025-06-02
+### Feature (7 changes)
+- Suggest now accepts filters
+- Filter names and values are now decoded if Unicode encoded
+- Added alt text for promotion HTML in `PromotionTransformer`
+- Added support for AI pick badges in suggest
+- Added `SuggestProductCollectCriteriaEvent` in `SuggestProductTransformer` to modify criteria when products are collected
+- Changed handling of locale and make usage of `useLegacyLocale` configuration option from Core plugin
+- Added `ApiUtil` to handle filter preparation for request parameters and refactored code
+
+### Fix (2 changes)
+- Refactored code for parameter preparation in `SearchApiDecorator`
+- Moved most logic of the `SuggestProductTransformer` to an abstract class in Core plugin
+
+## 6.6.7 - 2025-03-21
+### Feature (1 change)
+- Compatibility with Shopware 6.6.10
+
+### Fix (2 changes)
+- Fixed handling of filters when locale is ignored
+- Added `ignoreLocaleForListingRequest` config setting to ignore the locale when querying BI in the navigation
+
+## 6.6.6 - 2025-03-20
+### Feature (1 change)
+- Removed BI Sync, as it is now handled directly by BI instead of the plugin
+
+### Fix (3 changes)
+- Locale can now be omitted when defining filters and sort options
+- Product numbers are now sanitized in the `SuggestProductTransformer`
+- Moved function from sync `LocaleUtil` to the response transformer `LocaleUtil` and adjusted `LocaleService`
+
 ## 6.6.5 - 2025-03-05
 ### Features (1 change)
 - Added support for AI pick badges

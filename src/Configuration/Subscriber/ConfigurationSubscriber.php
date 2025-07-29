@@ -77,7 +77,8 @@ class ConfigurationSubscriber implements EventSubscriberInterface
             $pluginConfig['apiTimeout'] ?? 60,
             $pluginConfig['promotionTemplate'] ?? '',
             $pluginConfig['suggestPromotionTemplate'] ?? '',
-            $pluginConfig['navigationStartLevelExport'] ?? 2
+            $pluginConfig['ignoreLocaleForListingRequest'] ?? false,
+            $pluginConfig['useLegacyLocale'] ?? false
         ));
         $event->setConfiguration($configuration);
     }

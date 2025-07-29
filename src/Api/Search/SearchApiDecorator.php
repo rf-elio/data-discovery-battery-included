@@ -34,8 +34,10 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
+use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\ApiUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\NavigationRequestProduct;
@@ -43,7 +45,8 @@ use Elio\ElioDataDiscovery\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\SearchApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
-use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
+use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\Aggregation\Visibilities;
@@ -79,7 +82,7 @@ class SearchApiDecorator extends SearchApi
         private readonly SystemConfigService $systemConfigService,
         private readonly EntityRepository $filterRepository,
         private readonly RequestLoggingService $requestLoggingService,
-        private readonly ElioDataDiscoveryConfigService $configService
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService
     ) {
         parent::__construct($logger);
     }
@@ -94,7 +97,8 @@ class SearchApiDecorator extends SearchApi
         }
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
-        $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
+        $filters = $this->preparePagination($filters, $searchRequest, $context);
+        $filters = $this->addSorting($filters, $searchRequest, $locale, $context->getContext());
         $filters = $this->addAdditionalParameters($filters, $searchRequest, $context);
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
 
@@ -135,8 +139,12 @@ class SearchApiDecorator extends SearchApi
         $apiClient = $this->apiFactory->createSearchApi($context);
         $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
+
+        /** @var BatteryIncludedConfiguration $biConfig */
+        $biConfig = $config->getExtension(BatteryIncludedConfiguration::NAME);
         $filters = $this->prepareFilters($searchRequest, $context);
-        $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
+        $filters = $this->preparePagination($filters, $searchRequest, $context);
+        $filters = $this->addSorting($filters, $searchRequest, $locale, $context->getContext());
         if (!empty($searchRequest->getStreamId())) {
             // stream ID as filter
             $filters['f[_product.streamIds]'] = $searchRequest->getStreamId();
@@ -144,7 +152,10 @@ class SearchApiDecorator extends SearchApi
             // category path as filter
             $categoryPath = $searchRequest->getCategoryPath();
             $categoryPath = implode(' > ', $categoryPath);
-            $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
+            if (!$biConfig) {
+                throw new InvalidTypeException($biConfig, BatteryIncludedConfiguration::class);
+            }
+            $biConfig->isIgnoreLocaleForListingRequest() ? $filters['f[_product_i18n.categories]'] = $categoryPath : $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
         }
 
         $filters['f[_product.visibility]'] = [Visibilities::VISIBILITY_ALL->value];
@@ -161,37 +172,19 @@ class SearchApiDecorator extends SearchApi
 
     protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
-        $filters = [];
-        $filters['f[type]'] = StripClassPathUtil::stripClassPath(ProductDataType::class);
+        $searchRequest->addFilter('type', StripClassPathUtil::stripClassPath(ProductDataType::class));
+        return ApiUtil::prepareFilters($searchRequest->getFilters());
+    }
 
-        foreach ($searchRequest->getFilter() as $key => $values) {
-            $value = array_shift($values['values']);
-            if (is_array($value) && isset($value['type']) && ($value['type'] === 'range' || $value['type'] === 'rating')) {
-                if ($value['from']) {
-                    $filters['f[' . $key . '][from]'] = $value['from'];
-                }
-                if ($value['till']) {
-                    $filters['f[' . $key . '][till]'] = $value['till'];
-
-                    if (!$value['from']) {
-                        $filters['f[' . $key . '][from]'] = 1;
-                    }
-                }
-                else {
-                    $filters['f[' . $key . '][till]'] = PHP_INT_MAX;
-                }
-            } else {
-               $filters['f[' . $key . ']'] = $value;
-            }
-        }
-
+    protected function preparePagination(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array
+    {
         $filters['page'] = $searchRequest->getPage();
         $limit = $this->systemConfigService->getInt('core.listing.productsPerPage', $context->getSalesChannelId());
         $filters['per_page'] = $limit <= 0 ? 24 : $limit;
         return $filters;
     }
 
-    protected function addSortingFilter(
+    protected function addSorting(
         array $filters,
         SearchRequest $searchRequest,
         string $locale,
@@ -199,7 +192,7 @@ class SearchApiDecorator extends SearchApi
     ): array {
         if (!empty($searchRequest->getSort())) {
             $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
-            return $this->prepareSorting($filters);
+            return $this->setDefaultSorting($filters);
         }
 
         if ($searchRequest instanceof NavigationRequestProduct && !empty($searchRequest->getStreamId())) {
@@ -224,10 +217,10 @@ class SearchApiDecorator extends SearchApi
             }
         }
 
-        return $this->prepareSorting($filters);
+        return $this->setDefaultSorting($filters);
     }
 
-    private function prepareSorting(array $filters): array
+    private function setDefaultSorting(array $filters): array
     {
         if (!isset($filters['sort'])) {
             return $filters;
@@ -241,7 +234,7 @@ class SearchApiDecorator extends SearchApi
         return $filters;
     }
 
-    private function addAdditionalParameters(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array
+    protected function addAdditionalParameters(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $additionalParameters = $searchRequest->getAdditionalRequestParameters();
         foreach ($additionalParameters as $key => $value) {

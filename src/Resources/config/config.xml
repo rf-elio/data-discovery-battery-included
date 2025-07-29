@@ -19,13 +19,13 @@
             <label>BatteryIncluded Collection</label>
         </input-field>
 
-        <input-field>
+        <input-field type="password">
             <name>browserApiKey</name>
             <required>true</required>
             <label>Public Api Key</label>
         </input-field>
 
-        <input-field>
+        <input-field type="password">
             <name>serverApiKey</name>
             <required>true</required>
             <label>Server Api Key</label>
@@ -63,17 +63,27 @@
         </input-field>
     </card>
     <card>
-        <title>Sync Configuration</title>
-        <title lang="de-DE">Sync Konfiguration</title>
+        <title>Listing Configuration</title>
+        <title lang="de-DE">Listing Konfiguration</title>
 
-        <input-field type="int">
-            <name>navigationStartLevelExport</name>
-            <label>Category tree export level</label>
-            <label lang="de-DE">Export-Level des Kategoriebaums</label>
-            <defaultValue>2</defaultValue>
-            <min>1</min>
-            <helpText>Determines the position in a product's category tree from which it will be exported in the sync. 1 means it starts at the first category, e.g. Home, while each higher number moves one child category down in the tree.</helpText>
-            <helpText lang="de-DE">Bestimmt die Position im Kategoriebaum eines Produkts, ab welcher jener im Sync exportiert wird. 1 bedeutet, dass er ab der ersten Kategorie beginnt, z.B. Home, während jede höhere Zahl im Baum eine Kind-Kategorie weiterrückt.</helpText>
+        <input-field type="bool">
+            <name>ignoreLocaleForListingRequest</name>
+            <label>Ignore locale for listing request</label>
+            <label lang="de-DE">Locale für Listing-Request ignorieren</label>
+            <defaultValue>false</defaultValue>
+            <helpText>Ignores the locale in the listing request in case a locale variable is defined in the portal</helpText>
+            <helpText lang="de-DE">Ignoriert die Locale im Listing-Request falls im Portal eine locale Variable definiert ist</helpText>
+        </input-field>
+    </card>
+    <card>
+        <title>Advanced</title>
+        <title lang="de-DE">Advanced</title>
+
+        <input-field type="bool">
+            <name>useLegacyLocale</name>
+            <label>Use legacy locale (2 characters, i.e. "de")</label>
+            <label lang="de-DE">Alte locale benutzen (2 Buchstaben, z.B. "de")</label>
+            <defaultValue>false</defaultValue>
         </input-field>
     </card>
 </config>
