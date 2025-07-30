@@ -32,6 +32,7 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Configuration;
 
+use JetBrains\PhpStorm\Deprecated;
 use Shopware\Core\Framework\Struct\Struct;
 
 /**
@@ -56,7 +57,8 @@ class BatteryIncludedConfiguration extends Struct
         private readonly int $apiTimeOut,
         private readonly string $promotionTemplate,
         private readonly string $suggestPromotionTemplate,
-        private readonly bool $ignoreLocaleForListingRequest
+        private readonly bool $ignoreLocaleForListingRequest,
+        #[Deprecated(reason: 'Use full locale code instead', since: '6.6.11')] private readonly bool $useLegacyLocale
     ) {}
 
     /**
@@ -122,5 +124,10 @@ class BatteryIncludedConfiguration extends Struct
     public function isIgnoreLocaleForListingRequest(): bool
     {
         return $this->ignoreLocaleForListingRequest;
+    }
+
+    public function isUseLegacyLocale(): bool
+    {
+        return $this->useLegacyLocale;
     }
 }
