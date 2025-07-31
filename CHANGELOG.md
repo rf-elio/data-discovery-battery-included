@@ -1,4 +1,15 @@
 # CHANGELOG.md
+## 5.6.19 - 2025-07-30
+### Fix (7 changes)
+- `SearchApiDecorator`:
+  - Added `addAdditionalRequestParameters` method
+  - Renamed `getFilter` method in `SearchApiDecorator` to `getFilters` (applied changes from 6.6.18)
+- Added product data from response to products via `ExtensionWrapper` in `ProductTransformer`
+- Added `useLegacyLocale` configuration setting from Core plugin (applied changes from 6.6.18)
+- Changed type of API key plugin configuration fields to `password` (applied changes from 6.6.18)
+- Added `features.config` file
+- Code refactoring
+
 ## 5.6.12 - 2025-06-03
 ### Fix (1 change)
 - Update plugin name in composer file
