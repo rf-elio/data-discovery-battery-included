@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.6.19 - 2025-07-30
+### Feature (1 change)
+- Compatibility with Core update
+
 ## 6.6.18 - 2025-06-26
 ### Fix (3 changes)
 - Added `useLegacyLocale` configuration setting from Core plugin
