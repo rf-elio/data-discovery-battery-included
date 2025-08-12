@@ -76,7 +76,7 @@ class SuggestApiDecorator extends SuggestApi
         $apiClient = $this->apiFactory->createSearchApi($context);
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($suggestRequest);
-        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery(), $locale, $filters, $suggestRequest->getType()));
+        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery(), $locale, $filters));
         return $this->transformer->transformResponse($result, $context, $suggestRequest);
     }
 
