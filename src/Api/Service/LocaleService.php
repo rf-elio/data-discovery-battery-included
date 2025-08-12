@@ -34,6 +34,7 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Service;
 
 
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
 use Shopware\Core\Framework\DataAbstractionLayer\Search\Criteria;
@@ -52,17 +53,19 @@ class LocaleService
 {
     public function __construct(
         private readonly EntityRepository $languageRepository,
-        private readonly ElioDataDiscoveryConfigServiceInterface $configService,
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService
     ) {}
 
     public function getLocaleByContext(SalesChannelContext $context): string
     {
         $config = $this->configService->getByContext($context);
+        /** @var BatteryIncludedConfiguration $biConfig */
+        $biConfig = $config->getExtension(BatteryIncludedConfiguration::NAME);
         $criteria = new Criteria([$context->getLanguageId()]);
         $criteria->addAssociation('locale');
         /** @var LanguageEntity $language */
         $language = $this->languageRepository->search($criteria, $context->getContext())->first();
-        return LocaleUtil::getLocaleByLanguage($language, $config->isUseLegacyLocale());
+        return LocaleUtil::getLocaleByLanguage($language, $biConfig->isUseLegacyLocale());
     }
 
     /**

@@ -37,6 +37,7 @@ use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\ProductSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\AbstractProductTransformer;
+use Elio\ElioDataDiscovery\Api\Transform\ExtensionWrapper;
 use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Shopware\Core\Framework\DataAbstractionLayer\Exception\InconsistentCriteriaIdsException;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -83,7 +84,7 @@ class ProductTransformer extends AbstractProductTransformer
             throw new InvalidTypeException($model, Result::class);
         }
 
-        $mainNumbers = array_map(
+        $mainNumbers = array_filter(array_map(
             static function (SearchRecord $record) {
                 if ($record->getDocument()['type'] === StripClassPathUtil::stripClassPath(ProductDataType::class)) {
                     return $record->getDocument()['_product']->productNumber[0];
@@ -91,8 +92,17 @@ class ProductTransformer extends AbstractProductTransformer
                 return null;
             },
             $model->getHits()
-        );
+        ));
+
         $listing = $this->loadProductsForListing($mainNumbers, $responseCollection, $context);
+        foreach ($listing->getProducts() as $product) {
+            /** @var SearchRecord $hit */
+            foreach ($model->getHits() as $hit) {
+                if ($hit->getDocument()['id'] === $product->getProductNumber()) {
+                    $product->addExtension('record', new ExtensionWrapper($hit));
+                }
+            }
+        }
         $listing->setHitsPerPage($model->getRequestParams()['per_page']);
     }
 }

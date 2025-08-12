@@ -92,6 +92,7 @@ class SearchApiDecorator extends SearchApi
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->preparePagination($filters, $searchRequest, $context);
         $filters = $this->addSorting($filters, $searchRequest, $locale, $context->getContext());
+        $filters = $this->addAdditionalParameters($filters, $searchRequest, $context);
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
 
         $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
@@ -156,7 +157,7 @@ class SearchApiDecorator extends SearchApi
     protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $searchRequest->addFilter('type', StripClassPathUtil::stripClassPath(ProductDataType::class));
-        return ApiUtil::prepareFilters($searchRequest->getFilter());
+        return ApiUtil::prepareFilters($searchRequest->getFilters());
     }
 
     protected function preparePagination(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array
@@ -213,6 +214,15 @@ class SearchApiDecorator extends SearchApi
         $defaultSort = self::DEFAULT_SORT . ':';
         if (str_starts_with($filters['sort'], $defaultSort)) {
             unset($filters['sort']);
+        }
+        return $filters;
+    }
+
+    protected function addAdditionalParameters(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array
+    {
+        $additionalParameters = $searchRequest->getAdditionalRequestParameters();
+        foreach ($additionalParameters as $key => $value) {
+            $filters[$key] = $value;
         }
         return $filters;
     }
