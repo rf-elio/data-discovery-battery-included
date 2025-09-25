@@ -1,4 +1,14 @@
 # CHANGELOG.md
+## 6.6.25 - 2025-09-23
+### Feature (1 change)
+- Added support for `not` filters in `ApiUtil`
+
+### Fix (4 changes)
+- `searchContent` method in `SearchApiDecorator` uses the `prepareFilters` method
+- Fixed `type` filter setting in `prepareFilters` method
+- Compatibility of `SuggestApiDecorator` with new `FilterAwareTrait` changes
+- Added content `type` fallback and fixed `name` path for property accessor in `SuggestionTransformer`
+
 ## 6.6.19 - 2025-07-30
 ### Feature (1 change)
 - Compatibility with Core update

@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util;
 
+use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
+
 class ApiUtil
 {
     public static function prepareFilters(array $filtersRequest, array $preparedFilters = []): array
@@ -12,7 +14,10 @@ class ApiUtil
             if (is_array($value) && isset($value['type']) && ($value['type'] === 'range' || $value['type'] === 'rating')) {
                 $preparedFilters["f[{$key}][from]"] = $value['from'] ?? 1;
                 $preparedFilters["f[{$key}][till]"] = isset($value['till']) ? min($value['till'], PHP_INT_MAX) : PHP_INT_MAX;
-            } else {
+            } elseif ($values['filterType'] === SearchRequest::FILTER_TYPE_NOT) {
+                $preparedFilters['fn[' . $key . ']'] = $value;
+            } else
+             {
                 $preparedFilters['f[' . $key . ']'] = $value;
             }
         }
