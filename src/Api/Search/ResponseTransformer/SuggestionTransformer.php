@@ -236,6 +236,8 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $contentTypePath = $contentPropertyPath.'.contentType';
                 if ($propertyAccess->isReadable($hit, $contentTypePath)) {
                     $suggestItem->setType(strip_tags($propertyAccess->getValue($hit, $contentTypePath)));
+                } else {
+                    $suggestItem->setType(SuggestTypes::CONTENT->value);
                 }
             }
 
@@ -245,7 +247,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
                 $contentTranslationPropertyPath = 'highlighted._content_i18n';
             }
             if ($propertyAccess->isReadable($hit, $contentTranslationPropertyPath)) {
-                $contentNamePropertyPath = $contentTranslationPropertyPath.'name';
+                $contentNamePropertyPath = $contentTranslationPropertyPath.'.name';
                 if ($propertyAccess->isReadable($hit, $contentNamePropertyPath)) {
                     $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
                 }

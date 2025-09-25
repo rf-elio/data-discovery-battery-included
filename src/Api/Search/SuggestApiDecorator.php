@@ -84,7 +84,7 @@ class SuggestApiDecorator extends SuggestApi
     {
         $type = $suggestRequest->getType();
         if ($type) {
-            $suggestRequest->addFilter('type', $type);
+            $suggestRequest->addFilter('type', $type, SuggestRequest::FILTER_TYPE_EQUALS);
         }
 
         return ApiUtil::prepareFilters($suggestRequest->getFilters());
