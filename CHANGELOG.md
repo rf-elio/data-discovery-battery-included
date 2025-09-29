@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.6.26 - 2025-09-29
+### Fix (1 change)
+- Compatibility with Core update
+
 ## 6.6.25 - 2025-09-23
 ### Feature (1 change)
 - Added support for `not` filters in `ApiUtil`
