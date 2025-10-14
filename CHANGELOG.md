@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.6.27 - 2025-10-14
+### Fix (1 change)
+- Renamed method call `createNonExistingFilters` in `FacetTransformer` and passed sales channel context
+
 ## 6.6.26 - 2025-09-29
 ### Fix (1 change)
 - Compatibility with Core update
