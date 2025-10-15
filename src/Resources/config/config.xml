@@ -87,8 +87,8 @@
         </input-field>
         <input-field type="bool">
             <name>useCategoryTree</name>
-            <label>Use categoryTree field</label>
-            <label lang="de-DE">categoryTree benutzen</label>
+            <label>Use _product_i18n.{locale}.categoryTree field for navigation</label>
+            <label lang="de-DE">Feld _product_i18n.{locale}.categoryTree für Navigation benutzen</label>
             <helpText>Uses the categoryTree field in BatteryIncluded instead of the regular categories field.</helpText>
             <helpText lang="de-DE">Nutzt das categoryTree-Feld in BatteryIncluded anstelle des regulären categories-Feldes.</helpText>
             <defaultValue>false</defaultValue>
