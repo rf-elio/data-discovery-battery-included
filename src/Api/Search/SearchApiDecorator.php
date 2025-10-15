@@ -146,13 +146,7 @@ class SearchApiDecorator extends SearchApi
             // stream ID as filter
             $filters['f[_product.streamIds]'] = $searchRequest->getStreamId();
         } elseif (!empty($searchRequest->getCategoryPath())) {
-            // category path as filter
-            $categoryPath = $searchRequest->getCategoryPath();
-            $categoryPath = implode(' > ', $categoryPath);
-            if (!$biConfig) {
-                throw new InvalidTypeException($biConfig, BatteryIncludedConfiguration::class);
-            }
-            $biConfig->isIgnoreLocaleForListingRequest() ? $filters['f[_product_i18n.categories]'] = $categoryPath : $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
+            $filters = $this->setCategoryFilterInNavigation($filters, $biConfig, $searchRequest);
         }
 
         $filters['f[_product.visibility]'] = [Visibilities::VISIBILITY_ALL->value];
@@ -167,6 +161,11 @@ class SearchApiDecorator extends SearchApi
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
+    /**
+     * @param SearchRequest $searchRequest
+     * @param SalesChannelContext $context
+     * @return array
+     */
     protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $type = $searchRequest instanceof ContentSearchRequest
@@ -176,6 +175,12 @@ class SearchApiDecorator extends SearchApi
         return ApiUtil::prepareFilters($searchRequest->getFilters());
     }
 
+    /**
+     * @param array $filters
+     * @param SearchRequest $searchRequest
+     * @param SalesChannelContext $context
+     * @return array
+     */
     protected function preparePagination(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $filters['page'] = $searchRequest->getPage();
@@ -184,6 +189,13 @@ class SearchApiDecorator extends SearchApi
         return $filters;
     }
 
+    /**
+     * @param array $filters
+     * @param SearchRequest $searchRequest
+     * @param string $locale
+     * @param Context $context
+     * @return array
+     */
     protected function addSorting(
         array $filters,
         SearchRequest $searchRequest,
@@ -220,13 +232,19 @@ class SearchApiDecorator extends SearchApi
         return $this->setDefaultSorting($filters);
     }
 
+    /**
+     * Removes the default ("Recommended") sorting option from the request parameters to retrieve products in the
+     * default sorting order from BatteryIncluded.
+     *
+     * @param array $filters
+     * @return array
+     */
     private function setDefaultSorting(array $filters): array
     {
         if (!isset($filters['sort'])) {
             return $filters;
         }
 
-        // default sort is not sent to BI, remove the option
         $defaultSort = self::DEFAULT_SORT . ':';
         if (str_starts_with($filters['sort'], $defaultSort)) {
             unset($filters['sort']);
@@ -234,12 +252,42 @@ class SearchApiDecorator extends SearchApi
         return $filters;
     }
 
+    /**
+     * @param array $filters
+     * @param SearchRequest $searchRequest
+     * @param SalesChannelContext $context
+     * @return array
+     */
     protected function addAdditionalParameters(array $filters, SearchRequest $searchRequest, SalesChannelContext $context): array
     {
         $additionalParameters = $searchRequest->getAdditionalRequestParameters();
         foreach ($additionalParameters as $key => $value) {
             $filters[$key] = $value;
         }
+        return $filters;
+    }
+
+    /**
+     * Sets the category path as a filter for the navigation request based on the plugin configuration.
+     *
+     * @param array $filters
+     * @param BatteryIncludedConfiguration $biConfig
+     * @param NavigationRequestProduct $searchRequest
+     * @return array
+     */
+    private function setCategoryFilterInNavigation(
+        array $filters,
+        BatteryIncludedConfiguration $biConfig,
+        NavigationRequestProduct $searchRequest
+    ): array
+    {
+        $categoryPath = $searchRequest->getCategoryPath();
+        $categoryPath = implode(' > ', $categoryPath);
+
+        $parameter = $biConfig->isIgnoreLocaleForListingRequest() ? 'f[_product_i18n.' : 'f[_product_i18n.{locale}.';
+        $parameter .= $biConfig->isUseCategoryTree() ? 'categoryTree.name]' : 'categories]';
+        $filters[$parameter] = $categoryPath;
+
         return $filters;
     }
 }

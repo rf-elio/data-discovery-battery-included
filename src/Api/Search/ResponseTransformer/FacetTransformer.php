@@ -105,7 +105,7 @@ class FacetTransformer implements ResponseTransformerInterface
             $filterNames[] = $facet->field_name;
         }
 
-        $this->filterSyncService->createNotExistedFilters($filterNames, $context->getContext());
+        $this->filterSyncService->createNonExistingFilters($filterNames, $context);
         $allowedFilterNames = $this->filterService->filter($filterNames, FilterEntity::FILTER_TYPE_FILTER, $request, $context);
         $aggregationResultCollection = $listing->getAggregations() ?? new AggregationResultCollection();
         $listing->setAggregations($aggregationResultCollection);
