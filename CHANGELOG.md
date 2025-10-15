@@ -1,7 +1,12 @@
 # CHANGELOG.md
 ## 6.6.27 - 2025-10-14
-### Fix (1 change)
+### Feature (2 changes)
+- Added configuration setting to switch to using the `categoryTree` field instead of the old `categories` field
+- Adjusted `SuggestionTransformer` to handle new `data` attribute in suggest hits
+
+### Fix (2 changes)
 - Renamed method call `createNonExistingFilters` in `FacetTransformer` and passed sales channel context
+- Refactored `SearchApiDecorator` by adding doc comments and moving setting of category filter in navigation into its own helper method
 
 ## 6.6.26 - 2025-09-29
 ### Fix (1 change)
