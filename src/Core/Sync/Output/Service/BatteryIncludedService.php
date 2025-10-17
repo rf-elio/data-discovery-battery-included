@@ -77,7 +77,7 @@ class BatteryIncludedService
 
         $data = [];
         foreach ($collection->getElements() as $entity) {
-            $data[] = $mapper->mapData($entity, $syncContext);
+            $data[] = $mapper->mapData($entity, $syncContext, $this->getConfiguration($context));
         }
 
         return $data;

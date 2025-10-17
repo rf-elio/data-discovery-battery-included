@@ -32,6 +32,7 @@
 
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Service;
 
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\CategoryPathUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util\LocaleUtil;
 use Elio\ElioDataDiscovery\Core\Defaults;
@@ -66,17 +67,18 @@ class ProductMappingService
      *
      * @param ProductDataType $product
      * @param SyncContext $syncContext
+     * @param BatteryIncludedConfiguration $biConfig
      * @return array
      */
-    public function mapData(ProductDataType $product, SyncContext $syncContext): array
+    public function mapData(ProductDataType $product, SyncContext $syncContext, BatteryIncludedConfiguration $biConfig): array
     {
         $convertedData = [];
         $convertedData['id'] = $product->getIdentifier();
         $convertedData['_history'] = $this->prepareHistoryFields($product);
         $convertedData['_product'] = $this->prepareBaseFields($product, $syncContext);
-        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $syncContext);
+        $convertedData['_product_i18n'] = $this->prepareTranslatedFields($product, $biConfig, $syncContext);
         $convertedData['_common'] = $this->prepareCommonFields($product);
-        $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $syncContext);
+        $convertedData['_common_i18n'] = $this->prepareTranslatedCommonFields($product->getDataTypeTranslations(), $biConfig, $syncContext);
         $convertedData['type'] = StripClassPathUtil::stripClassPath(get_class($product));
 
         return $convertedData;
@@ -136,15 +138,16 @@ class ProductMappingService
 
     /**
      * @param array $collection
+     * @param BatteryIncludedConfiguration $biConfig
      * @param SyncContext $syncContext
      * @return array
      */
-    protected function prepareTranslatedCommonFields(array $collection, SyncContext $syncContext): array
+    protected function prepareTranslatedCommonFields(array $collection, BatteryIncludedConfiguration $biConfig, SyncContext $syncContext): array
     {
         $contexts = $syncContext->getSalesChannelContexts();
         $translatedFields = [];
         foreach ($collection as $languageId => $productTranslation) {
-            $locale = LocaleUtil::getLocaleByLanguage($contexts->getLanguage($languageId));
+            $locale = LocaleUtil::getLocaleByLanguage($contexts->getLanguage($languageId), $biConfig->isUseLegacyLocale());
             /** @var SeoRoute|null $seoRoute */
             $seoRoute = $productTranslation->getExtension(SeoRoute::class);
             $translatedFields[$locale] = [
@@ -159,11 +162,13 @@ class ProductMappingService
      * Prepare translation fields
      *
      * @param ProductDataType $product
+     * @param BatteryIncludedConfiguration $biConfig
      * @param SyncContext $syncContext
      * @return array
      */
     protected function prepareTranslatedFields(
         ProductDataType $product,
+        BatteryIncludedConfiguration $biConfig,
         SyncContext $syncContext
     ): array
     {
@@ -175,7 +180,7 @@ class ProductMappingService
          * @var ProductDataType $productTranslation
          **/
         foreach ($collection as $languageId => $productTranslation) {
-            $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId));
+            $locale = LocaleUtil::getLocaleByLanguage($syncContext->getSalesChannelContexts()->getLanguage($languageId), $biConfig->isUseLegacyLocale());
             $translated = $productTranslation->getTranslated();
 
             $translatedFields[$locale] = [

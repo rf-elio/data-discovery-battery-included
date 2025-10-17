@@ -12,6 +12,7 @@
         <!-- api -->
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService">
             <argument type="service" id="language.repository"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
         </service>
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory">
