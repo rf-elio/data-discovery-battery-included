@@ -33,6 +33,7 @@
 namespace Elio\ElioBatteryIncludedSearchExtension\Core\Sync\Output\Util;
 
 
+use JetBrains\PhpStorm\Deprecated;
 use Shopware\Core\System\Language\LanguageEntity;
 
 /**
@@ -45,9 +46,18 @@ use Shopware\Core\System\Language\LanguageEntity;
  */
 class LocaleUtil
 {
-    public static function getLocaleByLanguage(LanguageEntity $language): string
+    public static function getLocaleByLanguage(
+        LanguageEntity $language,
+        #[Deprecated(reason: 'Use full locale code instead', since: '6.6.11')] bool $useLegacyLocale
+    ): string
     {
         $locale = $language->getLocale()?->getCode() ?? '--';
-        return substr($locale, 0, 2);
+
+        if ($useLegacyLocale) {
+            return substr($locale, 0, 2);
+        }
+
+        return $locale;
+
     }
 }

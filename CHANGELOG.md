@@ -1,4 +1,7 @@
 # CHANGELOG.md
+## 6.0.5 - 2025-10-17
+### Feature (1 change)
+- Backported `useLegacyLocale` & `useCategoryTree` configuration settings and logic
 
 ## 2.2.0 - 2024-03-18
 ### Fix (1 change)
