@@ -46,6 +46,7 @@ use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroup;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroupCollection;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Shopware\Core\Content\Category\CategoryEntity;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult;
@@ -233,6 +234,15 @@ class SuggestionTransformer implements ResponseTransformerInterface
         if (property_exists($hit, 'url') && is_string($hit->url)) {
             $suggestItem->setUrl($hit->url);
         }
+
+        $dataIdPath = 'data.id';
+        if ($propertyAccess->isReadable($hit, $dataIdPath) && str_contains($type, '.categoryTree.name')) {
+            $id = $propertyAccess->getValue($hit, $dataIdPath);
+            $category = new CategoryEntity();
+            $category->setId($id);
+            $suggestItem->setEntity($category);
+        }
+
 
         $suggestItem->setType($type);
         return $suggestItem;
