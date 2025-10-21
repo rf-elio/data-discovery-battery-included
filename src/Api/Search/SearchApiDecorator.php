@@ -36,6 +36,7 @@ use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SortTransformer;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
+use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\NavigationRequestProduct;
@@ -134,6 +135,9 @@ class SearchApiDecorator extends SearchApi
     ): ResponseCollection {
         $apiClient = $this->apiFactory->createSearchApi($context);
         $config = $this->configService->getByContext($context);
+
+        /** @var BatteryIncludedConfiguration $biConfig */
+        $biConfig = $config->getExtension(BatteryIncludedConfiguration::NAME);
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->addSortingFilter($filters, $searchRequest, $locale, $context->getContext());
@@ -142,9 +146,7 @@ class SearchApiDecorator extends SearchApi
             $filters['f[_product.streamIds]'] = $searchRequest->getStreamId();
         } elseif (!empty($searchRequest->getCategoryPath())) {
             // category path as filter
-            $categoryPath = $searchRequest->getCategoryPath();
-            $categoryPath = implode(' > ', $categoryPath);
-            $filters['f[_product_i18n.{locale}.categories]'] = $categoryPath;
+            $filters = $this->setCategoryFilterInNavigation($filters, $biConfig, $searchRequest);
         }
 
         $filters['f[_product.visibility]'] = [Visibilities::VISIBILITY_ALL->value];
@@ -244,6 +246,22 @@ class SearchApiDecorator extends SearchApi
         foreach ($additionalParameters as $key => $value) {
             $filters[$key] = $value;
         }
+        return $filters;
+    }
+
+    private function setCategoryFilterInNavigation(
+        array $filters,
+        BatteryIncludedConfiguration $biConfig,
+        NavigationRequestProduct $searchRequest
+    ): array
+    {
+        $categoryPath = $searchRequest->getCategoryPath();
+        $categoryPath = implode(' > ', $categoryPath);
+
+        $parameter = 'f[_product_i18n.{locale}.';
+        $parameter .= $biConfig->isUseCategoryTree() ? 'categoryTree.name]' : 'categories]';
+        $filters[$parameter] = $categoryPath;
+
         return $filters;
     }
 }

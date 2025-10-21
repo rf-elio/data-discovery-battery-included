@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.0.6 - 2025-10-21
+### Fix (1 change)
+- Fixed category filter preparation in `SearchApiDecorator`
+
 ## 6.0.5 - 2025-10-17
 ### Feature (1 change)
 - Backported `useLegacyLocale` & `useCategoryTree` configuration settings and logic
