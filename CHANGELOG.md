@@ -1,5 +1,5 @@
 # CHANGELOG.md
-## 6.6.27 - 2025-10-14
+## 6.6.27 - 2025-10-22
 ### Feature (2 changes)
 - Added configuration setting to switch to using the `categoryTree` field instead of the old `categories` field
 - Adjusted `SuggestionTransformer` to handle new `data` attribute in suggest hits
