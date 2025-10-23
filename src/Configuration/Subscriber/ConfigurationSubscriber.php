@@ -60,7 +60,7 @@ class ConfigurationSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * Adds battery included configuration into basic configuration
+     * Adds the BatteryIncluded configuration as an extension to the Data Discovery configuration.
      *
      * @param ConfigurationLoadedEvent $event
      * @return void
@@ -78,7 +78,8 @@ class ConfigurationSubscriber implements EventSubscriberInterface
             $pluginConfig['promotionTemplate'] ?? '',
             $pluginConfig['suggestPromotionTemplate'] ?? '',
             $pluginConfig['ignoreLocaleForListingRequest'] ?? false,
-            $pluginConfig['useLegacyLocale'] ?? false
+            $pluginConfig['useLegacyLocale'] ?? false,
+            $pluginConfig['useCategoryTree'] ?? false
         ));
         $event->setConfiguration($configuration);
     }

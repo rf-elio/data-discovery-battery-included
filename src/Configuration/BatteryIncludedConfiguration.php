@@ -58,12 +58,11 @@ class BatteryIncludedConfiguration extends Struct
         private readonly string $promotionTemplate,
         private readonly string $suggestPromotionTemplate,
         private readonly bool $ignoreLocaleForListingRequest,
-        #[Deprecated(reason: 'Use full locale code instead', since: '6.6.11')] private readonly bool $useLegacyLocale
+        #[Deprecated(reason: 'Use full locale code instead', since: '6.6.11')] private readonly bool $useLegacyLocale,
+        private readonly bool $useCategoryTree
     ) {}
 
     /**
-     * Battery included collection
-     *
      * @return string
      */
     public function getCollection(): string
@@ -72,8 +71,6 @@ class BatteryIncludedConfiguration extends Struct
     }
 
     /**
-     * Battery included app url
-     *
      * @return string
      */
     public function getUrl(): string
@@ -82,8 +79,6 @@ class BatteryIncludedConfiguration extends Struct
     }
 
     /**
-     * Battery included browser token
-     *
      * @return string
      */
     public function getBrowserToken(): string
@@ -92,8 +87,6 @@ class BatteryIncludedConfiguration extends Struct
     }
 
     /**
-     * Battery included server token
-     *
      * @return string
      */
     public function getServerToken(): string
@@ -102,8 +95,6 @@ class BatteryIncludedConfiguration extends Struct
     }
 
     /**
-     * Battery included timeout
-     *
      * @return int
      */
     public function getApiTimeOut(): int
@@ -111,23 +102,43 @@ class BatteryIncludedConfiguration extends Struct
         return $this->apiTimeOut;
     }
 
+    /**
+     * @return string
+     */
     public function getPromotionTemplate(): string
     {
         return $this->promotionTemplate;
     }
 
+    /**
+     * @return string
+     */
     public function getSuggestPromotionTemplate(): string
     {
         return $this->suggestPromotionTemplate;
     }
 
+    /**
+     * @return bool
+     */
     public function isIgnoreLocaleForListingRequest(): bool
     {
         return $this->ignoreLocaleForListingRequest;
     }
 
+    /**
+     * @return bool
+     */
     public function isUseLegacyLocale(): bool
     {
         return $this->useLegacyLocale;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUseCategoryTree(): bool
+    {
+        return $this->useCategoryTree;
     }
 }
