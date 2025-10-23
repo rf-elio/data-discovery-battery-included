@@ -1,0 +1,25 @@
+{
+  "base": "/bundles/eliobatteryincludedsearchextension/administration/",
+  "entryPoints": {
+    "elio-battery-included-search-extension": {
+      "css": [
+        "/bundles/eliobatteryincludedsearchextension/administration/assets/elio-battery-included-search-extension-BeMcH8UL.css"
+      ],
+      "dynamic": [],
+      "js": [
+        "/bundles/eliobatteryincludedsearchextension/administration/assets/elio-battery-included-search-extension-CrOw-VJZ.js"
+      ],
+      "legacy": false,
+      "preload": []
+    }
+  },
+  "legacy": false,
+  "metadatas": {},
+  "version": [
+    "7.1.0",
+    7,
+    1,
+    0
+  ],
+  "viteServer": null
+}
