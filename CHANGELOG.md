@@ -1,4 +1,15 @@
 # CHANGELOG.md
+## 7.0.0 - 2025-10-24
+### Feature (1 change)
+- Compatibility with Shopware 6.7
+
+### Fix (1 change)
+- Replaced `$tc` with `$t` in the API connection test component in compliance with vue-i18n v10 update
+
+## 6.6.28 - 2025-10-24
+### Fix (1 change)
+- Compatibility with Core update
+
 ## 6.6.27 - 2025-10-22
 ### Feature (2 changes)
 - Added configuration setting to switch to using the `categoryTree` field instead of the old `categories` field

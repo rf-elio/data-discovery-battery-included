@@ -52,8 +52,8 @@ Component.register('elio-battery-included-test-api-connection', {
             },
             showFailureNotification() {
                 this.createNotificationError({
-                    title: this.$tc('elio-battery-included.configuration.testConnection.fail'),
-                    message: this.$tc('elio-battery-included.configuration.testConnection.helpText')
+                    title: this.$t('elio-battery-included.configuration.testConnection.fail'),
+                    message: this.$t('elio-battery-included.configuration.testConnection.helpText')
                 });
             },
             showNotificationWithResults(testResults) {
@@ -63,7 +63,7 @@ Component.register('elio-battery-included-test-api-connection', {
                     .map(function (key) {
                         let salesChannelName = key;
                         if (key === '*') {
-                            salesChannelName = me.$tc('sw-sales-channel-switch.labelDefaultOption');
+                            salesChannelName = me.$t('sw-sales-channel-switch.labelDefaultOption');
                         }
 
                         const restResult = testResults[key];
@@ -72,27 +72,27 @@ Component.register('elio-battery-included-test-api-connection', {
                         } else if (restResult === 'configuration_needed') {
                             hasWarning = true;
                         }
-                        return ' - ' + salesChannelName + ': ' + me.$tc('elio-battery-included.configuration.testConnection.testResult.' + testResults[key])
+                        return ' - ' + salesChannelName + ': ' + me.$t('elio-battery-included.configuration.testConnection.testResult.' + testResults[key])
                     })
                     .join('<br/>');
 
-                const message = this.$tc('elio-battery-included.configuration.testConnection.helpText')
+                const message = this.$t('elio-battery-included.configuration.testConnection.helpText')
                     + ' '
-                    + this.$tc('elio-battery-included.configuration.testConnection.results', 0, {results: '<br/>' + resultString});
+                    + this.$t('elio-battery-included.configuration.testConnection.results', {results: '<br/>' + resultString});
 
                 if (hasError) {
                     this.createNotificationError({
-                        title: this.$tc('elio-battery-included.configuration.testConnection.fail'),
+                        title: this.$t('elio-battery-included.configuration.testConnection.fail'),
                         message: message
                     });
                 } else if (hasWarning) {
                     this.createNotificationWarning({
-                        title: this.$tc('elio-battery-included.configuration.testConnection.success'),
+                        title: this.$t('elio-battery-included.configuration.testConnection.success'),
                         message: message
                     });
                 } else {
                     this.createNotificationSuccess({
-                        title: this.$tc('elio-battery-included.configuration.testConnection.success'),
+                        title: this.$t('elio-battery-included.configuration.testConnection.success'),
                         message: message
                     });
                 }

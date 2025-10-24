@@ -1,0 +1,11 @@
+{
+  "main.js": {
+    "file": "assets/elio-battery-included-search-extension-CrOw-VJZ.js",
+    "name": "elio-battery-included-search-extension",
+    "src": "main.js",
+    "isEntry": true,
+    "css": [
+      "assets/elio-battery-included-search-extension-BeMcH8UL.css"
+    ]
+  }
+}
