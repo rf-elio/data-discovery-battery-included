@@ -1,5 +1,5 @@
 # CHANGELOG.md
-## 7.0.0 - 2025-10-23
+## 7.0.0 - 2025-10-24
 ### Feature (1 change)
 - Compatibility with Shopware 6.7
 
