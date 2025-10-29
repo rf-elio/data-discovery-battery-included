@@ -153,7 +153,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
     {
         $propertyAccess = PropertyAccess::createPropertyAccessor();
         $suggestItem = new SuggestItem();
-        $suggestItem->setType('other');
+        if ($propertyAccess->isReadable($hit, 'highlighted.type')) {
+            $suggestItem->setType($propertyAccess->getValue($hit, 'highlighted.type'));
+        } else {
+            $suggestItem->setType('other');
+        }
 
         if ($type === SuggestionResult::RESULT_TYPE_DOCUMENT) {
             if (
