@@ -110,7 +110,7 @@ class SearchApiDecorator extends SearchApi
             $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
         }
         $this->searchDebug('search', $this, [$event->getRequest(), $context, $locale]);
-        $result = $apiClient->filter($event->getRequest()->getQuery(), $event->getVariables(), $event->getFilters());;
+        $result = $apiClient->filter($event->getRequest()->getQuery(), $event->getVariables(), $event->getFilters());
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
@@ -129,7 +129,7 @@ class SearchApiDecorator extends SearchApi
         if ($config->isLoggingSearchRequestActive()) {
             $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
         }
-        $result = $apiClient->filter($event->getRequest()->getQuery(), $event->getVariables(), $event->getFilters());;
+        $result = $apiClient->filter($event->getRequest()->getQuery(), $event->getVariables(), $event->getFilters());
         return $this->transformer->transformResponse($result, $context, $searchRequest);
     }
 
