@@ -105,9 +105,9 @@ class SearchApi
      * @throws InvalidArgumentException
      * TODO: Add request into parameters
      */
-    public function filter($q, string $locale, $filters = null)
+    public function filter($q, $variables = null, $filters = null)
     {
-        list($response) = $this->filterWithHttpInfo($q, $locale, $filters);
+        list($response) = $this->filterWithHttpInfo($q, $variables, $filters);
         return $response;
     }
 
@@ -124,10 +124,10 @@ class SearchApi
      * @throws InvalidArgumentException
      * @throws ClientApiException on non-2xx response
      */
-    public function filterWithHttpInfo($q, $locale = null, $filters = null)
+    public function filterWithHttpInfo($q, $variables = null, $filters = null)
     {
         $returnType = '\Elio\ElioBatteryIncludedApiClient\Model\Result';
-        $request = $this->filterRequest($q, $locale, $filters);
+        $request = $this->filterRequest($q, $variables, $filters);
 
         try {
             $options = $this->createHttpClientOption();
@@ -190,9 +190,9 @@ class SearchApi
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function filterAsync($q, $locale = null, $filters = null)
+    public function filterAsync($q, $variables = null, $filters = null)
     {
-        return $this->filterAsyncWithHttpInfo($q, $locale, $filters)
+        return $this->filterAsyncWithHttpInfo($q, $variables, $filters)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -211,10 +211,10 @@ class SearchApi
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function filterAsyncWithHttpInfo($q, $locale = null, $filters = null)
+    public function filterAsyncWithHttpInfo($q, $variables = null, $filters = null)
     {
         $returnType = '';
-        $request = $this->filterRequest($q, $locale, $filters);
+        $request = $this->filterRequest($q, $variables, $filters);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -248,7 +248,7 @@ class SearchApi
      * @return Request
      * @throws InvalidArgumentException
      */
-    protected function filterRequest($q, $locale = null, $filters = null)
+    protected function filterRequest($q, $variables = null, $filters = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/browse', $this->config->getCollection());
         $formParams = [];
@@ -279,7 +279,11 @@ class SearchApi
             $queryParams['filters'] = ClientObjectSerializer::toQueryValue($filters, null);
         }
 
-        $queryParams['v[locale]'] = ClientObjectSerializer::toQueryValue($locale, null);
+        if (is_array($variables)) {
+            foreach ($variables as $key => $variable) {
+                $queryParams[$key] = ClientObjectSerializer::toQueryValue($variable, null);
+            }
+        }
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
@@ -365,9 +369,9 @@ class SearchApi
      * @throws InvalidArgumentException
      *  TODO: Add request into parameters
      */
-    public function suggest($q, $language, $filters = null, $x_bi_api_key = null)
+    public function suggest($q, $variables = null, $filters = null, $x_bi_api_key = null)
     {
-        list($response) = $this->suggestWithHttpInfo($q, $language, $filters, $x_bi_api_key);
+        list($response) = $this->suggestWithHttpInfo($q, $variables, $filters, $x_bi_api_key);
         return $response;
     }
 
@@ -384,10 +388,10 @@ class SearchApi
      * @throws InvalidArgumentException
      * @throws ApiException on non-2xx response
      */
-    public function suggestWithHttpInfo($q, $language, $filters = null, $x_bi_api_key = null)
+    public function suggestWithHttpInfo($q, $variables = null, $filters = null, $x_bi_api_key = null)
     {
         $returnType = '\Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult[]';
-        $request = $this->suggestRequest($q, $language, $filters, $x_bi_api_key);
+        $request = $this->suggestRequest($q, $variables, $filters, $x_bi_api_key);
         try {
             $options = $this->createHttpClientOption();
             try {
@@ -450,9 +454,9 @@ class SearchApi
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function suggestAsync($q, $language, $filters = null, $x_bi_api_key = null)
+    public function suggestAsync($q, $variables = null, $filters = null, $x_bi_api_key = null)
     {
-        return $this->suggestAsyncWithHttpInfo($q, $language, $filters, $x_bi_api_key)
+        return $this->suggestAsyncWithHttpInfo($q, $variables, $filters, $x_bi_api_key)
             ->then(
                 function ($response) {
                     return $response[0];
@@ -472,10 +476,10 @@ class SearchApi
      * @return PromiseInterface
      * @throws InvalidArgumentException
      */
-    public function suggestAsyncWithHttpInfo($q, $language, $filters = null, $x_bi_api_key = null)
+    public function suggestAsyncWithHttpInfo($q, $variables = null, $filters = null, $x_bi_api_key = null)
     {
         $returnType = '';
-        $request = $this->suggestRequest($q, $language, $filters, $x_bi_api_key);
+        $request = $this->suggestRequest($q, $variables, $filters, $x_bi_api_key);
 
         return $this->client
             ->sendAsync($request, $this->createHttpClientOption())
@@ -510,7 +514,7 @@ class SearchApi
      * @return Request
      * @throws InvalidArgumentException
      */
-    protected function suggestRequest($q, $language, $filters = null, $x_bi_api_key = null)
+    protected function suggestRequest($q, $variables = null, $filters = null, $x_bi_api_key = null)
     {
         $resourcePath = sprintf('/api/v1/collections/%s/documents/suggest', $this->config->getCollection());
         $formParams = [];
@@ -523,8 +527,6 @@ class SearchApi
         if ($q !== null) {
             $queryParams['q'] = ClientObjectSerializer::toQueryValue($q, null);
         }
-
-        $queryParams['v[locale]'] = ClientObjectSerializer::toQueryValue($language, null);
 
         if (is_array($filters)) {
             foreach ($filters as $key => $filter) {
@@ -541,6 +543,12 @@ class SearchApi
             }
         } else {
             $queryParams['filters'] = ClientObjectSerializer::toQueryValue($filters, null);
+        }
+
+        if (is_array($variables)) {
+            foreach ($variables as $key => $variable) {
+                $queryParams[$key] = ClientObjectSerializer::toQueryValue($variable, null);
+            }
         }
 
         // header params

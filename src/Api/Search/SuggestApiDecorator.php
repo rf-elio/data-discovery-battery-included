@@ -35,10 +35,12 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\ApiUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
+use Elio\ElioDataDiscovery\Api\Event\SuggestParametersPreparedEvent;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\SuggestRequest;
 use Elio\ElioDataDiscovery\Api\Search\SuggestApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Throwable;
@@ -58,11 +60,13 @@ class SuggestApiDecorator extends SuggestApi
      * @param ApiClientFactory $apiFactory
      * @param Transformer $transformer
      * @param LocaleService $localeService
+     * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
-        private readonly LocaleService $localeService
+        private readonly LocaleService $localeService,
+        private readonly EventDispatcherInterface $eventDispatcher
     ) {}
 
     /**
@@ -76,7 +80,11 @@ class SuggestApiDecorator extends SuggestApi
         $apiClient = $this->apiFactory->createSearchApi($context);
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($suggestRequest);
-        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery(), $locale, $filters));
+        $variables = ApiUtil::prepareVariables($locale);
+
+        $event = new SuggestParametersPreparedEvent($suggestRequest, $filters, $variables, $context);
+        $this->eventDispatcher->dispatch($event);
+        $result = new SuggestionResultCollection($apiClient->suggest($event->getRequest()->getQuery(), $event->getVariables(), $event->getFilters()));
         return $this->transformer->transformResponse($result, $context, $suggestRequest);
     }
 

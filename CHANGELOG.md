@@ -1,5 +1,9 @@
 # CHANGELOG.md
 ## 6.6.29 - 2025-10-30
+### Feature (2 changes)
+- Added support for setting multiple variables in the search and suggest requests
+- Dispatched events to allow for changing the parameters of search and suggest requests before they are passed to the API client
+
 ### Fix (2 changes)
 - `SuggestionTransformer` only sets the `SuggestItem` type to `other` if no type is found in the highlights
 - `type` filter in `prepareFilters` method now uses the `NOT` filter type for `ContentSearchRequests` to allow multiple potential types of content, such as blogs
