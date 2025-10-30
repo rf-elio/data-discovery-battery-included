@@ -1,4 +1,9 @@
 # CHANGELOG.md
+## 6.6.29 - 2025-10-30
+### Fix (2 changes)
+- `SuggestionTransformer` only sets the `SuggestItem` type to `other` if no type is found in the highlights
+- `type` filter in `prepareFilters` method now uses the `NOT` filter type for `ContentSearchRequests` to allow multiple potential types of content, such as blogs
+
 ## 6.6.28 - 2025-10-24
 ### Fix (1 change)
 - Compatibility with Core update
