@@ -28,7 +28,7 @@ class ApiUtil
     public static function prepareVariables(string $locale): array
     {
         return [
-            'locale' => $locale,
+            'v[locale]' => $locale,
         ];
     }
 }
