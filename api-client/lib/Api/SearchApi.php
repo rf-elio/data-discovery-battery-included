@@ -99,6 +99,7 @@ class SearchApi
      * Filter
      *
      * @param string $q q (optional)
+     * @param array $variables variables (optional)
      * @param array $filters filters (optional)
      *
      * @throws ClientApiException on non-2xx response
@@ -117,7 +118,7 @@ class SearchApi
      * Filter
      *
      * @param string $q (optional)
-     * @param string $locale filters (optional)
+     * @param array $variables variables (optional)
      * @param string $filters filters (optional)
      *
      * @return array of null, HTTP status code, HTTP response headers (array of strings)
@@ -185,6 +186,7 @@ class SearchApi
      * Filter
      *
      * @param string $q (optional)
+     * @param array $variables variables (optional)
      * @param string $filters filters (optional)
      *
      * @return PromiseInterface
@@ -206,6 +208,7 @@ class SearchApi
      * Filter
      *
      * @param string $q (optional)
+     * @param array $variables variables (optional)
      * @param string $filters $filters (optional)
      *
      * @return PromiseInterface
@@ -243,6 +246,7 @@ class SearchApi
      * Create request for operation 'filter'
      *
      * @param string $q (optional)
+     * @param array $variables variables (optional)
      * @param string $filters filters (optional)
      *
      * @return Request
@@ -362,6 +366,7 @@ class SearchApi
      * Suggest
      *
      * @param string $q q (optional)
+     * @param array $variables variables (optional)
      * @param array $filters filters (optional)
      * @param string $x_bi_api_key x_bi_api_key (optional)
      *
@@ -381,6 +386,7 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param array $variables variables (optional)
      * @param array $filters filters (optional)
      * @param string $x_bi_api_key (optional)
      *
@@ -448,6 +454,7 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param array $variables variables (optional)
      * @param array $filters filters (optional)
      * @param string $x_bi_api_key (optional)
      *
@@ -470,6 +477,7 @@ class SearchApi
      * Suggest
      *
      * @param string $q (optional)
+     * @param array $variables variables (optional)
      * @param array $filters filters (optional)
      * @param string $x_bi_api_key (optional)
      *
@@ -508,6 +516,7 @@ class SearchApi
      * Create request for operation 'suggest'
      *
      * @param string $q (optional)
+     * @param array $variables variables (optional)
      * @param array $filters filters (optional)
      * @param string $x_bi_api_key (optional)
      *
