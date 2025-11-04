@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.6.30 - 2025-11-04
+### Fix (1 change)
+- Compatibility with Core update
+
 ## 6.6.29 - 2025-10-30
 ### Feature (2 changes)
 - Added support for setting multiple variables in the search and suggest requests
