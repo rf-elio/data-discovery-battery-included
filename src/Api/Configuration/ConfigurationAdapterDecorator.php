@@ -28,7 +28,7 @@ class ConfigurationAdapterDecorator extends ConfigurationAdapter
         /** @var BatteryIncludedConfiguration $config */
         $config = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
         $apiClient = $this->apiClientFactory->createSearchApi($context);
-        $presets = $apiClient->configuration($request->getType());
+        $presets = $apiClient->configuration($request);
         $response = new ConfigurationResponseCollection();
         $response->addConfigurationResponse(new PresetConfigurationResponse($presets, $config->getCollection()));
         return $response;

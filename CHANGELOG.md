@@ -1,7 +1,9 @@
 # CHANGELOG.md
-## 6.6.30 - 2025-11-04
-### Fix (1 change)
-- Compatibility with Core update
+## 6.6.30 - 2025-11-07
+### Feature (3 changes)
+- Refactored the `SuggestionTransformer` to move some of its logic and allow the setting of entities for the data type transformers
+- Adjusted the `SuggestProductTransformer` according to the refactorings in the Core plugin
+- Extended the API client to require the entire request as a parameter and added a new header with the request ID for tracking
 
 ## 6.6.29 - 2025-10-30
 ### Feature (2 changes)
