@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 6.0.7 - 2025-11-07
+### Fix (1 change)
+- Compatibility with 6.0.7 Core update
+
 ## 6.0.6 - 2025-10-21
 ### Fix (1 change)
 - Fixed category filter preparation in `SearchApiDecorator`
