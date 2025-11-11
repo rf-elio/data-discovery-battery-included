@@ -224,10 +224,6 @@ class SearchApiDecorator extends SearchApi
             return $this->setDefaultSorting($filters);
         }
 
-        if ($searchRequest instanceof NavigationRequestProduct && !empty($searchRequest->getStreamId())) {
-            return $filters;
-        }
-
         $criteria = new Criteria();
         $criteria->addFilter(new EqualsFilter('type', FilterEntity::FILTER_TYPE_SORTING));
         $criteria->addFilter(new EqualsFilter('displayedByDefault', true));
