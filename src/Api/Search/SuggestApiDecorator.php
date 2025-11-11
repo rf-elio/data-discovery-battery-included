@@ -85,7 +85,7 @@ class SuggestApiDecorator extends SuggestApi
         $event = new SuggestParametersPreparedEvent($suggestRequest, $filters, $variables, $context);
         $this->eventDispatcher->dispatch($event);
         $result = new SuggestionResultCollection($apiClient->suggest($event->getRequest(), $event->getVariables(), $event->getFilters()));
-        return $this->transformer->transformResponse($result, $context, $suggestRequest);
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     private function prepareFilters(SuggestRequest $suggestRequest): array

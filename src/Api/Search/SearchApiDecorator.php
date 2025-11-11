@@ -111,7 +111,7 @@ class SearchApiDecorator extends SearchApi
         }
         $this->searchDebug('search', $this, [$event->getRequest(), $context, $locale]);
         $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     public function searchContent(ContentSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
@@ -130,7 +130,7 @@ class SearchApiDecorator extends SearchApi
             $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
         }
         $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     /**
@@ -174,7 +174,7 @@ class SearchApiDecorator extends SearchApi
             $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
         }
         $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     /**
