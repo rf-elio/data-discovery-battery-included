@@ -9,6 +9,8 @@ use Elio\ElioDataDiscovery\Api\Recommendations\RecommendationAdapter;
 use Elio\ElioDataDiscovery\Api\Recommendations\Request\RecommendationRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
+use Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService;
 use Elio\ElioDataDiscovery\Swagger\ClientApiException;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
@@ -16,18 +18,13 @@ use Throwable;
 
 class RecommendationAdapterDecorator extends RecommendationAdapter
 {
-    /**
-     * SearchApi constructor.
-     * @param ApiClientFactory $apiFactory
-     * @param Transformer $transformer
-     * @param LocaleService $localeService
-     * @param LoggerInterface $logger
-     */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
         private readonly LocaleService $localeService,
         LoggerInterface $logger,
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService,
+        private readonly RequestLoggingService $requestLoggingService
     ) {
         parent::__construct($logger);
     }
@@ -41,8 +38,13 @@ class RecommendationAdapterDecorator extends RecommendationAdapter
      */
     public function getRecommendations(RecommendationRequest $request, SalesChannelContext $context): ResponseCollection
     {
+        $config = $this->configService->getByContext($context);
         $apiClient = $this->apiFactory->createSearchApi($context);
         $locale = $this->localeService->getLocaleByContext($context);
+        if ($config->isLoggingSearchRequestActive()) {
+            $this->requestLoggingService->logRequest($request, $context, 'recommendation');
+        }
+        $this->searchDebug('RecommendationApi::getRecommendations', $this, [$request, $context]);
         $result = new RecommendationResultCollection($apiClient->recommend($request, $locale));
         return $this->transformer->transformResponse($result, $context, $request);
     }

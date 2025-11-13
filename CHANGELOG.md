@@ -1,13 +1,15 @@
 # CHANGELOG.md
-## 6.6.30 - 2025-11-11
-### Feature (4 changes)
-- Refactored the `SuggestionTransformer` to move some of its logic and allow the setting of entities for the data type transformers
-- Adjusted the `SuggestProductTransformer` according to the refactorings in the Core plugin
+## 6.6.30 - 2025-11-13
+### Feature (5 changes)
+- Refactored the `SuggestionTransformer` to move some of its logic and allow the setting of identifiers and entity types for the entity resolvers
+- Removed the `SuggestProductTransformer` as the logic is now handled in the Core plugin
 - Extended the API client to require the entire request as a parameter and added a new header with the request ID for tracking
-- Added `SuggestContentTransformer`, which extends from the `AbstractSuggestContentTransformer`
+- Added a constant for the API key header
+- Added debug and request logging to the suggest, recommendation and configuration requests
 
-### Fix (1 change)
+### Fix (2 changes)
 - `SearchApiDecorator`: Removed early return for `streamIds` when adding the sorting as the `categoryId` is now always set in the request object
+- Removed unused async methods in the `SearchApi` client
 
 ## 6.6.29 - 2025-10-30
 ### Feature (2 changes)

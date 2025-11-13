@@ -127,8 +127,9 @@ class SearchApiDecorator extends SearchApi
         $this->eventDispatcher->dispatch($event);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
+            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'searchContent');
         }
+        $this->searchDebug('searchContent', $this, [$event->getRequest(), $context, $locale]);
         $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
         return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
@@ -171,8 +172,9 @@ class SearchApiDecorator extends SearchApi
         $this->eventDispatcher->dispatch($event);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
+            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'navigation');
         }
+        $this->searchDebug('navigation', $this, [$event->getRequest(), $context, $locale]);
         $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
         return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }

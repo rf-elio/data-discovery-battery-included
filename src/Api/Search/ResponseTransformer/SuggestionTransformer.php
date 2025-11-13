@@ -37,6 +37,7 @@ use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Event
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Search\Components\SuggestTypes;
 use Elio\ElioDataDiscovery\Api\Search\Response\SuggestionResponse;
+use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\EntityResolveStruct;
 use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
@@ -49,9 +50,9 @@ use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Shopware\Core\Content\Category\CategoryEntity;
-use Shopware\Core\Content\LandingPage\LandingPageEntity;
-use Shopware\Core\Content\Product\SalesChannel\SalesChannelProductEntity;
+use Shopware\Core\Content\Category\CategoryDefinition;
+use Shopware\Core\Content\LandingPage\LandingPageDefinition;
+use Shopware\Core\Content\Product\ProductDefinition;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult;
@@ -166,13 +167,9 @@ class SuggestionTransformer implements ResponseTransformerInterface
         }
 
         if ($kind === SuggestionResult::RESULT_TYPE_DOCUMENT) {
-            $this->getIdentifierAndType($suggestItem, $hit, $propertyAccess);
+            $this->addEntityResolveStruct($suggestItem, $hit, $propertyAccess);
             $this->getCommonFields($suggestItem, $locale, $hit, $propertyAccess);
-
-            $attributes = [];
-            $attributes = $this->getAiPick($attributes, $hit, $propertyAccess);
-
-            $suggestItem->setAttributes($attributes);
+            $this->addAiPickAttribute($suggestItem, $hit, $propertyAccess);
 
             //Fallback for extra data types
             if (property_exists($hit, 'value') && is_string($hit->value)) {
@@ -206,7 +203,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
      * @param object $hit
      * @param PropertyAccessor $propertyAccess
      */
-    private function getIdentifierAndType(SuggestItem $item, object $hit, PropertyAccessor $propertyAccess): void
+    private function addEntityResolveStruct(SuggestItem $item, object $hit, PropertyAccessor $propertyAccess): void
     {
         $type = $item->getType();
         $idPropertyPath = 'highlighted.id';
@@ -214,19 +211,25 @@ class SuggestionTransformer implements ResponseTransformerInterface
             $productPropertyPath = 'highlighted._product';
             $productProductNumberPropertyPath = $productPropertyPath . '.productNumber';
             $productMasterProductNumberPropertyPath = $productPropertyPath . '.masterProductNumber';
-
             //TODO: We need to implement something that allows products to be differentiated by type.
+            $item->setType(SuggestTypes::PRODUCT->value);
+
             if ($propertyAccess->isReadable($hit, $productProductNumberPropertyPath)) {
                 $productNumbers = $propertyAccess->getValue($hit, $productProductNumberPropertyPath);
-                $item->setIdentifierAndType($productNumbers[0], SuggestTypes::PRODUCT->value);
+                $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                    str_replace(['<mark>', '</mark>'], ['', ''], $productNumbers[0]),
+                    ProductDefinition::ENTITY_NAME,
+                ));
             } elseif ($propertyAccess->isReadable($hit, $productMasterProductNumberPropertyPath)) {
-                $item->setIdentifierAndType($propertyAccess->getValue($hit, $productMasterProductNumberPropertyPath), SuggestTypes::PRODUCT->value);
+                $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                    str_replace(['<mark>', '</mark>'], ['', ''], $propertyAccess->getValue($hit, $productMasterProductNumberPropertyPath)),
+                    ProductDefinition::ENTITY_NAME,
+                ));
             } elseif ($propertyAccess->isReadable($hit, $idPropertyPath)) {
-                $item->setIdentifierAndType($propertyAccess->getValue($hit, $idPropertyPath), SuggestTypes::PRODUCT->value);
-            }
-
-            if ($item->hasIdentifierAndType()) {
-                $item->setEntity(new SalesChannelProductEntity());
+                $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                    str_replace(['<mark>', '</mark>'], ['', ''], $propertyAccess->getValue($hit, $idPropertyPath)),
+                    ProductDefinition::ENTITY_NAME,
+                ));
             }
         } elseif ($type === StripClassPathUtil::stripClassPath(ContentDataType::class)) {
             if ($propertyAccess->isReadable($hit, $idPropertyPath)) {
@@ -236,10 +239,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
                     $contentTypePath = $contentPropertyPath.'.contentType';
                     if ($propertyAccess->isReadable($hit, $contentTypePath)) {
                         $contentType = $propertyAccess->getValue($hit, $contentTypePath);
-                        $item->setIdentifierAndType($id, $contentType);
-                        $contentType === 'landingpage' ? $entity = new LandingPageEntity() : $entity = new CategoryEntity();
-                        $entity->setId($id);
-                        $item->setEntity($entity);
+                        $item->setType($contentType);
+                        $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                            $id,
+                            $contentType === 'landingpage' ? LandingPageDefinition::ENTITY_NAME : CategoryDefinition::ENTITY_NAME,
+                        ));
                     }
                 }
             }
@@ -291,12 +295,11 @@ class SuggestionTransformer implements ResponseTransformerInterface
     /**
      * Extracts the AI pick from the hit.
      *
-     * @param array $attributes
+     * @param SuggestItem $item
      * @param object $hit
      * @param PropertyAccessor $propertyAccess
-     * @return array
      */
-    private function getAiPick(array $attributes, object $hit, PropertyAccessor $propertyAccess):array
+    private function addAiPickAttribute(SuggestItem $item, object $hit, PropertyAccessor $propertyAccess): void
     {
         $aIPickPath = 'highlighted._ai.pick';
         if ($propertyAccess->isReadable($hit, $aIPickPath)) {
@@ -309,11 +312,8 @@ class SuggestionTransformer implements ResponseTransformerInterface
             if ($propertyAccess->isReadable($hit, $aIPickNamePath)) {
                 $aIAttribute['name'] = $propertyAccess->getValue($hit, $aIPickNamePath);
             }
-
-            $attributes['ai_pick'] = $aIAttribute;
+            $item->setAttribute('ai_pick', $aIAttribute);
         }
-
-        return $attributes;
     }
 
     /**
@@ -329,10 +329,9 @@ class SuggestionTransformer implements ResponseTransformerInterface
         $dataIdPath = 'data.id';
         if ($propertyAccess->isReadable($hit, $dataIdPath) && str_contains($kind, '.categoryTree.name')) {
             $id = $propertyAccess->getValue($hit, $dataIdPath);
-            $category = new CategoryEntity();
-            $category->setId($id);
-            $item->setIdentifierAndType($id, $kind);
-            $item->setEntity($category);
+            $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                $id, CategoryDefinition::ENTITY_NAME
+            ));
         }
     }
 }

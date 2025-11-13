@@ -27,11 +27,13 @@
 
 namespace Elio\ElioBatteryIncludedApiClient\Api;
 
+use Elio\ElioBatteryIncludedSearchExtension\ElioBatteryIncludedSearchExtension;
 use Elio\ElioDataDiscovery\Api\Configuration\Request\ConfigurationRequest;
 use Elio\ElioDataDiscovery\Api\Recommendations\Request\RecommendationRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\SuggestRequest;
 use Elio\ElioDataDiscovery\Core\Util\StringUtil;
+use Elio\ElioDataDiscovery\ElioDataDiscovery;
 use Elio\ElioDataDiscovery\Swagger\ClientApiException;
 use Elio\ElioDataDiscovery\Swagger\ClientConfiguration;
 use Elio\ElioDataDiscovery\Swagger\ClientHeaderSelector;
@@ -39,7 +41,6 @@ use Elio\ElioDataDiscovery\Swagger\ClientObjectSerializer;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Promise\PromiseInterface;
 use GuzzleHttp\Psr7\MultipartStream;
 use GuzzleHttp\Psr7\Query;
 use GuzzleHttp\Psr7\Request;
@@ -184,68 +185,6 @@ class SearchApi
     }
 
     /**
-     * Operation filterAsync
-     *
-     * Filter
-     *
-     * @param SearchRequest $searchRequest (optional)
-     * @param array $variables variables (optional)
-     * @param array $filters filters (optional)
-     *
-     * @return PromiseInterface
-     * @throws InvalidArgumentException
-     */
-    public function filterAsync($searchRequest, $variables = null, $filters = null)
-    {
-        return $this->filterAsyncWithHttpInfo($searchRequest, $variables, $filters)
-            ->then(
-                function ($response) {
-                    return $response[0];
-                }
-            );
-    }
-
-    /**
-     * Operation filterAsyncWithHttpInfo
-     *
-     * Filter
-     *
-     * @param SearchRequest $searchRequest (optional)
-     * @param array $variables variables (optional)
-     * @param array $filters $filters (optional)
-     *
-     * @return PromiseInterface
-     * @throws InvalidArgumentException
-     */
-    public function filterAsyncWithHttpInfo($searchRequest, $variables = null, $filters = null)
-    {
-        $returnType = '';
-        $request = $this->filterRequest($searchRequest, $variables, $filters);
-
-        return $this->client
-            ->sendAsync($request, $this->createHttpClientOption())
-            ->then(
-                function ($response) use ($returnType) {
-                    return [null, $response->getStatusCode(), $response->getHeaders()];
-                },
-                function ($exception) {
-                    $response = $exception->getResponse();
-                    $statusCode = $response->getStatusCode();
-                    throw new ClientApiException(
-                        sprintf(
-                            '[%d] Error connecting to the API (%s)',
-                            $statusCode,
-                            $exception->getRequest()->getUri()
-                        ),
-                        $statusCode,
-                        $response->getHeaders(),
-                        $response->getBody()
-                    );
-                }
-            );
-    }
-
-    /**
      * Create request for operation 'filter'
      *
      * @param SearchRequest $searchRequest (optional)
@@ -293,8 +232,8 @@ class SearchApi
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
-            $headerParams['X-BI-API-KEY'] = $this->config->getApiKey('serverApiKey');
-            $headerParams['X-BI-REQUEST-ID'] = $searchRequest->getRequestId();
+            $headerParams[ElioBatteryIncludedSearchExtension::X_BI_API_KEY] = $this->config->getApiKey('serverApiKey');
+            $headerParams[ElioDataDiscovery::X_REQUEST_ID] = $searchRequest->getRequestId();
         }
 
 
@@ -449,68 +388,6 @@ class SearchApi
     }
 
     /**
-     * Operation suggestAsync
-     *
-     * Suggest
-     *
-     * @param SuggestRequest $suggestRequest (optional)
-     * @param array $variables variables (optional)
-     * @param array $filters filters (optional)
-     *
-     * @return PromiseInterface
-     * @throws InvalidArgumentException
-     */
-    public function suggestAsync($suggestRequest, $variables = null, $filters = null)
-    {
-        return $this->suggestAsyncWithHttpInfo($suggestRequest, $variables, $filters)
-            ->then(
-                function ($response) {
-                    return $response[0];
-                }
-            );
-    }
-
-    /**
-     * Operation suggestAsyncWithHttpInfo
-     *
-     * Suggest
-     *
-     * @param SuggestRequest $suggestRequest (optional)
-     * @param array $variables variables (optional)
-     * @param array $filters filters (optional)
-     *
-     * @return PromiseInterface
-     * @throws InvalidArgumentException
-     */
-    public function suggestAsyncWithHttpInfo($suggestRequest, $variables = null, $filters = null)
-    {
-        $returnType = '';
-        $request = $this->suggestRequest($suggestRequest, $variables, $filters);
-
-        return $this->client
-            ->sendAsync($request, $this->createHttpClientOption())
-            ->then(
-                function ($response) use ($returnType) {
-                    return [null, $response->getStatusCode(), $response->getHeaders()];
-                },
-                function ($exception) {
-                    $response = $exception->getResponse();
-                    $statusCode = $response->getStatusCode();
-                    throw new ClientApiException(
-                        sprintf(
-                            '[%d] Error connecting to the API (%s)',
-                            $statusCode,
-                            $exception->getRequest()->getUri()
-                        ),
-                        $statusCode,
-                        $response->getHeaders(),
-                        $response->getBody()
-                    );
-                }
-            );
-    }
-
-    /**
      * Create request for operation 'suggest'
      *
      * @param SuggestRequest $suggestRequest (optional)
@@ -558,8 +435,8 @@ class SearchApi
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
-            $headerParams['X-BI-API-KEY'] = $this->config->getApiKey('serverApiKey');
-            //$headerParams['X-BI-REQUEST-ID'] = $suggestRequest->getRequestId();
+            $headerParams[ElioBatteryIncludedSearchExtension::X_BI_API_KEY] = $this->config->getApiKey('serverApiKey');
+            $headerParams[ElioDataDiscovery::X_REQUEST_ID] = $suggestRequest->getRequestId();
         }
 
         // body params
@@ -710,66 +587,6 @@ class SearchApi
     }
 
     /**
-     * Operation recommendAsync
-     *
-     * Recommend
-     *
-     * @param RecommendationRequest $recommendationRequest (optional)
-     * @param string $locale (optional)
-     *
-     * @return PromiseInterface
-     * @throws InvalidArgumentException
-     */
-    public function recommendAsync($recommendationRequest, $locale)
-    {
-        return $this->recommendAsyncWithHttpInfo($recommendationRequest, $locale)
-            ->then(
-                function ($response) {
-                    return $response[0];
-                }
-            );
-    }
-
-    /**
-     * Operation recommendAsyncWithHttpInfo
-     *
-     * Recommend
-     *
-     * @param RecommendationRequest $recommendationRequest (optional)
-     * @param string $locale (optional)
-     *
-     * @return PromiseInterface
-     * @throws InvalidArgumentException
-     */
-    public function recommendAsyncWithHttpInfo($recommendationRequest, $locale)
-    {
-        $returnType = '';
-        $request = $this->recommendRequest($recommendationRequest, $locale);
-
-        return $this->client
-            ->sendAsync($request, $this->createHttpClientOption())
-            ->then(
-                function ($response) use ($returnType) {
-                    return [null, $response->getStatusCode(), $response->getHeaders()];
-                },
-                function ($exception) {
-                    $response = $exception->getResponse();
-                    $statusCode = $response->getStatusCode();
-                    throw new ClientApiException(
-                        sprintf(
-                            '[%d] Error connecting to the API (%s)',
-                            $statusCode,
-                            $exception->getRequest()->getUri()
-                        ),
-                        $statusCode,
-                        $response->getHeaders(),
-                        $response->getBody()
-                    );
-                }
-            );
-    }
-
-    /**
      * Create request for operation 'recommend'
      *
      * @param RecommendationRequest $recommendationRequest (optional)
@@ -793,8 +610,8 @@ class SearchApi
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
-            $headerParams['X-BI-API-KEY'] = $this->config->getApiKey('serverApiKey');
-            //$headerParams['X-BI-REQUEST-ID'] = $recommendationRequest->getRequestId();
+            $headerParams[ElioBatteryIncludedSearchExtension::X_BI_API_KEY] = $this->config->getApiKey('serverApiKey');
+            $headerParams[ElioDataDiscovery::X_REQUEST_ID] = $recommendationRequest->getRequestId();
         }
 
         // body params
@@ -936,64 +753,6 @@ class SearchApi
     }
 
     /**
-     * Operation configurationAsync
-     *
-     * Configuration
-     *
-     * @param ConfigurationRequest $configurationRequest (optional)
-     *
-     * @return PromiseInterface
-     * @throws InvalidArgumentException
-     */
-    public function configurationAsync($configurationRequest)
-    {
-        return $this->configurationAsyncWithHttpInfo($configurationRequest)
-            ->then(
-                function ($response) {
-                    return $response[0];
-                }
-            );
-    }
-
-    /**
-     * Operation configurationAsyncWithHttpInfo
-     *
-     * Configuration
-     *
-     * @param ConfigurationRequest $configurationRequest (optional)
-     *
-     * @return PromiseInterface
-     * @throws InvalidArgumentException
-     */
-    public function configurationAsyncWithHttpInfo($configurationRequest)
-    {
-        $returnType = '';
-        $request = $this->configurationRequest($configurationRequest);
-
-        return $this->client
-            ->sendAsync($request, $this->createHttpClientOption())
-            ->then(
-                function ($response) use ($returnType) {
-                    return [null, $response->getStatusCode(), $response->getHeaders()];
-                },
-                function ($exception) {
-                    $response = $exception->getResponse();
-                    $statusCode = $response->getStatusCode();
-                    throw new ClientApiException(
-                        sprintf(
-                            '[%d] Error connecting to the API (%s)',
-                            $statusCode,
-                            $exception->getRequest()->getUri()
-                        ),
-                        $statusCode,
-                        $response->getHeaders(),
-                        $response->getBody()
-                    );
-                }
-            );
-    }
-
-    /**
      * Create request for operation 'configuration'
      *
      * @param ConfigurationRequest $configurationRequest (optional)
@@ -1012,8 +771,8 @@ class SearchApi
 
         // header params
         if ($this->config->getApiKey('serverApiKey') !== null) {
-            $headerParams['X-BI-API-KEY'] = $this->config->getApiKey('serverApiKey');
-            //$headerParams['X-BI-REQUEST-ID'] = $configurationRequest->getRequestId();
+            $headerParams[ElioBatteryIncludedSearchExtension::X_BI_API_KEY] = $this->config->getApiKey('serverApiKey');
+            $headerParams[ElioDataDiscovery::X_REQUEST_ID] = $configurationRequest->getRequestId();
         }
 
         // body params

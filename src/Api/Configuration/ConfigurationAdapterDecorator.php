@@ -9,6 +9,7 @@ use Elio\ElioDataDiscovery\Api\Configuration\ConfigurationAdapter;
 use Elio\ElioDataDiscovery\Api\Configuration\Request\ConfigurationRequest;
 use Elio\ElioDataDiscovery\Api\Configuration\Response\ConfigurationResponseCollection;
 use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
+use Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
@@ -17,7 +18,8 @@ class ConfigurationAdapterDecorator extends ConfigurationAdapter
     public function __construct(
         private readonly ApiClientFactory $apiClientFactory,
         private readonly ElioDataDiscoveryConfigServiceInterface $configService,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        private readonly RequestLoggingService $requestLoggingService
     )
     {
         parent::__construct($logger);
@@ -25,12 +27,17 @@ class ConfigurationAdapterDecorator extends ConfigurationAdapter
 
     public function getConfig(ConfigurationRequest $request, SalesChannelContext $context): ConfigurationResponseCollection
     {
-        /** @var BatteryIncludedConfiguration $config */
-        $config = $this->configService->getByContext($context)->getExtension(BatteryIncludedConfiguration::NAME);
+        $config = $this->configService->getByContext($context);
+        /** @var BatteryIncludedConfiguration $biConfig */
+        $biConfig = $config->getExtension(BatteryIncludedConfiguration::NAME);
         $apiClient = $this->apiClientFactory->createSearchApi($context);
+        if ($config->isLoggingSearchRequestActive()) {
+            $this->requestLoggingService->logRequest($request, $context, 'ConfigurationAdapter::getConfig');
+        }
+        //TODO: Add Debug logging <- SalesChannelContext is not available in admin
         $presets = $apiClient->configuration($request);
         $response = new ConfigurationResponseCollection();
-        $response->addConfigurationResponse(new PresetConfigurationResponse($presets, $config->getCollection()));
+        $response->addConfigurationResponse(new PresetConfigurationResponse($presets, $biConfig->getCollection()));
         return $response;
     }
 }
