@@ -76,6 +76,17 @@ class SearchApiDecorator extends SearchApi
 {
     private const DEFAULT_SORT = 'default';
 
+    /**
+     * @param ApiClientFactory $apiFactory
+     * @param Transformer $transformer
+     * @param LocaleService $localeService
+     * @param LoggerInterface $logger
+     * @param SystemConfigService $systemConfigService
+     * @param EntityRepository $filterRepository
+     * @param RequestLoggingService $requestLoggingService
+     * @param ElioDataDiscoveryConfigServiceInterface $configService
+     * @param EventDispatcherInterface $eventDispatcher
+     */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
