@@ -18,6 +18,14 @@ use Throwable;
 
 class RecommendationAdapterDecorator extends RecommendationAdapter
 {
+    /**
+     * @param ApiClientFactory $apiFactory
+     * @param Transformer $transformer
+     * @param LocaleService $localeService
+     * @param LoggerInterface $logger
+     * @param ElioDataDiscoveryConfigServiceInterface $configService
+     * @param RequestLoggingService $requestLoggingService
+     */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,

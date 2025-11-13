@@ -15,6 +15,12 @@ use Shopware\Core\System\SalesChannel\SalesChannelContext;
 
 class ConfigurationAdapterDecorator extends ConfigurationAdapter
 {
+    /**
+     * @param ApiClientFactory $apiClientFactory
+     * @param ElioDataDiscoveryConfigServiceInterface $configService
+     * @param LoggerInterface $logger
+     * @param RequestLoggingService $requestLoggingService
+     */
     public function __construct(
         private readonly ApiClientFactory $apiClientFactory,
         private readonly ElioDataDiscoveryConfigServiceInterface $configService,
