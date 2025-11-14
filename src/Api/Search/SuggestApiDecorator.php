@@ -87,7 +87,7 @@ class SuggestApiDecorator extends SuggestApi
      */
     public function suggest(SuggestRequest $suggestRequest, SalesChannelContext $context): ResponseCollection
     {
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $suggestRequest->getRequestId()]);
         $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($suggestRequest);

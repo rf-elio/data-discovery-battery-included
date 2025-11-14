@@ -104,7 +104,7 @@ class SearchApiDecorator extends SearchApi
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $config = $this->configService->getByContext($context);
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
 
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
@@ -129,7 +129,7 @@ class SearchApiDecorator extends SearchApi
     {
         $locale = $this->localeService->getLocaleByContext($context);
         $config = $this->configService->getByContext($context);
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
 
         $filters = $this->prepareFilters($searchRequest, $context);
         $variables = ApiUtil::prepareVariables($locale);
@@ -157,7 +157,7 @@ class SearchApiDecorator extends SearchApi
         NavigationRequestProduct $searchRequest,
         SalesChannelContext $context
     ): ResponseCollection {
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
         $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
 

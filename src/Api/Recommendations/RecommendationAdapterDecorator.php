@@ -47,7 +47,7 @@ class RecommendationAdapterDecorator extends RecommendationAdapter
     public function getRecommendations(RecommendationRequest $request, SalesChannelContext $context): ResponseCollection
     {
         $config = $this->configService->getByContext($context);
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $request->getRequestId()]);
         $locale = $this->localeService->getLocaleByContext($context);
         if ($config->isLoggingSearchRequestActive()) {
             $this->requestLoggingService->logRequest($request, $context, 'recommendation');

@@ -36,7 +36,7 @@ class ConfigurationAdapterDecorator extends ConfigurationAdapter
         $config = $this->configService->getByContext($context);
         /** @var BatteryIncludedConfiguration $biConfig */
         $biConfig = $config->getExtension(BatteryIncludedConfiguration::NAME);
-        $apiClient = $this->apiClientFactory->createSearchApi($context);
+        $apiClient = $this->apiClientFactory->createSearchApi($context, ['request_id' => $request->getRequestId()]);
         if ($config->isLoggingSearchRequestActive()) {
             $this->requestLoggingService->logRequest($request, $context, 'ConfigurationAdapter::getConfig');
         }
