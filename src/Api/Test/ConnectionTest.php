@@ -122,7 +122,7 @@ class ConnectionTest
         try {
             $response = $this->client->request('GET', $url, [
                 'headers' => [
-                    'X-BI-API-KEY' => $token,
+                    ElioBatteryIncludedSearchExtension::X_BI_API_KEY => $token,
                     'Content-Type' => 'application/json'
                 ],
                 'timeout' => $timeout

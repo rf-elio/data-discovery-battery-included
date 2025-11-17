@@ -76,6 +76,17 @@ class SearchApiDecorator extends SearchApi
 {
     private const DEFAULT_SORT = 'default';
 
+    /**
+     * @param ApiClientFactory $apiFactory
+     * @param Transformer $transformer
+     * @param LocaleService $localeService
+     * @param LoggerInterface $logger
+     * @param SystemConfigService $systemConfigService
+     * @param EntityRepository $filterRepository
+     * @param RequestLoggingService $requestLoggingService
+     * @param ElioDataDiscoveryConfigServiceInterface $configService
+     * @param EventDispatcherInterface $eventDispatcher
+     */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
@@ -93,7 +104,7 @@ class SearchApiDecorator extends SearchApi
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $config = $this->configService->getByContext($context);
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
 
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
@@ -110,15 +121,15 @@ class SearchApiDecorator extends SearchApi
             $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
         }
         $this->searchDebug('search', $this, [$event->getRequest(), $context, $locale]);
-        $result = $apiClient->filter($event->getRequest()->getQuery(), $event->getVariables(), $event->getFilters());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     public function searchContent(ContentSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $locale = $this->localeService->getLocaleByContext($context);
         $config = $this->configService->getByContext($context);
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
 
         $filters = $this->prepareFilters($searchRequest, $context);
         $variables = ApiUtil::prepareVariables($locale);
@@ -127,10 +138,11 @@ class SearchApiDecorator extends SearchApi
         $this->eventDispatcher->dispatch($event);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
+            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'searchContent');
         }
-        $result = $apiClient->filter($event->getRequest()->getQuery(), $event->getVariables(), $event->getFilters());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        $this->searchDebug('searchContent', $this, [$event->getRequest(), $context, $locale]);
+        $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     /**
@@ -145,7 +157,7 @@ class SearchApiDecorator extends SearchApi
         NavigationRequestProduct $searchRequest,
         SalesChannelContext $context
     ): ResponseCollection {
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
         $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
 
@@ -171,10 +183,11 @@ class SearchApiDecorator extends SearchApi
         $this->eventDispatcher->dispatch($event);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
+            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'navigation');
         }
-        $result = $apiClient->filter($event->getRequest()->getQuery(), $event->getVariables(), $event->getFilters());
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        $this->searchDebug('navigation', $this, [$event->getRequest(), $context, $locale]);
+        $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     /**
@@ -222,10 +235,6 @@ class SearchApiDecorator extends SearchApi
         if (!empty($searchRequest->getSort())) {
             $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
             return $this->setDefaultSorting($filters);
-        }
-
-        if ($searchRequest instanceof NavigationRequestProduct && !empty($searchRequest->getStreamId())) {
-            return $filters;
         }
 
         $criteria = new Criteria();
