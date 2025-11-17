@@ -102,11 +102,11 @@ class FacetTransformer implements ResponseTransformerInterface
 
         $filterNames = [];
         foreach ($model->getFacetCounts() as $facet) {
-            $filterNames[] = $facet->field_name;
+            $filterNames[$facet->field_name] = $facet->field_label ?? '';
         }
 
         $this->filterSyncService->createNonExistingFilters($filterNames, $context);
-        $allowedFilterNames = $this->filterService->filter($filterNames, FilterEntity::FILTER_TYPE_FILTER, $request, $context);
+        $allowedFilterNames = $this->filterService->filter(array_keys($filterNames), FilterEntity::FILTER_TYPE_FILTER, $request, $context);
         $aggregationResultCollection = $listing->getAggregations() ?? new AggregationResultCollection();
         $listing->setAggregations($aggregationResultCollection);
 
