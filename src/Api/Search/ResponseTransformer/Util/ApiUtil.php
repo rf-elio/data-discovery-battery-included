@@ -24,4 +24,11 @@ class ApiUtil
 
         return $preparedFilters;
     }
+
+    public static function prepareVariables(string $locale): array
+    {
+        return [
+            'v[locale]' => $locale,
+        ];
+    }
 }

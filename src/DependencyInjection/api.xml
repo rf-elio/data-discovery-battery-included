@@ -28,17 +28,24 @@
             <argument type="service" id="elio_data_discovery_filter.repository"/>
             <argument type="service" id="Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService"/>
             <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService" />
+            <argument type="service" id="event_dispatcher"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\SuggestApiDecorator" decorates="Elio\ElioDataDiscovery\Api\Search\SuggestApi">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
             <argument type="service" id="Elio\ElioDataDiscovery\Api\Transform\Transformer"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
+            <argument type="service" id="event_dispatcher"/>
+            <argument type="service" id="elio.data-discovery.core.logging.debug"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Recommendations\RecommendationAdapterDecorator" decorates="Elio\ElioDataDiscovery\Api\Recommendations\RecommendationAdapter">
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
             <argument type="service" id="Elio\ElioDataDiscovery\Api\Transform\Transformer"/>
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService"/>
             <argument type="service" id="elio.data-discovery.core.logging.debug"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Recommendations\ResponseTransformer\RecommendationProductTransformer">
             <argument type="service" id="Shopware\Core\Content\Product\SalesChannel\Listing\ProductListingLoader" />
@@ -49,6 +56,7 @@
             <argument type="service" id="Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory"/>
             <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
             <argument type="service" id="elio.data-discovery.core.logging.debug"/>
+            <argument type="service" id="Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService"/>
         </service>
 
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\FacetTransformer">
@@ -90,12 +98,6 @@
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\RedirectTransformer">
             <tag name="elio-data-discovery.api.transformer.response"/>
-        </service>
-        <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\SuggestProductTransformer">
-            <argument type="service" id="sales_channel.product.repository"/>
-            <argument type="service" id="Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigService"/>
-            <argument type="service" id="event_dispatcher"/>
-            <tag name="elio-data-discovery.api.transformer.response" priority="49"/>
         </service>
         <service id="Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\InterrupterTransformer">
             <argument type="service" id="Elio\ElioDataDiscovery\Core\Content\Interrupter\SalesChannel\SeoResolver"/>

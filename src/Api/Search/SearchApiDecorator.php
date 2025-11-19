@@ -38,6 +38,9 @@ use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\LocaleUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioBatteryIncludedSearchExtension\Configuration\BatteryIncludedConfiguration;
+use Elio\ElioDataDiscovery\Api\Event\ContentSearchParametersPreparedEvent;
+use Elio\ElioDataDiscovery\Api\Event\NavigationParametersPreparedEvent;
+use Elio\ElioDataDiscovery\Api\Event\SearchParametersPreparedEvent;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\ContentSearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\Request\NavigationRequestProduct;
@@ -46,13 +49,12 @@ use Elio\ElioDataDiscovery\Api\Search\Request\SearchRequest;
 use Elio\ElioDataDiscovery\Api\Search\SearchApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
 use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
-use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\FilterRestrictions\FilterEntity;
 use Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\Aggregation\Visibilities;
-use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
 use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
 use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\Framework\DataAbstractionLayer\EntityRepository;
@@ -74,6 +76,17 @@ class SearchApiDecorator extends SearchApi
 {
     private const DEFAULT_SORT = 'default';
 
+    /**
+     * @param ApiClientFactory $apiFactory
+     * @param Transformer $transformer
+     * @param LocaleService $localeService
+     * @param LoggerInterface $logger
+     * @param SystemConfigService $systemConfigService
+     * @param EntityRepository $filterRepository
+     * @param RequestLoggingService $requestLoggingService
+     * @param ElioDataDiscoveryConfigServiceInterface $configService
+     * @param EventDispatcherInterface $eventDispatcher
+     */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
@@ -82,7 +95,8 @@ class SearchApiDecorator extends SearchApi
         private readonly SystemConfigService $systemConfigService,
         private readonly EntityRepository $filterRepository,
         private readonly RequestLoggingService $requestLoggingService,
-        private readonly ElioDataDiscoveryConfigServiceInterface $configService
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService,
+        private readonly EventDispatcherInterface $eventDispatcher
     ) {
         parent::__construct($logger);
     }
@@ -90,35 +104,45 @@ class SearchApiDecorator extends SearchApi
     public function search(ProductSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $config = $this->configService->getByContext($context);
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
 
-        if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
-        }
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($searchRequest, $context);
         $filters = $this->preparePagination($filters, $searchRequest, $context);
         $filters = $this->addSorting($filters, $searchRequest, $locale, $context->getContext());
         $filters = $this->addAdditionalParameters($filters, $searchRequest, $context);
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
+        $variables = ApiUtil::prepareVariables($locale);
 
-        $this->searchDebug('search', $this, [$searchRequest, $context, $locale]);
-        $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        $event = new SearchParametersPreparedEvent($searchRequest, $filters, $variables, $context);
+        $this->eventDispatcher->dispatch($event);
+
+        if ($config->isLoggingSearchRequestActive()) {
+            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'search');
+        }
+        $this->searchDebug('search', $this, [$event->getRequest(), $context, $locale]);
+        $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     public function searchContent(ContentSearchRequest $searchRequest, SalesChannelContext $context): ResponseCollection
     {
         $locale = $this->localeService->getLocaleByContext($context);
         $config = $this->configService->getByContext($context);
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
+
+        $filters = $this->prepareFilters($searchRequest, $context);
+        $variables = ApiUtil::prepareVariables($locale);
+
+        $event = new ContentSearchParametersPreparedEvent($searchRequest, $filters, $variables, $context);
+        $this->eventDispatcher->dispatch($event);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
+            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'searchContent');
         }
-        $filters = $this->prepareFilters($searchRequest, $context);
-        $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        $this->searchDebug('searchContent', $this, [$event->getRequest(), $context, $locale]);
+        $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     /**
@@ -133,7 +157,7 @@ class SearchApiDecorator extends SearchApi
         NavigationRequestProduct $searchRequest,
         SalesChannelContext $context
     ): ResponseCollection {
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $searchRequest->getRequestId()]);
         $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
 
@@ -153,12 +177,17 @@ class SearchApiDecorator extends SearchApi
 
         // locale
         $filters = $this->localeService->addLocaleToFilters($filters, $locale);
+        $variables = ApiUtil::prepareVariables($locale);
+
+        $event = new NavigationParametersPreparedEvent($searchRequest, $filters, $variables, $context);
+        $this->eventDispatcher->dispatch($event);
 
         if ($config->isLoggingSearchRequestActive()) {
-            $this->requestLoggingService->logRequest($searchRequest, $context, 'search');
+            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'navigation');
         }
-        $result = $apiClient->filter($searchRequest->getQuery(), $locale, $filters);
-        return $this->transformer->transformResponse($result, $context, $searchRequest);
+        $this->searchDebug('navigation', $this, [$event->getRequest(), $context, $locale]);
+        $result = $apiClient->filter($event->getRequest(), $event->getVariables(), $event->getFilters());
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     /**
@@ -168,10 +197,11 @@ class SearchApiDecorator extends SearchApi
      */
     protected function prepareFilters(SearchRequest $searchRequest, SalesChannelContext $context): array
     {
-        $type = $searchRequest instanceof ContentSearchRequest
-            ? StripClassPathUtil::stripClassPath(ContentDataType::class)
-            : StripClassPathUtil::stripClassPath(ProductDataType::class);
-        $searchRequest->addFilter('type', $type, SearchRequest::FILTER_TYPE_EQUALS);
+        if ($searchRequest instanceof ContentSearchRequest) {
+            $searchRequest->addFilter('type', StripClassPathUtil::stripClassPath(ProductDataType::class), SearchRequest::FILTER_TYPE_NOT);
+        } else {
+            $searchRequest->addFilter('type', StripClassPathUtil::stripClassPath(ProductDataType::class), SearchRequest::FILTER_TYPE_EQUALS);
+        }
         return ApiUtil::prepareFilters($searchRequest->getFilters());
     }
 
@@ -205,10 +235,6 @@ class SearchApiDecorator extends SearchApi
         if (!empty($searchRequest->getSort())) {
             $filters['sort'] = $searchRequest->getSort()['name'] . ':' . $searchRequest->getSort()['order'];
             return $this->setDefaultSorting($filters);
-        }
-
-        if ($searchRequest instanceof NavigationRequestProduct && !empty($searchRequest->getStreamId())) {
-            return $filters;
         }
 
         $criteria = new Criteria();

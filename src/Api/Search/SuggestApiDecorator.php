@@ -35,10 +35,15 @@ namespace Elio\ElioBatteryIncludedSearchExtension\Api\Search;
 use Elio\ElioBatteryIncludedSearchExtension\Api\ApiClientFactory;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Util\ApiUtil;
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
+use Elio\ElioDataDiscovery\Api\Event\SuggestParametersPreparedEvent;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
 use Elio\ElioDataDiscovery\Api\Search\Request\SuggestRequest;
 use Elio\ElioDataDiscovery\Api\Search\SuggestApi;
 use Elio\ElioDataDiscovery\Api\Transform\Transformer;
+use Elio\ElioDataDiscovery\Configuration\ElioDataDiscoveryConfigServiceInterface;
+use Elio\ElioDataDiscovery\Core\Logging\RequestLoggingService;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Throwable;
@@ -54,16 +59,25 @@ use Throwable;
 class SuggestApiDecorator extends SuggestApi
 {
     /**
-     * SearchApi constructor.
      * @param ApiClientFactory $apiFactory
      * @param Transformer $transformer
      * @param LocaleService $localeService
+     * @param ElioDataDiscoveryConfigServiceInterface $configService
+     * @param EventDispatcherInterface $eventDispatcher
+     * @param LoggerInterface $logger
+     * @param RequestLoggingService $requestLoggingService
      */
     public function __construct(
         private readonly ApiClientFactory $apiFactory,
         private readonly Transformer $transformer,
-        private readonly LocaleService $localeService
-    ) {}
+        private readonly LocaleService $localeService,
+        private readonly ElioDataDiscoveryConfigServiceInterface $configService,
+        private readonly EventDispatcherInterface $eventDispatcher,
+        LoggerInterface $logger,
+        private readonly RequestLoggingService $requestLoggingService
+    ) {
+        parent::__construct($logger);
+    }
 
     /**
      * @param SuggestRequest $suggestRequest
@@ -73,11 +87,21 @@ class SuggestApiDecorator extends SuggestApi
      */
     public function suggest(SuggestRequest $suggestRequest, SalesChannelContext $context): ResponseCollection
     {
-        $apiClient = $this->apiFactory->createSearchApi($context);
+        $apiClient = $this->apiFactory->createSearchApi($context, ['request_id' => $suggestRequest->getRequestId()]);
+        $config = $this->configService->getByContext($context);
         $locale = $this->localeService->getLocaleByContext($context);
         $filters = $this->prepareFilters($suggestRequest);
-        $result = new SuggestionResultCollection($apiClient->suggest($suggestRequest->getQuery(), $locale, $filters));
-        return $this->transformer->transformResponse($result, $context, $suggestRequest);
+        $variables = ApiUtil::prepareVariables($locale);
+
+        $event = new SuggestParametersPreparedEvent($suggestRequest, $filters, $variables, $context);
+        $this->eventDispatcher->dispatch($event);
+
+        if ($config->isLoggingSearchRequestActive()) {
+            $this->requestLoggingService->logRequest($event->getRequest(), $context, 'suggest');
+        }
+        $this->searchDebug('suggest', $this, [$event->getRequest(), $context]);
+        $result = new SuggestionResultCollection($apiClient->suggest($event->getRequest(), $event->getVariables(), $event->getFilters()));
+        return $this->transformer->transformResponse($result, $context, $event->getRequest());
     }
 
     private function prepareFilters(SuggestRequest $suggestRequest): array

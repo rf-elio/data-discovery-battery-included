@@ -12,6 +12,8 @@ class ElioBatteryIncludedSearchExtension extends Plugin
 {
     public const PLUGIN_CONFIG_PREFIX = 'ElioBatteryIncludedSearchExtension.config';
 
+    public const X_BI_API_KEY = 'X-BI-API-KEY';
+
     /**
      * Adds the additional service definitions
      *
