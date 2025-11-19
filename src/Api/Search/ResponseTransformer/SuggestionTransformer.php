@@ -37,6 +37,7 @@ use Elio\ElioBatteryIncludedSearchExtension\Api\Search\ResponseTransformer\Event
 use Elio\ElioBatteryIncludedSearchExtension\Api\Service\LocaleService;
 use Elio\ElioDataDiscovery\Api\Search\Components\SuggestTypes;
 use Elio\ElioDataDiscovery\Api\Search\Response\SuggestionResponse;
+use Elio\ElioDataDiscovery\Api\Search\ResponseTransformer\EntityResolveStruct;
 use Elio\ElioDataDiscovery\Api\Transform\ResponseTransformerInterface;
 use Elio\ElioDataDiscovery\Api\Request\ApiRequest;
 use Elio\ElioDataDiscovery\Api\Response\ResponseCollection;
@@ -45,13 +46,19 @@ use Elio\ElioDataDiscovery\Core\Exception\InvalidTypeException;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroup;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestGroupCollection;
 use Elio\ElioDataDiscovery\Core\Suggest\SuggestItem;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ContentDataType;
+use Elio\ElioDataDiscovery\Core\Sync\DataTypes\ProductDataType;
+use Elio\ElioDataDiscovery\Core\Util\StripClassPathUtil;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Shopware\Core\Content\Category\CategoryEntity;
+use Shopware\Core\Content\Category\CategoryDefinition;
+use Shopware\Core\Content\LandingPage\LandingPageDefinition;
+use Shopware\Core\Content\Product\ProductDefinition;
 use Shopware\Core\System\SalesChannel\SalesChannelContext;
 use Elio\ElioDataDiscovery\Swagger\ModelInterface;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResult;
 use Elio\ElioBatteryIncludedApiClient\Model\SuggestionResultCollection;
 use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 
 /**
  * Converts suggest result to internal structure
@@ -121,7 +128,7 @@ class SuggestionTransformer implements ResponseTransformerInterface
 
                 $event = new SuggestItemTransformEvent($suggestItem, $model, $responseCollection, $request, $context);
                 $this->eventDispatcher->dispatch($event);
-                if($event->isRemoveSuggestItemFromResult()) {
+                if ($event->isRemoveSuggestItemFromResult()) {
                     continue;
                 }
 
@@ -145,117 +152,27 @@ class SuggestionTransformer implements ResponseTransformerInterface
 
     /**
      * @param object $hit
-     * @param string $type
+     * @param string $kind
      * @param string $locale
      * @return SuggestItem
      */
-    private function transformSuggestion(object $hit, string $type, string $locale): SuggestItem
+    private function transformSuggestion(object $hit, string $kind, string $locale): SuggestItem
     {
         $propertyAccess = PropertyAccess::createPropertyAccessor();
         $suggestItem = new SuggestItem();
-        $suggestItem->setType('other');
+        if ($propertyAccess->isReadable($hit, 'highlighted.type')) {
+            $suggestItem->setType($propertyAccess->getValue($hit, 'highlighted.type'));
+        } else {
+            $suggestItem->setType('other');
+        }
 
-        if ($type === SuggestionResult::RESULT_TYPE_DOCUMENT) {
-            if (
-                $propertyAccess->isReadable($hit, 'highlighted._product') ||
-                $propertyAccess->isReadable($hit, 'highlighted._product_i18n')
-            ) {
-                $suggestItem->setType(SuggestTypes::PRODUCT->value);
-            }
+        if ($kind === SuggestionResult::RESULT_TYPE_DOCUMENT) {
+            $this->addEntityResolveStruct($suggestItem, $hit, $propertyAccess);
+            $this->getCommonFields($suggestItem, $locale, $hit, $propertyAccess);
+            $this->addAiPickAttribute($suggestItem, $hit, $propertyAccess);
 
-            if ($propertyAccess->isReadable($hit, 'highlighted._product_i18n.'.$locale)) {
-                $productTranslationPropertyPath = 'highlighted._product_i18n.'.$locale;
-            } else {
-                $productTranslationPropertyPath = 'highlighted._product_i18n';
-            }
-            $namePropertyPath = $productTranslationPropertyPath . '.name';
-            if ($propertyAccess->isReadable($hit, $namePropertyPath)) {
-                $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $namePropertyPath)));
-            }
-            $productPropertyPath = 'highlighted._product';
-            if ($propertyAccess->isReadable($hit, $productPropertyPath)) {
-                $attributes = [];
-                $productMasterProductNumberPropertyPath = 'highlighted._product.masterProductNumber';
-                if ($propertyAccess->isReadable($hit, $productMasterProductNumberPropertyPath)) {
-                    $attributes['MasterProductNumber'] = $propertyAccess->getValue($hit, $productMasterProductNumberPropertyPath);
-                }
-
-                $productProductNumberPropertyPath = 'highlighted._product.productNumber';
-                if ($propertyAccess->isReadable($hit, $productProductNumberPropertyPath)) {
-                    $attributes['ProductNumber'] = $propertyAccess->getValue($hit, $productProductNumberPropertyPath);
-                }
-
-                $suggestItem->setAttributes($attributes);
-            }
-
-            $aIPickPath = 'highlighted._ai.pick';
-            if ($propertyAccess->isReadable($hit, $aIPickPath)) {
-                $aIAttribute = [];
-                $aIPickCategoryPath = $aIPickPath . '.category';
-                if ($propertyAccess->isReadable($hit, $aIPickCategoryPath)) {
-                    $aIAttribute['category'] = $propertyAccess->getValue($hit, $aIPickCategoryPath);
-                }
-                $aIPickNamePath = $aIPickPath . '.name';
-                if ($propertyAccess->isReadable($hit, $aIPickNamePath)) {
-                    $aIAttribute['name'] = $propertyAccess->getValue($hit, $aIPickNamePath);
-                }
-
-                $suggestItem->setAttribute('ai_pick', $aIAttribute);
-            }
-
-            $commonPropertyPath = 'highlighted._common';
-            if ($propertyAccess->isReadable($hit, $commonPropertyPath)) {
-                $commonImageUrlPropertyPath = $commonPropertyPath.'.imageUrl';
-                if ($propertyAccess->isReadable($hit, $commonImageUrlPropertyPath)
-                    && $propertyAccess->getValue($hit, $commonImageUrlPropertyPath) !== null) {
-                    $suggestItem->setImgUrl($propertyAccess->getValue($hit, $commonImageUrlPropertyPath));
-                }
-                $commonThumbnailUrlPropertyPath = $commonPropertyPath.'.thumbnailUrl';
-                if (
-                    $propertyAccess->isReadable($hit, $commonThumbnailUrlPropertyPath)
-                    && $propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath) !== null
-                    && !empty($propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath))
-                ) {
-                    $suggestItem->setImgUrl($propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath));
-                }
-            }
-
-            if ($propertyAccess->isReadable($hit, 'highlighted._common_i18n.' . $locale)) {
-                $commonTranslationPropertyPath = 'highlighted._common_i18n.' . $locale;
-            } else {
-                $commonTranslationPropertyPath = 'highlighted._common_i18n';
-            }
-            if ($propertyAccess->isReadable($hit, $commonTranslationPropertyPath)) {
-                $urlPropertyPath = $commonTranslationPropertyPath.'.url';
-                if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
-                    $suggestItem->setUrl(strip_tags((string) $propertyAccess->getValue($hit, $urlPropertyPath)));
-                }
-            }
-
-            $contentPropertyPath = 'highlighted._content';
-            if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
-                $contentTypePath = $contentPropertyPath.'.contentType';
-                if ($propertyAccess->isReadable($hit, $contentTypePath)) {
-                    $suggestItem->setType(strip_tags($propertyAccess->getValue($hit, $contentTypePath)));
-                } else {
-                    $suggestItem->setType(SuggestTypes::CONTENT->value);
-                }
-            }
-
-            if ($propertyAccess->isReadable($hit, 'highlighted._content_i18n.' . $locale)) {
-                $contentTranslationPropertyPath = 'highlighted._content_i18n.' . $locale;
-            } else {
-                $contentTranslationPropertyPath = 'highlighted._content_i18n';
-            }
-            if ($propertyAccess->isReadable($hit, $contentTranslationPropertyPath)) {
-                $contentNamePropertyPath = $contentTranslationPropertyPath.'.name';
-                if ($propertyAccess->isReadable($hit, $contentNamePropertyPath)) {
-                    $suggestItem->setName(strip_tags((string) $propertyAccess->getValue($hit, $contentNamePropertyPath)));
-                }
-            }
-
-            // fallback
-            if (empty($suggestItem->getName()) && property_exists($hit, 'value') && is_string($hit->value)) {
+            //Fallback for extra data types
+            if (property_exists($hit, 'value') && is_string($hit->value)) {
                 $suggestItem->setName($hit->value);
             }
 
@@ -273,15 +190,148 @@ class SuggestionTransformer implements ResponseTransformerInterface
             $suggestItem->setUrl($hit->url);
         }
 
-        $dataIdPath = 'data.id';
-        if ($propertyAccess->isReadable($hit, $dataIdPath) && str_contains($type, '.categoryTree.name')) {
-            $id = $propertyAccess->getValue($hit, $dataIdPath);
-            $category = new CategoryEntity();
-            $category->setId($id);
-            $suggestItem->setEntity($category);
+        $this->addData($suggestItem, $kind, $hit, $propertyAccess);
+
+        $suggestItem->setType($kind);
+        return $suggestItem;
+    }
+
+    /**
+     * Extracts the identifier and type of the document from the hit.
+     *
+     * @param SuggestItem $item
+     * @param object $hit
+     * @param PropertyAccessor $propertyAccess
+     */
+    private function addEntityResolveStruct(SuggestItem $item, object $hit, PropertyAccessor $propertyAccess): void
+    {
+        $type = $item->getType();
+        $idPropertyPath = 'highlighted.id';
+        if ($type === StripClassPathUtil::stripClassPath(ProductDataType::class)) {
+            $productPropertyPath = 'highlighted._product';
+            $productProductNumberPropertyPath = $productPropertyPath . '.productNumber';
+            $productMasterProductNumberPropertyPath = $productPropertyPath . '.masterProductNumber';
+            //TODO: We need to implement something that allows products to be differentiated by type.
+            $item->setType(SuggestTypes::PRODUCT->value);
+
+            if ($propertyAccess->isReadable($hit, $productProductNumberPropertyPath)) {
+                $productNumbers = $propertyAccess->getValue($hit, $productProductNumberPropertyPath);
+                $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                    str_replace(['<mark>', '</mark>'], ['', ''], $productNumbers[0]),
+                    ProductDefinition::ENTITY_NAME,
+                ));
+            } elseif ($propertyAccess->isReadable($hit, $productMasterProductNumberPropertyPath)) {
+                $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                    str_replace(['<mark>', '</mark>'], ['', ''], $propertyAccess->getValue($hit, $productMasterProductNumberPropertyPath)),
+                    ProductDefinition::ENTITY_NAME,
+                ));
+            } elseif ($propertyAccess->isReadable($hit, $idPropertyPath)) {
+                $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                    str_replace(['<mark>', '</mark>'], ['', ''], $propertyAccess->getValue($hit, $idPropertyPath)),
+                    ProductDefinition::ENTITY_NAME,
+                ));
+            }
+        } elseif ($type === StripClassPathUtil::stripClassPath(ContentDataType::class)) {
+            if ($propertyAccess->isReadable($hit, $idPropertyPath)) {
+                $id = $propertyAccess->getValue($hit, $idPropertyPath);
+                $contentPropertyPath = 'highlighted._content';
+                if ($propertyAccess->isReadable($hit, $contentPropertyPath)) {
+                    $contentTypePath = $contentPropertyPath.'.contentType';
+                    if ($propertyAccess->isReadable($hit, $contentTypePath)) {
+                        $contentType = $propertyAccess->getValue($hit, $contentTypePath);
+                        $item->setType($contentType);
+                        $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                            $id,
+                            $contentType === 'landingpage' ? LandingPageDefinition::ENTITY_NAME : CategoryDefinition::ENTITY_NAME,
+                        ));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Extracts the common fields from the hit.
+     *
+     * @param SuggestItem $item
+     * @param string $locale
+     * @param object $hit
+     * @param PropertyAccessor $propertyAccess
+     */
+    private function getCommonFields(SuggestItem $item, string $locale, object $hit, PropertyAccessor $propertyAccess): void
+    {
+        $commonPropertyPath = 'highlighted._common';
+        if ($propertyAccess->isReadable($hit, $commonPropertyPath)) {
+            $commonImageUrlPropertyPath = $commonPropertyPath.'.imageUrl';
+            if (
+                $propertyAccess->isReadable($hit, $commonImageUrlPropertyPath)
+                && $propertyAccess->getValue($hit, $commonImageUrlPropertyPath) !== null
+            ) {
+                $item->setImgUrl($propertyAccess->getValue($hit, $commonImageUrlPropertyPath));
+            }
+            $commonThumbnailUrlPropertyPath = $commonPropertyPath.'.thumbnailUrl';
+            if (
+                $propertyAccess->isReadable($hit, $commonThumbnailUrlPropertyPath)
+                && $propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath) !== null
+                && !empty($propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath))
+            ) {
+                $item->setImgUrl($propertyAccess->getValue($hit, $commonThumbnailUrlPropertyPath));
+            }
         }
 
-        $suggestItem->setType($type);
-        return $suggestItem;
+        if ($propertyAccess->isReadable($hit, 'highlighted._common_i18n.' . $locale)) {
+            $commonTranslationPropertyPath = 'highlighted._common_i18n.' . $locale;
+        } else {
+            $commonTranslationPropertyPath = 'highlighted._common_i18n';
+        }
+        if ($propertyAccess->isReadable($hit, $commonTranslationPropertyPath)) {
+            $urlPropertyPath = $commonTranslationPropertyPath.'.url';
+            if ($propertyAccess->isReadable($hit, $urlPropertyPath)) {
+                $item->setUrl(strip_tags((string) $propertyAccess->getValue($hit, $urlPropertyPath)));
+            }
+        }
+    }
+
+    /**
+     * Extracts the AI pick from the hit.
+     *
+     * @param SuggestItem $item
+     * @param object $hit
+     * @param PropertyAccessor $propertyAccess
+     */
+    private function addAiPickAttribute(SuggestItem $item, object $hit, PropertyAccessor $propertyAccess): void
+    {
+        $aIPickPath = 'highlighted._ai.pick';
+        if ($propertyAccess->isReadable($hit, $aIPickPath)) {
+            $aIAttribute = [];
+            $aIPickCategoryPath = $aIPickPath . '.category';
+            if ($propertyAccess->isReadable($hit, $aIPickCategoryPath)) {
+                $aIAttribute['category'] = $propertyAccess->getValue($hit, $aIPickCategoryPath);
+            }
+            $aIPickNamePath = $aIPickPath . '.name';
+            if ($propertyAccess->isReadable($hit, $aIPickNamePath)) {
+                $aIAttribute['name'] = $propertyAccess->getValue($hit, $aIPickNamePath);
+            }
+            $item->setAttribute('ai_pick', $aIAttribute);
+        }
+    }
+
+    /**
+     * Checks if the data attribute exists and adds the data to the item.
+     *
+     * @param SuggestItem $item
+     * @param string $kind
+     * @param object $hit
+     * @param PropertyAccessor $propertyAccess
+     */
+    private function addData(SuggestItem $item, string $kind, object $hit, PropertyAccessor $propertyAccess): void
+    {
+        $dataIdPath = 'data.id';
+        if ($propertyAccess->isReadable($hit, $dataIdPath) && str_contains($kind, '.categoryTree.name')) {
+            $id = $propertyAccess->getValue($hit, $dataIdPath);
+            $item->setAttribute(EntityResolveStruct::class, new EntityResolveStruct(
+                $id, CategoryDefinition::ENTITY_NAME
+            ));
+        }
     }
 }

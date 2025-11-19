@@ -1,4 +1,30 @@
 # CHANGELOG.md
+## 7.0.1 - 2025-11-19
+### Feature (1 change)
+- Ported recent changes from the SW 6.6 version
+
+## 6.6.30 - 2025-11-17
+### Feature (6 changes)
+- Refactored the `SuggestionTransformer` to move some of its logic and allow the setting of identifiers and entity types for the entity resolvers
+- Removed the `SuggestProductTransformer` as the logic is now handled in the Core plugin
+- Extended the API client to require the entire request as a parameter and added a new header with the request ID for tracking
+- Added a constant for the API key header
+- Added debug and request logging to the suggest, recommendation and configuration requests
+- `FacetTransformer`: Added support for retrieving a `field_label` property from `facet_counts` in the response
+
+### Fix (2 changes)
+- `SearchApiDecorator`: Removed early return for `streamIds` when adding the sorting as the `categoryId` is now always set in the request object
+- Removed unused async methods in the `SearchApi` client
+
+## 6.6.29 - 2025-10-30
+### Feature (2 changes)
+- Added support for setting multiple variables in the search and suggest requests
+- Dispatched events to allow for changing the parameters of search and suggest requests before they are passed to the API client
+
+### Fix (2 changes)
+- `SuggestionTransformer` only sets the `SuggestItem` type to `other` if no type is found in the highlights
+- `type` filter in `prepareFilters` method now uses the `NOT` filter type for `ContentSearchRequests` to allow multiple potential types of content, such as blogs
+
 ## 7.0.0 - 2025-10-24
 ### Feature (1 change)
 - Compatibility with Shopware 6.7

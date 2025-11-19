@@ -58,12 +58,13 @@ class ApiClientFactory
      * Creates a search api client
      *
      * @param SalesChannelContext $salesChannelContext
+     * @param array $logParams
      * @return SearchApi
      */
-    public function createSearchApi(SalesChannelContext $salesChannelContext): SearchApi
+    public function createSearchApi(SalesChannelContext $salesChannelContext, array $logParams = []): SearchApi
     {
         return new SearchApi(
-            $this->createClient($salesChannelContext->getSalesChannelId(), $salesChannelContext),
+            $this->createClient($salesChannelContext->getSalesChannelId(), $salesChannelContext, $logParams),
             $this->createConfiguration($salesChannelContext->getSalesChannelId(), $salesChannelContext)
         );
     }
@@ -91,7 +92,10 @@ class ApiClientFactory
         });
         $stack->push($mapResponse);
         $stack->push(Middleware::log(
-            new GuzzleLogWrapper($this->logger, $this, ['context' => $salesChannelContext, 'params' => $params]),
+            new GuzzleLogWrapper($this->logger, $this, [
+                'context' => $salesChannelContext,
+                'params' => $params
+            ]),
             new MessageFormatter(LoggingService::LOG_FORMAT))
         );
 
