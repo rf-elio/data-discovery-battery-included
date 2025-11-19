@@ -1,4 +1,8 @@
 # CHANGELOG.md
+## 7.0.1 - 2025-11-19
+### Feature (1 change)
+- Ported recent changes from the SW 6.6 version
+
 ## 6.6.30 - 2025-11-17
 ### Feature (6 changes)
 - Refactored the `SuggestionTransformer` to move some of its logic and allow the setting of identifiers and entity types for the entity resolvers
